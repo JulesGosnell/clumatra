@@ -4,8 +4,12 @@ Experiments with Clojure / Sumatra / Graal and, ultimately, Clojure compiled ont
 
 For Fedora 20 / x86_64 - see https://wiki.openjdk.java.net/display/Sumatra/Sumatra+JDK+build+instructions for more detail / alternative architectures
 
-sudo yum install java-1.7.0-openjdk mercurial freetype-devel cups-devel gcc gcc-c++ p7zip p7zip-plugins ccache libstdc++-static maven
-sudo yum-builddep java-1.7.0-openjdk
+You'll need to ensure that a few packages are installed - do the following as root:
+
+<pre>
+yum install java-1.7.0-openjdk mercurial freetype-devel cups-devel gcc gcc-c++ p7zip p7zip-plugins ccache libstdc++-static maven
+yum-builddep java-1.7.0-openjdk
+</pre>
 
 Build yourself a graal-enabled jdk8 on which to run Clumatra
 
