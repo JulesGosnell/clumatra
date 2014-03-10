@@ -4,73 +4,96 @@
 
 (set! *warn-on-reflection* true)
 
+;; java7 - serial
+(defn kernel-compile-leaf [f]
+  (fn [^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out]
+    (loop [i 0]
+      (if (< i 32)
+        (do
+          (aset out i (f (aget in i)))
+          (recur (unchecked-inc i)))
+        out))))
 
-;; java8 vmap-amap - parallel
-(defn vmap-amap [in out l kernel]
-  (.forEach
-   (.parallel (java.util.stream.IntStream/range 0 l))
-   (reify java.util.function.IntConsumer (accept [self i] (kernel in out i)))))
+(defn kernel-compile-branch [f]
+  (fn [^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out & args]
+    (loop [i 0]
+      (if (< i 32)
+        (do
+          (aset out i (apply f (aget in i) args))
+          (recur (unchecked-inc i)))
+        out))))
 
-;; java8 vmap-amap - sequential
-(defn vmap-amap [in out l kernel]
-  (.forEach
-   (java.util.stream.IntStream/range 0 l)
-   (reify java.util.function.IntConsumer (accept [self i] (kernel in out i)))))
+;; ;; java8 - serial
+;; (defn kernel-compile [f]
+;;   (let [kernel (reify java.util.function.IntConsumer (accept [self i] (kernel in out i)))]
+;;     (fn [^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out]
+;;       (.forEach (java.util.stream.IntStream/range 0 (min (count in) (count out))) kernel))))
 
-;; simple vmap-amap
-(defn vmap-amap [^objects in ^objects out l kernel]
-  (loop [i 0]
-    (if (< i l)
-      (do
-        (kernel in out i)
-        (recur (unchecked-inc i)))
-      out)))
+;; ;; java8 - parallel
+;; (defn kernel-compile [f]
+;;   (let [kernel (reify java.util.function.IntConsumer (accept [self i] (kernel in out i)))]
+;;   (fn [^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out]
+;;     (.forEach (.parallel (java.util.stream.IntStream/range 0 (min (count in) (count out))) kernel)))))
 
-(defn kernelise [f]
-  (fn [^objects in ^objects out i] (aset out i (f (aget in i)))))
+;; ;; see core for graal/java8
 
-;; TODO: how do we compile two interdependent functions ?
+;;------------------------------------------------------------------------------
 
-(defn vmap-node [n k] (println "SHOULD NOT BE CALLED"))
+;; map a kernel across an input array returning the output array...
+(defn vmap-leaf-array [^"[Ljava.lang.Object;" in k]
+  (k in (make-array Object 32)))
 
-(defn vmap-array [k ^objects a]
-  (let [func (if (= (type (nth a 0)) PersistentVector$Node)
-               (kernelise (fn [v] (if v (vmap-node k v)))) ;TODO: churn
-               k)
-        l (alength a)]
-    (vmap-amap a (make-array Object l) l func)
+(defn vmap-branch-array [^"[Ljava.lang.Object;" in level k]
+  (k in (make-array Object 32) level k))
 
-    ;(amap a i _ (func (aget a i)))
+;; recurse down a node mapping the branch and leaf kernels across the
+;; appropriate arrays, returning a new Node...
+(defn vmap-node [^PersistentVector$Node n level bk lk]
+  (PersistentVector$Node.
+   (AtomicReference.)
+   (let [a (.array n)]
+     (if (zero? level)
+       (vmap-leaf-array a lk)
+       (vmap-branch-array a (dec level) bk)
+       ))))
 
-    ))
+(defn ^java.lang.reflect.Constructor unlock-constructor [^Class class param-types]
+  (doto (.getDeclaredConstructor class param-types) (.setAccessible true)))
 
-(defn vmap-node [k ^PersistentVector$Node n]
-  (PersistentVector$Node. (AtomicReference.) (vmap-array k (.array n))))
+(defn process-tail [f ^"[Ljava.lang.Object;" in]
+  (let [n (count in)
+        ^"[Ljava.lang.Object;" out (make-array Object n)]
+    (loop [i 0]
+      (if (< i n)
+        (do
+          (aset out i (f (aget in i)))
+          (recur (unchecked-inc i)))
+        out))))
 
-(let [param-types (into-array 
-                   Class
-                   [(Integer/TYPE) (Integer/TYPE) PersistentVector$Node (type (into-array Object []))])
-      ^java.lang.reflect.Constructor c (unlock-ctor PersistentVector param-types)]
+(let [ObjectArray (type (into-array Object []))
+      ctor (unlock-constructor
+            PersistentVector
+            (into-array
+             Class
+             [(Integer/TYPE) (Integer/TYPE) PersistentVector$Node ObjectArray]))]
+
   (defn vmap [f ^PersistentVector v]
-    (let [vk (kernelise f)
-          nk (kernelise (fn [v] (if v (vmap-node vk v))))]
+    (let [lk (kernel-compile-leaf f)
+          bk (kernel-compile-branch (fn [n l bk] (if n (vmap-node n l bk lk))))
+          shift (.shift v)]
       (.newInstance
-       c
+       ctor
        (into-array
         Object
         [(count v)
-         (.shift v)
-         (vmap-node vk (.root v))
-         (vmap-array vk (.tail v))])))))
-      
-;;(defmethod vmap PersistentVector [k ^PersistentVector v]
-;;;  (PersistentVector. (vector-cnt v) (.shift v) (vmap k (.root v)) (vmap k (.tail v))))
-      
-(def a (into [] (range 1000000)))
-(time (def b (mapv inc a)))
-(time (def c (vmap inc a)))
-(= b c)
+         shift
+         (vmap-node (.root v) (/ shift 5) bk lk)
+         (process-tail f (.tail v))])))))
 
-;; try this with java 8
-
+;;------------------------------------------------------------------------------
+;; TODO:
+;; - integrate with core
+;; - unroll array loops with macro
+;; - unroll level loop to/from given depth with macro - then we won't need to pass param to branch-kernel
+;; - implement reduction into hashset/map in similar way
 
