@@ -1,9 +1,13 @@
 (ns clojure.lang
   (:import [java.util.concurrent.atomic AtomicReference]
-           [clojure.lang PersistentVector PersistentVector$Node]))
+           [clojure.lang
+            PersistentVector PersistentVector$Node
+            PersistentHashMap PersistentHashMap$INode
+            ]))
 
 (set! *warn-on-reflection* true)
 
+;;------------------------------------------------------------------------------
 ;; java7 - serial
 (defn kernel-compile-leaf [f]
   (fn [^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out]
@@ -96,4 +100,36 @@
 ;; - unroll array loops with macro
 ;; - unroll level loop to/from given depth with macro - then we won't need to pass param to branch-kernel
 ;; - implement reduction into hashset/map in similar way
+;;------------------------------------------------------------------------------
 
+;; (defmacro map-array [n f a]
+;;   `(let [^"[Ljava.lang.Object;" 'in# ~a
+;;          ^"[Ljava.lang.Object;" out# (make-array Object ~n)]
+;;      ~(loop [i 0]
+;;         (if (< i 10)
+;;           (do
+;;             ;;;`(aset out# ~i (list ~f (list 'aget in# ~i)))
+;;             (list 'list 1 2 3)
+;;             (recur (unchecked-inc i)))
+;;           )
+;;         )
+;;      out#))
+;;------------------------------------------------------------------------------
+
+(defn ^PersistentHashMap$INode reduce-vector-array-into-hashmap-node [f l ^"[Ljava.lang.Object;" in]
+)
+
+(let [ctor (unlock-constructor
+            PersistentHashMap
+            (into-array
+             Class
+             [(Integer/TYPE) clojure.lang.PersistentHashMap$INode (Boolean/TYPE) Object]))]
+  (defn reduce-vector-into-hashmap [f ^PersistentVector v]
+    (let [levels (/ (.shift v) 5)
+          [root-count root-node] (reduce-vector-array-into-hashmap-node f levels (.root v))
+          [tail-count tail-node] (reduce-vector-array-into-hashmap-node f levels (.tail v))
+          [new-count new-node] [0 nil] ;; somehow merge root and tail
+          ]
+    (.newInstance ctor (into-array Object [(int new-count) new-node false nil])))))
+
+(reduce-vector-into-hashmap inc [0 1 2 3 4 5])
