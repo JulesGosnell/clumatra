@@ -3,7 +3,8 @@
            [clojure.lang
             PersistentVector PersistentVector$Node
             PersistentHashMap PersistentHashMap$INode
-            ]))
+            ])
+  (:require [clumatra [core :as gpu]]))
 
 (set! *warn-on-reflection* true)
 
@@ -29,15 +30,19 @@
 ;;        ~out)))
  
 ;;------------------------------------------------------------------------------
+
+;; okra
+(defn kernel-compile-leaf [f] (gpu/kernel-compile f 32))
+
 ;; java7 - serial
-(defn kernel-compile-leaf [f]
-  (fn [^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out]
-    (loop [i 0]
-      (if (< i 32)
-        (do
-          (aset out i (f (aget in i)))
-          (recur (unchecked-inc i)))
-        out))))
+;; (defn kernel-compile-leaf [f]
+;;   (fn [^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out]
+;;     (loop [i 0]
+;;       (if (< i 32)
+;;         (do
+;;           (aset out i (f (aget in i)))
+;;           (recur (unchecked-inc i)))
+;;         out))))
 
 ;;java 7 - serial
 (defn kernel-compile-branch [f]

@@ -31,7 +31,7 @@
 (defn kernel-compile [foo n]
   (with-open [_ (OptionValue/override (GraalOptions/InlineEverything) true)
               _ (OptionValue/override (GraalOptions/PrintCompilation) true)
-              _ (OptionValue/override (GraalOptions/PrintProfilingInformation) true)
+              _ (OptionValue/override (GraalOptions/PrintProfilingInformation) false)
               ;; _ (OptionValue/override (GraalOptions/RemoveNeverExecutedCode) true)
               ]
     (let [^HSAILHotSpotBackend backend (.getBackend (HotSpotGraalRuntime/runtime) HSAIL)
@@ -43,7 +43,7 @@
                            ;;)
                            )))
           okra (OkraKernel.
-                (doto (OkraContext.) (.setVerbose true))
+                (doto (OkraContext.) (.setVerbose false))
                 (.getCodeString
                  (.compileKernel
                   backend

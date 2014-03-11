@@ -12,23 +12,26 @@
 
 ;;------------------------------------------------------------------------------
 
+(def foo identity)                      ; okra will not yet let us call a fn
+
 (deftest a-test
   (testing "map vector-to-vector"
 
-    (let [a (into [] (range 1000000))
-          b (time (mapv inc a))
-          c (time (vmap inc a))]
-      (is (= b c)))))
+    (let [a (into [] (range 100))
+          b (time (mapv foo a))
+          c (time (vmap foo a))]
+      (= b c))))
 
 
 (defn test-foo [n foo] (let [r (into [] (range n))] (= (vmap foo r) (map foo r))))
 
 (deftest another-test
   (testing "map vector-to-vector"
-    (is (test-foo 0 inc))
-    (is (test-foo 32 inc))
-    (is (test-foo 33 inc))
-    (is (test-foo (+ 32 (* 32 32)) inc))
-    (is (test-foo (+ 33 (* 32 32)) inc))
-    (is (test-foo (+ 33 (* 32 32 32)) inc))
-    (is (test-foo (+ 33 (* 32 32 32 32)) inc))))
+    (is (test-foo 0 foo))
+    (is (test-foo 32 foo))
+    (is (test-foo 33 foo))
+    (is (test-foo (+ 32 (* 32 32)) foo))
+    (is (test-foo (+ 33 (* 32 32)) foo))
+    (is (test-foo (+ 33 (* 32 32 32)) foo))
+    (is (test-foo (+ 33 (* 32 32 32 32)) foo))
+    ))
