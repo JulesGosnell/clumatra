@@ -6,6 +6,12 @@
 
 ;;------------------------------------------------------------------------------
 
+;; (deftest test-map-array
+;;   (testing "map an array to an array using an unrolled loop"
+;;     (is (= (map inc (range 32)) (seq (map-array 32 (into-array Object (range 32)) inc))))))
+
+;;------------------------------------------------------------------------------
+
 (deftest a-test
   (testing "map vector-to-vector"
 

@@ -8,6 +8,27 @@
 (set! *warn-on-reflection* true)
 
 ;;------------------------------------------------------------------------------
+;; (clojure.pprint/pprint (macroexpand-1 '(map-array (inc 2) (into-array [1 2 3]) inc)))
+;; (seq (map-array (inc 2) (into-array [1 2 3]) inc))
+
+;; using this seems to be slightly slower - probably set up costs with let
+
+;; (defmacro map-array [size i o function]
+;;   (let [in  (with-meta (gensym) {:tag "[Ljava.lang.Object;"})
+;;         out (with-meta (gensym) {:tag "[Ljava.lang.Object;"})
+;;         f (gensym)
+;;         s# (eval size)]
+;;     `(let [~in  ~i
+;;            ~out ~o
+;;            ~f ~function]
+;;        (do
+;;          ~@(doall
+;;             (map
+;;              (fn [i] `(aset ^"[Ljava.lang.Object;" ~out ~i (~f (aget ~in ~i))))
+;;              (range s#))))
+;;        ~out)))
+ 
+;;------------------------------------------------------------------------------
 ;; java7 - serial
 (defn kernel-compile-leaf [f]
   (fn [^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out]
@@ -18,6 +39,7 @@
           (recur (unchecked-inc i)))
         out))))
 
+;;java 7 - serial
 (defn kernel-compile-branch [f]
   (fn [^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out & args]
     (loop [i 0]
@@ -27,19 +49,32 @@
           (recur (unchecked-inc i)))
         out))))
 
-;; ;; java8 - serial
-;; (defn kernel-compile [f]
-;;   (let [kernel (reify java.util.function.IntConsumer (accept [self i] (kernel in out i)))]
-;;     (fn [^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out]
-;;       (.forEach (java.util.stream.IntStream/range 0 (min (count in) (count out))) kernel))))
+;; java7 - parallel - threads
+;; (defn kernel-compile-branch [f]
+;;   (fn [^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out & args]
+;;     (pmap (fn [i] (aset out i (apply f (aget in i) args))) (range 32))
+;;     out
+;;     ))
+
+;;; java7 -  parallel - forkjoin - TODO
+
+;; java8 - serial - this is going to be slow as we have to reify a
+;; IntConsumer closing over arrays and args on each call...
+;; actually surprisingly fast - as good as simple serial solution, despite churn
+;; (defn kernel-compile-branch [f]
+;;   (fn [^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out & args]
+;;     (let [consumer (reify java.util.function.IntConsumer
+;;                      (accept [self i] (aset out i (apply f (aget in i) args))))]
+;;       (.forEach (java.util.stream.IntStream/range 0 32) consumer))))
 
 ;; ;; java8 - parallel
-;; (defn kernel-compile [f]
-;;   (let [kernel (reify java.util.function.IntConsumer (accept [self i] (kernel in out i)))]
-;;   (fn [^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out]
-;;     (.forEach (.parallel (java.util.stream.IntStream/range 0 (min (count in) (count out))) kernel)))))
+;; (defn kernel-compile-branch [f]
+;;   (fn [^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out & args]
+;;     (let [consumer (reify java.util.function.IntConsumer
+;;                      (accept [self i] (aset out i (apply f (aget in i) args))))]
+;;       (.forEach (.parallel ^java.util.stream.IntPipeline$Head (java.util.stream.IntStream/range 0 32) consumer)))))
 
-;; ;; see core for graal/java8
+;; see core for graal/java8
 
 ;;------------------------------------------------------------------------------
 
@@ -102,34 +137,26 @@
 ;; - implement reduction into hashset/map in similar way
 ;;------------------------------------------------------------------------------
 
-;; (defmacro map-array [n f a]
-;;   `(let [^"[Ljava.lang.Object;" 'in# ~a
-;;          ^"[Ljava.lang.Object;" out# (make-array Object ~n)]
-;;      ~(loop [i 0]
-;;         (if (< i 10)
-;;           (do
-;;             ;;;`(aset out# ~i (list ~f (list 'aget in# ~i)))
-;;             (list 'list 1 2 3)
-;;             (recur (unchecked-inc i)))
-;;           )
-;;         )
-;;      out#))
+
 ;;------------------------------------------------------------------------------
+;; not sure that this is actually productive
+;; - on the input side it WOULD save a little in terms of iterator churn
+;; - on the output side, the cost of producing tuples of [size, node] and [key, value] might be more expensive than just putting a PersistentMap around the node and calling (assoc) on it. Perhaps all HashMap nodes could be HashMaps in their own right and carry size and an assoc/conj method.
 
-(defn ^PersistentHashMap$INode reduce-vector-array-into-hashmap-node [f l ^"[Ljava.lang.Object;" in]
-)
+;; (defn ^PersistentHashMap$INode reduce-vector-array-into-hashmap-node [f l ^"[Ljava.lang.Object;" in]
+;; )
 
-(let [ctor (unlock-constructor
-            PersistentHashMap
-            (into-array
-             Class
-             [(Integer/TYPE) clojure.lang.PersistentHashMap$INode (Boolean/TYPE) Object]))]
-  (defn reduce-vector-into-hashmap [f ^PersistentVector v]
-    (let [levels (/ (.shift v) 5)
-          [root-count root-node] (reduce-vector-array-into-hashmap-node f levels (.root v))
-          [tail-count tail-node] (reduce-vector-array-into-hashmap-node f levels (.tail v))
-          [new-count new-node] [0 nil] ;; somehow merge root and tail
-          ]
-    (.newInstance ctor (into-array Object [(int new-count) new-node false nil])))))
+;; (let [ctor (unlock-constructor
+;;             PersistentHashMap
+;;             (into-array
+;;              Class
+;;              [(Integer/TYPE) clojure.lang.PersistentHashMap$INode (Boolean/TYPE) Object]))]
+;;   (defn reduce-vector-into-hashmap [f ^PersistentVector v]
+;;     (let [levels (/ (.shift v) 5)
+;;           [root-count root-node] (reduce-vector-array-into-hashmap-node f levels (.root v))
+;;           [tail-count tail-node] (reduce-vector-array-into-hashmap-node f levels (.tail v))
+;;           [new-count new-node] [0 nil] somehow merge root and tail
+;;           ]
+;;     (.newInstance ctor (into-array Object [(int new-count) new-node false nil])))))
 
-(reduce-vector-into-hashmap inc [0 1 2 3 4 5])
+;; (reduce-vector-into-hashmap inc [0 1 2 3 4 5])

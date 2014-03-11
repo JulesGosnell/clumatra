@@ -6,7 +6,9 @@
    [com.oracle.graal.hotspot HotSpotGraalRuntime]
    [com.oracle.graal.hotspot.hsail HSAILHotSpotBackend]
    [com.amd.okra OkraContext OkraKernel]
-   ))
+   )
+  ;;;(:use [clumatra.dummy OptionValue GraalOptions])
+  )
 
 ;;------------------------------------------------------------------------------
 
@@ -54,15 +56,5 @@
         (.setLaunchAttributes okra n)
         (.dispatchWithArgs okra (into-array Object [kernel in out]))
         out))))
-
-(def kernel-fn (kernel-compile identity 32)) ; kernel-fn - (defn ^Object foo [^Object]...)
-
-(let [n 32
-      in (into-array Object (range n))
-      out (make-array Object n)]
-  (println "INPUT: " (into [] in))
-  (println "BEFORE:" (into [] out))
-  (kernel-fn in out)
-  (println "AFTER: " (into [] out)))
 
 ;;------------------------------------------------------------------------------
