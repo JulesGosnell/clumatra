@@ -55,7 +55,7 @@
 (definterface LongKernel (^void invoke [^longs in ^longs out ^int gid]))
 
 (deftest long-test
-  (testing "increment an long array"
+  (testing "increment an long array via the application of a static method"
     (let [n 32
           kernel (reify LongKernel
                    (^void invoke [^LongKernel self ^longs in ^longs out ^int gid]
@@ -66,6 +66,38 @@
              (long-array (range n))
              (long-array n)))
            (range 1 (inc n)))))))
+
+;;------------------------------------------------------------------------------
+
+(deftest long-function-test
+  (testing "increment a long array via the application of a function"
+    (let [n 32
+          kernel (reify LongKernel
+                   (^void invoke [^LongKernel self ^longs in ^longs out ^int gid]
+                     (aset out gid (inc (aget in gid)))))]
+      (is (=
+           (seq
+            ((kernel-compile2 kernel (find-method kernel "invoke") n)
+             (long-array (range n))
+             (long-array n)))
+           (range 1 (inc n)))))))
+
+
+;; gives  com.oracle.graal.graph.GraalInternalError: unimplemented
+
+;; (deftest long-function-test
+;;   (testing "increment a long array via the application of a function containing a function"
+;;     (let [my-inc (fn [^long l] (inc l))
+;;           n 32
+;;           kernel (reify LongKernel
+;;                    (^void invoke [^LongKernel self ^longs in ^longs out ^int gid]
+;;                      (aset out gid (my-inc (aget in gid)))))]
+;;       (is (=
+;;            (seq
+;;             ((kernel-compile2 kernel (find-method kernel "invoke") n)
+;;              (long-array (range n))
+;;              (long-array n)))
+;;            (range 1 (inc n)))))))
 
 ;;------------------------------------------------------------------------------
 
