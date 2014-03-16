@@ -55,7 +55,7 @@
 (definterface LongKernel (^void invoke [^longs in ^longs out ^int gid]))
 
 (deftest long-test
-  (testing "increment an long array via the application of a static method"
+  (testing "increment a long array via the application of a static method"
     (let [n 32
           kernel (reify LongKernel
                    (^void invoke [^LongKernel self ^longs in ^longs out ^int gid]
