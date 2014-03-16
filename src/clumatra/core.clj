@@ -1,5 +1,6 @@
 (ns clumatra.core
   (:import
+   [java.lang.reflect Method]
    [com.oracle.graal.hsail HSAIL]
    [com.oracle.graal.phases GraalOptions]
    [com.oracle.graal.options OptionValue]
@@ -21,27 +22,13 @@
 ;; have finished using the kernel...
 ;;------------------------------------------------------------------------------
 
-(definterface Kernel (^void invoke [^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out ^int i])) ; grid must be last param
-
-(def Objects (class (into-array Object [])))
-(def kernel-method-param-types (into-array ^Class [Objects Objects (Integer/TYPE)]))
-
-;;------------------------------------------------------------------------------
-
-(defn kernel-compile [foo n]
+(defn kernel-compile2 [kernel ^Method method n]
   (with-open [_ (OptionValue/override (GraalOptions/InlineEverything) true)
               _ (OptionValue/override (GraalOptions/PrintCompilation) true)
               _ (OptionValue/override (GraalOptions/PrintProfilingInformation) false)
               ;; _ (OptionValue/override (GraalOptions/RemoveNeverExecutedCode) true)
               ]
     (let [^HSAILHotSpotBackend backend (.getBackend (HotSpotGraalRuntime/runtime) HSAIL)
-          kernel (reify Kernel
-                   (^void invoke [^Kernel self ^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out ^int i]
-                     (aset out i
-                           ;;(foo
-                           (aget in i)
-                           ;;)
-                           )))
           okra (OkraKernel.
                 (doto (OkraContext.) (.setVerbose false))
                 (.getCodeString
@@ -49,12 +36,30 @@
                   backend
                   (.lookupJavaMethod 
                    (.getMetaAccess (.getProviders backend))
-                   (.getDeclaredMethod (class kernel) "invoke" kernel-method-param-types))
+                   method)
                   false))
                 "&run")]
-      (fn [^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out]
+      (fn [in out]
         (.setLaunchAttributes okra n)
         (.dispatchWithArgs okra (into-array Object [kernel in out]))
         out))))
+
+;;------------------------------------------------------------------------------
+
+(definterface Kernel (^void invoke [^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out ^int i])) ; grid must be last param
+
+(def Objects (class (into-array Object [])))
+(def kernel-method-param-types (into-array ^Class [Objects Objects (Integer/TYPE)]))
+
+(defn kernel-compile [function n]
+  (let [kernel (reify Kernel
+     (^void invoke [^Kernel self ^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out ^int i]
+       (aset out i
+             ;;(foo
+             (aget in i)
+             ;;)
+             )))]
+    (kernel-compile2 kernel (.getDeclaredMethod (class kernel) "invoke" kernel-method-param-types) n)))
+  
 
 ;;------------------------------------------------------------------------------
