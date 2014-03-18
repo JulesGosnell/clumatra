@@ -26,7 +26,7 @@
     (println)
 
 (compile-if
- (= (System/getProperty "os.arch" "amd64"))
+ (= (System/getProperty "os.arch") "amd64")
  (do
    ;; looks like okra is available :-)
    (println "*** TESTING WITH OKRA ***")
