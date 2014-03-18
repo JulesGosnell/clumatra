@@ -32,185 +32,154 @@ You'll need lein - build and run Clumatra tests on graal-enabled jdk8
 ./bin/env.sh lein test
 </pre>
 
-The output should look something like this:
+The output should look something like this. It includes the source
+disassembled Java bytecode and target HSAIL for reference. I have
+added "-Dclumatra.verbose=true" flag in the project.clj. If you would
+prefer terse test output, just set this to false.
 
 <pre>
+lein test
+Initializing NoDisassemble Transformer
 [HSAIL] library is libokra_x86_64.so
-[HSAIL] using _OKRA_SIM_LIB_PATH_=/tmp/okraresource.dir_4110488871006839608/libokra_x86_64.so
+[HSAIL] using _OKRA_SIM_LIB_PATH_=/tmp/okraresource.dir_75590013030364124/libokra_x86_64.so
 [GPU] registered initialization of Okra (total initialized: 1)
-Profiling info for clumatra.core$kernel_compile$reify__361.invoke(Object[], Object[], int)
-  canBeStaticallyBound: false
-Profiling info for clojure.lang.RT.intCast(int)
-  canBeStaticallyBound: true
-Profiling info for clojure.lang.RT.intCast(int)
-  canBeStaticallyBound: true
-Profiling info for clojure.lang.RT.aget(Object[], int)
-  canBeStaticallyBound: true
-Profiling info for clojure.lang.RT.aset(Object[], int, Object)
-  canBeStaticallyBound: true
-Profiling info for com.oracle.graal.hotspot.replacements.CheckCastDynamicSnippets.checkcastDynamic(Word, Object)
-  canBeStaticallyBound: true
-Profiling info for com.oracle.graal.replacements.SnippetCounter.inc()
-  canBeStaticallyBound: false
-Profiling info for com.oracle.graal.hotspot.replacements.TypeCheckSnippetUtils.checkUnknownSubType(Word, Word)
-  canBeStaticallyBound: true
-Profiling info for com.oracle.graal.hotspot.replacements.TypeCheckSnippetUtils.checkSelfAndSupers(Word, Word)
-  canBeStaticallyBound: true
-Profiling info for com.oracle.graal.hotspot.replacements.TypeCheckSnippetUtils.loadSecondarySupersElement(Word, int)
-  canBeStaticallyBound: true
-Profiling info for com.oracle.graal.hotspot.replacements.HotSpotReplacementsUtil.verifyOop(Object)
-  canBeStaticallyBound: true
-Profiling info for com.oracle.graal.nodes.type.StampFactory.forNodeIntrinsic()
-  canBeStaticallyBound: true
-Fixed Hsail is
-==============
-version 0:95: $full : $large;	
-// instance method HotSpotMethod<core$kernel_compile$reify__361.invoke(Object[], Object[], int)>	
-kernel &run (	
-	align 8 kernarg_u64 %_this,
-	align 8 kernarg_u64 %_arg1,
-	align 8 kernarg_u64 %_arg2
-	) {
-	ld_kernarg_u64  $d0, [%_this];
-	ld_kernarg_u64  $d1, [%_arg1];
-	ld_kernarg_u64  $d2, [%_arg2];
-	workitemabsid_u32 $s0, 0;
-	                                   
-@L0:
-	cmp_eq_b1_u64 $c0, $d2, 0; // null test 
-	cbr $c0, @L1;
-@L2:
-	ld_global_s32 $s1, [$d2 + 12];
-	cmp_ge_b1_u32 $c0, $s0, $s1;
-	cbr $c0, @L27;
-@L3:
-	ld_global_s32 $s1, [$d2 + 12];
-	cmp_ge_b1_u32 $c0, $s0, $s1;
-	cbr $c0, @L26;
-@L4:
-	cmp_eq_b1_u64 $c0, $d1, 0; // null test 
-	cbr $c0, @L5;
-@L6:
-	ld_global_s32 $s1, [$d1 + 12];
-	cmp_ge_b1_u32 $c0, $s0, $s1;
-	cbr $c0, @L25;
-@L7:
-	ld_global_s32 $s1, [$d1 + 12];
-	cmp_ge_b1_u32 $c0, $s0, $s1;
-	cbr $c0, @L24;
-@L8:
-	cvt_s64_s32 $d0, $s0;
-	mul_s64 $d0, $d0, 4;
-	add_u64 $d1, $d1, $d0;
-	ld_global_u32 $d0, [$d1 + 16];
-	cmp_eq_b1_u64 $c0, $d0, 0; // null test 
-	cbr $c0, @L19;
-@L10:
-	ld_global_u32 $d1, [$d0 + 8];
-	shl_u64 $d1, $d1, 3;
-	ld_global_u32 $d3, [$d2 + 8];
-	shl_u64 $d3, $d3, 3;
-	ld_global_s64 $d3, [$d3 + 224];
-	ld_global_s32 $s1, [$d3 + 12];
-	cvt_s64_s32 $d4, $s1;
-	cvt_s64_s32 $d4, $d4;
-	add_s64 $d5, $d1, $d4;
-	ld_global_s64 $d4, [$d5 + 0];
-	cmp_eq_b1_s64 $c0, $d4, $d3;
-	cbr $c0, @L19;
-@L12:
-	cmp_ne_b1_s32 $c0, $s1, 24;
-	cbr $c0, @L23;
-@L13:
-	cmp_eq_b1_s64 $c0, $d1, $d3;
-	cbr $c0, @L19;
-@L15:
-	ld_global_s64 $d4, [$d1 + 32];
-	ld_global_s32 $s1, [$d4 + 0];
-	mov_b32 $s2, 0;
-	brn @L16;
-@L17:
-	shl_s32 $s3, $s2, 3;
-	add_s32 $s3, $s3, 8;
-	cvt_s64_s32 $d5, $s3;
-	cvt_s64_s32 $d5, $d5;
-	add_s64 $d6, $d4, $d5;
-	ld_global_s64 $d5, [$d6 + 0];
-	cmp_eq_b1_s64 $c0, $d3, $d5;
-	cbr $c0, @L18;
-@L20:
-	add_s32 $s2, $s2, 1;
-@L16:
-	cmp_lt_b1_s32 $c0, $s2, $s1;
-	cbr $c0, @L17;
-	brn @L22;
-@L19:
-	cvt_s64_s32 $d1, $s0;
-	mul_s64 $d1, $d1, 4;
-	add_u64 $d2, $d2, $d1;
-	mov_b64 $d1, $d0;
-	st_global_u32 $d1, [$d2 + 16];
-	ret;
-@L18:
-	st_global_s64 $d3, [$d1 + 24];
-	brn @L19;
-@L26:
-	mov_b32 $s0, -92;
-@L28:
-	ret;
-@L22:
-	mov_b32 $s0, -35;
-	brn @L28;
-@L23:
-	mov_b32 $s0, -35;
-	brn @L28;
-@L1:
-	mov_b32 $s0, -11;
-	brn @L28;
-@L5:
-	mov_b32 $s0, -11;
-	brn @L28;
-@L24:
-	mov_b32 $s0, -92;
-	brn @L28;
-@L25:
-	mov_b32 $s0, -27;
-	brn @L28;
-@L27:
-	mov_b32 $s0, -27;
-	brn @L28;
-};	
 
-spawning Program: hsailasm temp_hsa.hsail -g -o temp_hsa.o
-hsailasm succeeded
-createProgram succeeded
-createKernel succeeded
-INPUT:  [0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31]
-BEFORE: [nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil]
-level 0, grid=32, group=1
-pushPointerArg, addr=0
-pushPointerArg, addr=0
-pushPointerArg, addr=0
-setPointerArg, addr=0xf0e33e88
-setPointerArg, addr=0xf12b9b58
-setPointerArg, addr=0xf12ba2b0
-AFTER:  [0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31]
+*** TESTING WITH OKRA ***
+Reflection warning, no/disassemble.clj:10:3 - call to method replace can't be resolved (target class is unknown).
+Reflection warning, no/disassemble.clj:21:28 - reference to field getCanonicalName can't be resolved.
+Reflection warning, no/disassemble.clj:23:5 - call to method disassemble on org.eclipse.jdt.internal.core.util.Disassembler can't be resolved (argument types: java.lang.Object, java.lang.String, unknown).
+
+
+lein test clojure.lang-test
+"Elapsed time: 0.436649 msecs"
+"Elapsed time: 0.775219 msecs"
 
 lein test clumatra.core-test
-Profiling info for clumatra.core$kernel_compile$reify__361.invoke(Object[], Object[], int)
+OKRA: SIMULATED
+// Compiled from core_test.clj (version 1.5 : 49.0, super bit)
+public final class clumatra.core_test$fn$reify__1024 implements clumatra.core_test.LongKernel, clojure.lang.IObj {
+  
+  // Field descriptor #11 Lclojure/lang/Var;
+  public static final clojure.lang.Var const__0;
+  
+  // Field descriptor #11 Lclojure/lang/Var;
+  public static final clojure.lang.Var const__1;
+  
+  // Field descriptor #11 Lclojure/lang/Var;
+  public static final clojure.lang.Var const__2;
+  
+  // Field descriptor #39 Lclojure/lang/IPersistentMap;
+  final clojure.lang.IPersistentMap __meta;
+  
+  // Method descriptor #15 ()V
+  // Stack: 2, Locals: 0
+  public static {};
+     0  ldc <String "clojure.core"> [17]
+     2  ldc <String "aset"> [19]
+     4  invokestatic clojure.lang.RT.var(java.lang.String, java.lang.String) : clojure.lang.Var [25]
+     7  checkcast clojure.lang.Var [27]
+    10  putstatic clumatra.core_test$fn$reify__1024.const__0 : clojure.lang.Var [29]
+    13  ldc <String "clojure.core"> [17]
+    15  ldc <String "int"> [31]
+    17  invokestatic clojure.lang.RT.var(java.lang.String, java.lang.String) : clojure.lang.Var [25]
+    20  checkcast clojure.lang.Var [27]
+    23  putstatic clumatra.core_test$fn$reify__1024.const__1 : clojure.lang.Var [33]
+    26  ldc <String "clojure.core"> [17]
+    28  ldc <String "aget"> [35]
+    30  invokestatic clojure.lang.RT.var(java.lang.String, java.lang.String) : clojure.lang.Var [25]
+    33  checkcast clojure.lang.Var [27]
+    36  putstatic clumatra.core_test$fn$reify__1024.const__2 : clojure.lang.Var [37]
+    39  return
+      Line numbers:
+        [pc: 0, line: 107]
+  
+  // Method descriptor #41 (Lclojure/lang/IPersistentMap;)V
+  // Stack: 2, Locals: 2
+  public core_test$fn$reify__1024(clojure.lang.IPersistentMap arg0);
+     0  aload_0
+     1  invokespecial java.lang.Object() [43]
+     4  aload_0
+     5  aload_1
+     6  putfield clumatra.core_test$fn$reify__1024.__meta : clojure.lang.IPersistentMap [45]
+     9  return
+      Line numbers:
+        [pc: 0, line: 107]
+  
+  // Method descriptor #15 ()V
+  // Stack: 2, Locals: 1
+  public core_test$fn$reify__1024();
+    0  aload_0
+    1  aconst_null
+    2  invokespecial clumatra.core_test$fn$reify__1024(clojure.lang.IPersistentMap) [47]
+    5  return
+
+  
+  // Method descriptor #49 ()Lclojure/lang/IPersistentMap;
+  // Stack: 1, Locals: 1
+  public clojure.lang.IPersistentMap meta();
+    0  aload_0
+    1  getfield clumatra.core_test$fn$reify__1024.__meta : clojure.lang.IPersistentMap [45]
+    4  areturn
+
+  
+  // Method descriptor #51 (Lclojure/lang/IPersistentMap;)Lclojure/lang/IObj;
+  // Stack: 3, Locals: 2
+  public clojure.lang.IObj withMeta(clojure.lang.IPersistentMap arg0);
+    0  new clumatra.core_test$fn$reify__1024 [2]
+    3  dup
+    4  aload_1
+    5  invokespecial clumatra.core_test$fn$reify__1024(clojure.lang.IPersistentMap) [47]
+    8  areturn
+
+  
+  // Method descriptor #53 ([J[JI)V
+  // Stack: 6, Locals: 4
+  public void invoke(long[] in, long[] out, int gid);
+     0  aload_2 [out]
+     1  aconst_null
+     2  astore_2 [out]
+     3  checkcast long[] [55]
+     6  iload_3 [gid]
+     7  nop
+     8  aload_1 [in]
+     9  aconst_null
+    10  astore_1 [in]
+    11  checkcast long[] [55]
+    14  iload_3 [gid]
+    15  nop
+    16  laload
+    17  lconst_1
+    18  ladd
+    19  invokestatic clojure.lang.RT.aset(long[], int, long) : long [58]
+    22  invokestatic clojure.lang.Numbers.num(long) : java.lang.Number [64]
+    25  pop
+    26  return
+      Line numbers:
+        [pc: 0, line: 107]
+        [pc: 0, line: 109]
+        [pc: 6, line: 109]
+        [pc: 8, line: 109]
+        [pc: 8, line: 109]
+        [pc: 14, line: 109]
+      Local variable table:
+        [pc: 0, pc: 26] local: this index: 0 type: clumatra.core_test.fn.reify__1024
+        [pc: 0, pc: 26] local: in index: 1 type: long[]
+        [pc: 0, pc: 26] local: out index: 2 type: long[]
+        [pc: 0, pc: 26] local: gid index: 3 type: int
+
+}
+Profiling info for clumatra.core_test$fn$reify__1024.invoke(long[], long[], int)
   canBeStaticallyBound: false
-Profiling info for clojure.lang.RT.intCast(int)
+Profiling info for clojure.lang.RT.aset(long[], int, long)
   canBeStaticallyBound: true
-Profiling info for clojure.lang.RT.intCast(int)
+Profiling info for clojure.lang.Numbers.num(long)
   canBeStaticallyBound: true
-Profiling info for clojure.lang.RT.aget(Object[], int)
-  canBeStaticallyBound: true
-Profiling info for clojure.lang.RT.aset(Object[], int, Object)
+Profiling info for com.oracle.graal.replacements.BoxingSubstitutions$LongSubstitutions.valueOf(long)
   canBeStaticallyBound: true
 Fixed Hsail is
 ==============
 version 0:95: $full : $large;	
-// instance method HotSpotMethod<core$kernel_compile$reify__361.invoke(Object[], Object[], int)>	
+// instance method HotSpotMethod<core_test$fn$reify__1024.invoke(long[], long[], int)>	
 kernel &run (	
 	align 8 kernarg_u64 %_this,
 	align 8 kernarg_u64 %_arg1,
@@ -227,103 +196,45 @@ kernel &run (
 @L2:
 	ld_global_s32 $s1, [$d2 + 12];
 	cmp_ge_b1_u32 $c0, $s0, $s1;
-	cbr $c0, @L27;
+	cbr $c0, @L10;
 @L3:
 	ld_global_s32 $s1, [$d2 + 12];
 	cmp_ge_b1_u32 $c0, $s0, $s1;
-	cbr $c0, @L26;
+	cbr $c0, @L9;
 @L4:
 	cmp_eq_b1_u64 $c0, $d1, 0; // null test 
 	cbr $c0, @L5;
 @L6:
 	ld_global_s32 $s1, [$d1 + 12];
 	cmp_ge_b1_u32 $c0, $s0, $s1;
-	cbr $c0, @L25;
+	cbr $c0, @L8;
 @L7:
-	ld_global_s32 $s1, [$d1 + 12];
-	cmp_ge_b1_u32 $c0, $s0, $s1;
-	cbr $c0, @L24;
-@L8:
 	cvt_s64_s32 $d0, $s0;
-	mul_s64 $d0, $d0, 4;
+	mul_s64 $d0, $d0, 8;
 	add_u64 $d1, $d1, $d0;
-	ld_global_u32 $d0, [$d1 + 16];
-	cmp_eq_b1_u64 $c0, $d0, 0; // null test 
-	cbr $c0, @L19;
-@L10:
-	ld_global_u32 $d1, [$d0 + 8];
-	shl_u64 $d1, $d1, 3;
-	ld_global_u32 $d3, [$d2 + 8];
-	shl_u64 $d3, $d3, 3;
-	ld_global_s64 $d3, [$d3 + 224];
-	ld_global_s32 $s1, [$d3 + 12];
-	cvt_s64_s32 $d4, $s1;
-	cvt_s64_s32 $d4, $d4;
-	add_s64 $d5, $d1, $d4;
-	ld_global_s64 $d4, [$d5 + 0];
-	cmp_eq_b1_s64 $c0, $d4, $d3;
-	cbr $c0, @L19;
-@L12:
-	cmp_ne_b1_s32 $c0, $s1, 24;
-	cbr $c0, @L23;
-@L13:
-	cmp_eq_b1_s64 $c0, $d1, $d3;
-	cbr $c0, @L19;
-@L15:
-	ld_global_s64 $d4, [$d1 + 32];
-	ld_global_s32 $s1, [$d4 + 0];
-	mov_b32 $s2, 0;
-	brn @L16;
-@L17:
-	shl_s32 $s3, $s2, 3;
-	add_s32 $s3, $s3, 8;
-	cvt_s64_s32 $d5, $s3;
-	cvt_s64_s32 $d5, $d5;
-	add_s64 $d6, $d4, $d5;
-	ld_global_s64 $d5, [$d6 + 0];
-	cmp_eq_b1_s64 $c0, $d3, $d5;
-	cbr $c0, @L18;
-@L20:
-	add_s32 $s2, $s2, 1;
-@L16:
-	cmp_lt_b1_s32 $c0, $s2, $s1;
-	cbr $c0, @L17;
-	brn @L22;
-@L19:
+	ld_global_s64 $d0, [$d1 + 16];
+	add_s64 $d0, $d0, 0x1;
 	cvt_s64_s32 $d1, $s0;
-	mul_s64 $d1, $d1, 4;
+	mul_s64 $d1, $d1, 8;
 	add_u64 $d2, $d2, $d1;
-	mov_b64 $d1, $d0;
-	st_global_u32 $d1, [$d2 + 16];
+	st_global_s64 $d0, [$d2 + 16];
 	ret;
-@L18:
-	st_global_s64 $d3, [$d1 + 24];
-	brn @L19;
-@L26:
-	mov_b32 $s0, -92;
-@L28:
-	ret;
-@L22:
-	mov_b32 $s0, -35;
-	brn @L28;
-@L23:
-	mov_b32 $s0, -35;
-	brn @L28;
 @L1:
 	mov_b32 $s0, -11;
-	brn @L28;
+@L11:
+	ret;
+@L9:
+	mov_b32 $s0, -92;
+	brn @L11;
+@L8:
+	mov_b32 $s0, -27;
+	brn @L11;
+@L10:
+	mov_b32 $s0, -27;
+	brn @L11;
 @L5:
 	mov_b32 $s0, -11;
-	brn @L28;
-@L24:
-	mov_b32 $s0, -92;
-	brn @L28;
-@L25:
-	mov_b32 $s0, -27;
-	brn @L28;
-@L27:
-	mov_b32 $s0, -27;
-	brn @L28;
+	brn @L11;
 };	
 
 spawning Program: hsailasm temp_hsa.hsail -g -o temp_hsa.o
@@ -334,19 +245,12 @@ level 0, grid=32, group=1
 pushPointerArg, addr=0
 pushPointerArg, addr=0
 pushPointerArg, addr=0
-setPointerArg, addr=0xf1684ee0
-setPointerArg, addr=0xf17a0188
-setPointerArg, addr=0xf17a08e0
-level 0, grid=32, group=1
-pushPointerArg, addr=0
-pushPointerArg, addr=0
-pushPointerArg, addr=0
-setPointerArg, addr=0xf1684ee0
-setPointerArg, addr=0xf17a0188
-setPointerArg, addr=0xf17a4f08
+setPointerArg, addr=0xc0390088
+setPointerArg, addr=0xc0718188
+setPointerArg, addr=0xc07182c0
+(0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31)  ->  (1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32)
 
-Ran 1 tests containing 4 assertions.
-0 failures, 0 errors.
+...
 </pre>
 
 If you want tun run up a dev environment, start it via the env.sh script - e.g.
