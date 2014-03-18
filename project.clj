@@ -9,5 +9,12 @@
                  [org.clojure/core.rrb-vector "0.0.10"]
                  [com.amd/okra-with-sim "1.8"]
                  ]
-  :jvm-opts ["-Xms1g" "-Xmx1g" "-server" "-XX:+GPUOffload" "-XX:+TraceGPUInteraction"]
+
+  :plugins [[lein-nodisassemble "0.1.2"]]
+
+  :global-vars {*warn-on-reflection* true
+                *assert* false
+                *unchecked-math* true}
+
+  :jvm-opts ["-Xms1g" "-Xmx1g" "-server" "-Dclumatra.verbose=true" "-XX:+GPUOffload" "-XX:+TraceGPUInteraction"]
   )
