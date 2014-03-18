@@ -26,8 +26,7 @@
     (println)
 
 (compile-if
- ;;(resolve (symbol "kernel-compile2"))
- (Class/forName "com.amd.okra.OkraKernel")
+ (= (System/getProperty "os.arch" "amd64"))
  (do
    ;; looks like okra is available :-)
    (println "*** TESTING WITH OKRA ***")
