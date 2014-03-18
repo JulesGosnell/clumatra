@@ -52,11 +52,6 @@
 
 ;;------------------------------------------------------------------------------
 
-(defn find-method [object ^String name]
-  (first (filter (fn [^Method method] (= (.getName method) "invoke")) (.getDeclaredMethods (class object)))))
-
-;;------------------------------------------------------------------------------
-
 (definterface CharKernel (^void invoke [^chars in ^chars out ^int gid]))
 
 
