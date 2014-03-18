@@ -7,9 +7,7 @@
    [com.oracle.graal.hotspot HotSpotGraalRuntime]
    [com.oracle.graal.hotspot.hsail HSAILHotSpotBackend]
    [com.amd.okra OkraContext OkraKernel]
-   )
-  ;;;(:use [clumatra.dummy OptionValue GraalOptions])
-  )
+   ))
 
 ;;------------------------------------------------------------------------------
 
@@ -46,20 +44,22 @@
 
 ;;------------------------------------------------------------------------------
 
-(definterface Kernel (^void invoke [^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out ^int i])) ; grid must be last param
+(defn find-method [object ^String name]
+  (first (filter (fn [^Method method] (= (.getName method) "invoke")) (.getDeclaredMethods (class object)))))
 
-(def Objects (class (into-array Object [])))
-(def kernel-method-param-types (into-array ^Class [Objects Objects (Integer/TYPE)]))
+;; consider using gen-interface and pushing this code into kernel-compile
+
+(definterface Kernel (^void invoke [^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out ^int i]))
 
 (defn kernel-compile [function n]
   (let [kernel (reify Kernel
-     (^void invoke [^Kernel self ^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out ^int i]
-       (aset out i
-             ;;(foo
-             (aget in i)
-             ;;)
-             )))]
-    (kernel-compile2 kernel (.getDeclaredMethod (class kernel) "invoke" kernel-method-param-types) n)))
+                 (^void invoke [^Kernel self ^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out ^int i]
+                   (aset out i
+                         ;;(foo
+                         (aget in i)
+                         ;;)
+                         )))]
+    (kernel-compile2 kernel (find-method kernel "invoke") n)))
   
 
 ;;------------------------------------------------------------------------------
