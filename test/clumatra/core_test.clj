@@ -5,9 +5,14 @@
             [clojure.core [rrb-vector :as v]]
             ;;[clumatra.core :refer :all]
             ;;[no [disassemble :as d]]
-            ))
+            )
+  (:genclass))
 
 (set! *warn-on-reflection* true)
+
+(defn main [& args]
+  (doseq [test args]
+    (test-vars [((ns-interns 'clumatra.core-test) (symbol test))])))
 
 ;;------------------------------------------------------------------------------
 
@@ -36,6 +41,10 @@
   (do
    ;; we must be on my i386 laptop :-(
     (println "*** TESTING WITHOUT OKRA ***")
+    
+    (defn find-method [object ^String name]
+      (first (filter (fn [^Method method] (= (.getName method) "invoke")) (.getDeclaredMethods (class object)))))
+    
    (def okra-kernel-compile local-kernel-compile)
    ))
 (println)
