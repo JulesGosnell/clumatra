@@ -6,13 +6,16 @@
             ;;[clumatra.core :refer :all]
             ;;[no [disassemble :as d]]
             )
-  (:genclass))
+  (:gen-class))
 
 (set! *warn-on-reflection* true)
 
-(defn main [& args]
-  (doseq [test args]
-    (test-vars [((ns-interns 'clumatra.core-test) (symbol test))])))
+(defn -main [& args]
+  (let [interns (ns-interns 'clumatra.core-test)]
+    (if args
+      (doseq [test args]
+        (test-vars [(interns (symbol test))]))
+      (test-vars (vals interns)))))
 
 ;;------------------------------------------------------------------------------
 
@@ -236,3 +239,66 @@
 ;; what primitive types will be available on GPU ?
 ;;------------------------------------------------------------------------------
 
+;;; TODO: boolean, short, float, byte
+;;------------------------------------------------------------------------------
+
+(definterface BooleanKernel (^void invoke [^booleans in ^booleans out ^int gid]))
+
+(deftest boolean-test
+  (testing "increment elements of an boolean[] via application of a java static method"
+    (let [n 32
+          kernel (reify BooleanKernel
+                   (^void invoke [^BooleanKernel self ^booleans in ^booleans out ^int gid]
+                     (aset out gid (if (aget in gid) false  true))))]
+      (is (test-kernel
+           kernel (find-method kernel "invoke") n
+           (boolean-array (map even? (range n))) (boolean-array n))))))
+
+;;------------------------------------------------------------------------------
+
+(definterface ByteKernel (^void invoke [^bytes in ^bytes out ^int gid]))
+
+(deftest byte-test
+  (testing "increment elements of an byte[] via application of a java static method"
+    (let [n 32
+          kernel (reify ByteKernel
+                   (^void invoke [^ByteKernel self ^bytes in ^bytes out ^int gid]
+                     (aset out gid (byte (inc (aget in gid))))))]
+      (is (test-kernel
+           kernel (find-method kernel "invoke") n
+           (byte-array (range n)) (byte-array n))))))
+
+;;------------------------------------------------------------------------------
+
+(definterface ShortKernel (^void invoke [^shorts in ^shorts out ^int gid]))
+
+(deftest short-test
+  (testing "increment elements of an short[] via application of a java static method"
+    (let [n 32
+          kernel (reify ShortKernel
+                   (^void invoke [^ShortKernel self ^shorts in ^shorts out ^int gid]
+                     (aset out gid (short (inc (aget in gid))))))]
+      (is (test-kernel
+           kernel (find-method kernel "invoke") n
+           (short-array (range n)) (short-array n))))))
+
+;;------------------------------------------------------------------------------
+
+(definterface FloatKernel (^void invoke [^floats in ^floats out ^int gid]))
+
+(deftest float-test
+  (testing "increment elements of an float[] via application of a java static method"
+    (let [n 32
+          kernel (reify FloatKernel
+                   (^void invoke [^FloatKernel self ^floats in ^floats out ^int gid]
+                     (aset out gid (float (inc (aget in gid))))))]
+      (is (test-kernel
+           kernel (find-method kernel "invoke") n
+           (float-array (range n)) (float-array n))))))
+
+;;------------------------------------------------------------------------------
+
+;; (defmacro defkernel [^String name ^Class class]
+;;   `(let [t# ~class
+;;          ts# (class (make-array t# 0))]
+;;      (definterface ~(symbol (str name "Kernel")) (^void invoke [^{:tag ts#} in ^{:tag ts#} out ^int gid]))))
