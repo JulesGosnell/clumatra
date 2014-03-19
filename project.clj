@@ -1,5 +1,5 @@
-(defproject seqspert "0.1.0-SNAPSHOT"
-  :description "Seqspert: Understand the internals of Clojure sequence implementations"
+(defproject clumatra "0.1.0-SNAPSHOT"
+  :description "Clumatra: Clojure for the GPU via Sumatra / Graal / Okra"
   :url "http://example.com/FIXME"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
