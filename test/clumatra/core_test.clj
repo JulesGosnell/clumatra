@@ -9,6 +9,8 @@
   (:gen-class))
 
 (set! *warn-on-reflection* true)
+;;(set! *assert* true)
+(set! *unchecked-math* true)
 
 (defn -main [& args]
   (let [interns (ns-interns 'clumatra.core-test)]
