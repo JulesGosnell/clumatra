@@ -106,12 +106,20 @@
 
 (definterface CharKernel (^void invoke [^chars in ^chars out ^int gid]))
 
+(deftest char-test
+  (testing "copy elements of a char[]"
+    (let [n 26
+          kernel (reify CharKernel
+                   (^void invoke [^CharKernel self ^chars in ^chars out ^int gid]
+                     (aset out gid (aget in gid))))]
+      (is (test-kernel
+           kernel (find-method kernel "invoke") n
+           (char-array (map char (range 65 (+ 65 n)))) (char-array n))))))
 
 ;; wierd - I would expect this one to work - investigate...
-
 ;; com.oracle.graal.graph.GraalInternalError: unimplemented
 
-;; (deftest char-test
+;; (deftest char-downcase-test
 ;;   (testing "downcase elements of an char[] via application of a java static method"
 ;;     (let [n 26
 ;;           kernel (reify CharKernel
