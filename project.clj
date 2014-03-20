@@ -16,5 +16,5 @@
                 *assert* false
                 *unchecked-math* true}
 
-  :jvm-opts ["-Xms1g" "-Xmx1g" "-server" "-XX:+GPUOffload" "-XX:+TraceGPUInteraction"]
+  :jvm-opts ["-Xms1g" "-Xmx1g" "-server" "-Dclumatra.verbose=true" "-XX:+GPUOffload" "-XX:+TraceGPUInteraction"]
   )
