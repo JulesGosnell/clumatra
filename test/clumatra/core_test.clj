@@ -306,13 +306,25 @@
    (Integer/TYPE)   (class (int-array 0))
    (Long/TYPE)      (class (long-array 0))
    (Float/TYPE)     (class (float-array 0))
-   (Double/TYPE)    (class (double-array 0))})rep
+   (Double/TYPE)    (class (double-array 0))})
 
 
-(defmacro defkernel [name t]
-  (let [array-type# (type->array-type (eval t))]
-    `(definterface
-       ~(symbol name)
-       (~(with-meta 'invoke {:tag (Void/TYPE)}) [~(with-meta 'in  {:tag array-type#})
-                                                 ~(with-meta 'out {:tag array-type#})
-                                                 ~(with-meta 'gid {:tag (Integer/TYPE)})]))))
+;; (defmacro make-kernel [name t]
+;;   (let [array-type# (type->array-type (eval t))]
+;;     `(do
+;;        (definterface
+;;          ~(symbol name)
+;;          (~(with-meta 'invoke {:tag (Void/TYPE)}) [~(with-meta 'in  {:tag array-type#})
+;;                                                    ~(with-meta 'out {:tag array-type#})
+;;                                                    ~(with-meta 'gid {:tag (Integer/TYPE)})]))
+;;        (reify ~(symbol name) (~'invoke [~'self ~'in ~'out ~'gid] (aset ~'out ~'gid (aget ~'in ~'gid)))))))
+  
+;; ;;------------------------------------------------------------------------------
+
+;; (deftest float-test
+;;   (testing "increment elements of an float[] via application of a java static method"
+;;     (let [n 32
+;;           kernel (make-kernel "FooKernel" Float/Type)]
+;;       (is (test-kernel
+;;            kernel (find-method kernel "invoke") n
+;;            (float-array (range n)) (float-array n))))))
