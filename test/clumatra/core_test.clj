@@ -64,14 +64,62 @@
 
 ;;------------------------------------------------------------------------------
 
+(definterface BooleanKernel (^void invoke [^booleans in ^booleans out ^int gid]))
+
+(deftest boolean-test
+  (testing "increment elements of an boolean[] via application of a java static method"
+    (let [n 32
+          kernel (reify BooleanKernel
+                   (^void invoke [^BooleanKernel self ^booleans in ^booleans out ^int gid]
+                     (aset out gid (aget in gid))))]
+      (is (test-kernel
+           kernel (find-method kernel "invoke") n
+           (boolean-array (map even? (range n))) (boolean-array n))))))
+
+;;com.oracle.graal.graph.GraalInternalError: should not reach here
+
+;; (deftest boolean-flip-test
+;;   (testing "flip elements of a boolean[]"
+;;     (let [n 32
+;;           kernel (reify BooleanKernel
+;;                    (^void invoke [^BooleanKernel self ^booleans in ^booleans out ^int gid]
+;;                      (aset out gid (if (aget in gid) false true))))]
+;;       (is (test-kernel
+;;            kernel (find-method kernel "invoke") n
+;;            (boolean-array (map even? (range n))) (boolean-array n))))))
+
+;;------------------------------------------------------------------------------
+
+(definterface ByteKernel (^void invoke [^bytes in ^bytes out ^int gid]))
+
+(deftest byte-test
+  (testing "increment elements of an byte[] via application of a java static method"
+    (let [n 32
+          kernel (reify ByteKernel
+                   (^void invoke [^ByteKernel self ^bytes in ^bytes out ^int gid]
+                     (aset out gid (byte (inc (aget in gid))))))]
+      (is (test-kernel
+           kernel (find-method kernel "invoke") n
+           (byte-array (range n)) (byte-array n))))))
+
+;;------------------------------------------------------------------------------
+
 (definterface CharKernel (^void invoke [^chars in ^chars out ^int gid]))
 
+(deftest char-test
+  (testing "copy elements of a char[]"
+    (let [n 26
+          kernel (reify CharKernel
+                   (^void invoke [^CharKernel self ^chars in ^chars out ^int gid]
+                     (aset out gid (aget in gid))))]
+      (is (test-kernel
+           kernel (find-method kernel "invoke") n
+           (char-array (map char (range 65 (+ 65 n)))) (char-array n))))))
 
 ;; wierd - I would expect this one to work - investigate...
-
 ;; com.oracle.graal.graph.GraalInternalError: unimplemented
 
-;; (deftest char-test
+;; (deftest char-downcase-test
 ;;   (testing "downcase elements of an char[] via application of a java static method"
 ;;     (let [n 26
 ;;           kernel (reify CharKernel
@@ -83,17 +131,17 @@
 
 ;;------------------------------------------------------------------------------
 
-(definterface DoubleKernel (^void invoke [^doubles in ^doubles out ^int gid]))
+(definterface ShortKernel (^void invoke [^shorts in ^shorts out ^int gid]))
 
-(deftest double-test
-  (testing "double elements of a double[] via application of a java static method"
+(deftest short-test
+  (testing "increment elements of an short[] via application of a java static method"
     (let [n 32
-          kernel (reify DoubleKernel
-                   (^void invoke [^CharKernel self ^doubles in ^doubles out ^int gid]
-                     (aset out gid (clojure.lang.Numbers/multiplyP (aget in gid) (double 2.0)))))]
+          kernel (reify ShortKernel
+                   (^void invoke [^ShortKernel self ^shorts in ^shorts out ^int gid]
+                     (aset out gid (short (inc (aget in gid))))))]
       (is (test-kernel
            kernel (find-method kernel "invoke") n
-           (double-array (range n)) (double-array n))))))
+           (short-array (range n)) (short-array n))))))
 
 ;;------------------------------------------------------------------------------
 
@@ -180,18 +228,31 @@
 
 ;;------------------------------------------------------------------------------
 
-(definterface StringIntKernel (^void invoke [^"[Ljava.lang.String;" in ^ints out ^int gid]))
+(definterface FloatKernel (^void invoke [^floats in ^floats out ^int gid]))
 
-(deftest string-int-test
-  (testing "find lengths of an array of Strings via application of a java virtual method"
+(deftest float-test
+  (testing "increment elements of an float[] via application of a java static method"
     (let [n 32
-          kernel (reify StringIntKernel
-                   (^void invoke [^StringIntKernel self ^"[Ljava.lang.String;" in ^ints out ^int gid]
-                     (aset out gid (.length ^String (aget in gid)))))]
+          kernel (reify FloatKernel
+                   (^void invoke [^FloatKernel self ^floats in ^floats out ^int gid]
+                     (aset out gid (float (inc (aget in gid))))))]
       (is (test-kernel
            kernel (find-method kernel "invoke") n
-           (into-array ^String (map (fn [^Long i] (.toString i)) (range n)))
-           (int-array n))))))
+           (float-array (range n)) (float-array n))))))
+
+;;------------------------------------------------------------------------------
+
+(definterface DoubleKernel (^void invoke [^doubles in ^doubles out ^int gid]))
+
+(deftest double-test
+  (testing "double elements of a double[] via application of a java static method"
+    (let [n 32
+          kernel (reify DoubleKernel
+                   (^void invoke [^CharKernel self ^doubles in ^doubles out ^int gid]
+                     (aset out gid (clojure.lang.Numbers/multiplyP (aget in gid) (double 2.0)))))]
+      (is (test-kernel
+           kernel (find-method kernel "invoke") n
+           (double-array (range n)) (double-array n))))))
 
 ;;------------------------------------------------------------------------------
 
@@ -208,6 +269,21 @@
       (is (test-kernel
            kernel (find-method kernel "invoke") n
            (into-array Object (range n)) (make-array Object n))))))
+
+;;------------------------------------------------------------------------------
+
+(definterface StringIntKernel (^void invoke [^"[Ljava.lang.String;" in ^ints out ^int gid]))
+
+(deftest string-int-test
+  (testing "find lengths of an array of Strings via application of a java virtual method"
+    (let [n 32
+          kernel (reify StringIntKernel
+                   (^void invoke [^StringIntKernel self ^"[Ljava.lang.String;" in ^ints out ^int gid]
+                     (aset out gid (.length ^String (aget in gid)))))]
+      (is (test-kernel
+           kernel (find-method kernel "invoke") n
+           (into-array ^String (map (fn [^Long i] (.toString i)) (range n)))
+           (int-array n))))))
 
 ;;------------------------------------------------------------------------------
 
@@ -237,65 +313,6 @@
 ;; how can we package these tests as junit so they can be run from command line ?
 ;; can we derive interface and reification from looking at signature of function or type of e.g. rrb-vector
 ;; what primitive types will be available on GPU ?
-;;------------------------------------------------------------------------------
-
-;;; TODO: boolean, short, float, byte
-;;------------------------------------------------------------------------------
-
-(definterface BooleanKernel (^void invoke [^booleans in ^booleans out ^int gid]))
-
-(deftest boolean-test
-  (testing "increment elements of an boolean[] via application of a java static method"
-    (let [n 32
-          kernel (reify BooleanKernel
-                   (^void invoke [^BooleanKernel self ^booleans in ^booleans out ^int gid]
-                     (aset out gid (if (aget in gid) false  true))))]
-      (is (test-kernel
-           kernel (find-method kernel "invoke") n
-           (boolean-array (map even? (range n))) (boolean-array n))))))
-
-;;------------------------------------------------------------------------------
-
-(definterface ByteKernel (^void invoke [^bytes in ^bytes out ^int gid]))
-
-(deftest byte-test
-  (testing "increment elements of an byte[] via application of a java static method"
-    (let [n 32
-          kernel (reify ByteKernel
-                   (^void invoke [^ByteKernel self ^bytes in ^bytes out ^int gid]
-                     (aset out gid (byte (inc (aget in gid))))))]
-      (is (test-kernel
-           kernel (find-method kernel "invoke") n
-           (byte-array (range n)) (byte-array n))))))
-
-;;------------------------------------------------------------------------------
-
-(definterface ShortKernel (^void invoke [^shorts in ^shorts out ^int gid]))
-
-(deftest short-test
-  (testing "increment elements of an short[] via application of a java static method"
-    (let [n 32
-          kernel (reify ShortKernel
-                   (^void invoke [^ShortKernel self ^shorts in ^shorts out ^int gid]
-                     (aset out gid (short (inc (aget in gid))))))]
-      (is (test-kernel
-           kernel (find-method kernel "invoke") n
-           (short-array (range n)) (short-array n))))))
-
-;;------------------------------------------------------------------------------
-
-(definterface FloatKernel (^void invoke [^floats in ^floats out ^int gid]))
-
-(deftest float-test
-  (testing "increment elements of an float[] via application of a java static method"
-    (let [n 32
-          kernel (reify FloatKernel
-                   (^void invoke [^FloatKernel self ^floats in ^floats out ^int gid]
-                     (aset out gid (float (inc (aget in gid))))))]
-      (is (test-kernel
-           kernel (find-method kernel "invoke") n
-           (float-array (range n)) (float-array n))))))
-
 ;;------------------------------------------------------------------------------
 
 (def type->array-type 
