@@ -298,7 +298,21 @@
 
 ;;------------------------------------------------------------------------------
 
-;; (defmacro defkernel [^String name ^Class class]
-;;   `(let [t# ~class
-;;          ts# (class (make-array t# 0))]
-;;      (definterface ~(symbol (str name "Kernel")) (^void invoke [^{:tag ts#} in ^{:tag ts#} out ^int gid]))))
+(def type->array-type 
+  {(Boolean/TYPE)   (class (boolean-array 0))
+   (Character/TYPE) (class (char-array 0))
+   (Byte/TYPE)      (class (byte-array 0))
+   (Short/TYPE)     (class (short-array 0))
+   (Integer/TYPE)   (class (int-array 0))
+   (Long/TYPE)      (class (long-array 0))
+   (Float/TYPE)     (class (float-array 0))
+   (Double/TYPE)    (class (double-array 0))})rep
+
+
+(defmacro defkernel [name t]
+  (let [array-type# (type->array-type (eval t))]
+    `(definterface
+       ~(symbol name)
+       (~(with-meta 'invoke {:tag (Void/TYPE)}) [~(with-meta 'in  {:tag array-type#})
+                                                 ~(with-meta 'out {:tag array-type#})
+                                                 ~(with-meta 'gid {:tag (Integer/TYPE)})]))))
