@@ -237,27 +237,23 @@
 ;;            (into-array clojure.lang.PersistentList (map list (range n))) (long-array n))))))
 
 ;;------------------------------------------------------------------------------
-;; IDEAS:
-;;------------------------------------------------------------------------------
-;; Graal config option: warn-on-Box
-;; unimplemented error - what is unimplemented ?
-;; Sumatra feature completion page - which bytecodes are implemented
-;; Test should kick out kernel bytecode on failure
-;; should be easy to switch test from local / emulator / gpu
-;; how can we package these tests as junit so they can be run from command line ?
-;; can we derive interface and reification from looking at signature of function or type of e.g. rrb-vector
-;; what primitive types will be available on GPU ?
-;;------------------------------------------------------------------------------
-
-;;; TODO: boolean, short, float, byte
-;;------------------------------------------------------------------------------
 
 (definterface BooleanKernel (^void invoke [^booleans in ^booleans out ^int gid]))
 
+(deftest boolean-test
+  (testing "copy elements of a boolean[]"
+    (let [n 32
+          kernel (reify BooleanKernel
+                   (^void invoke [^BooleanKernel self ^booleans in ^booleans out ^int gid]
+                     (aset out gid (aget in gid))))]
+      (is (test-kernel
+           kernel (find-method kernel "invoke") n
+           (boolean-array (map even? (range n))) (boolean-array n))))))
+
 ;;com.oracle.graal.graph.GraalInternalError: should not reach here
 
-;; (deftest boolean-test
-;;   (testing "increment elements of an boolean[] via application of a java static method"
+;; (deftest boolean-flip-test
+;;   (testing "flip elements of an boolean[] via application of a clojure special form?"
 ;;     (let [n 32
 ;;           kernel (reify BooleanKernel
 ;;                    (^void invoke [^BooleanKernel self ^booleans in ^booleans out ^int gid]
@@ -314,3 +310,16 @@
 ;;   `(let [t# ~class
 ;;          ts# (class (make-array t# 0))]
 ;;      (definterface ~(symbol (str name "Kernel")) (^void invoke [^{:tag ts#} in ^{:tag ts#} out ^int gid]))))
+
+;;------------------------------------------------------------------------------
+;; IDEAS:
+;;------------------------------------------------------------------------------
+;; Graal config option: warn-on-Box
+;; unimplemented error - what is unimplemented ?
+;; Sumatra feature completion page - which bytecodes are implemented
+;; Test should kick out kernel bytecode on failure
+;; should be easy to switch test from local / emulator / gpu
+;; how can we package these tests as junit so they can be run from command line ?
+;; can we derive interface and reification from looking at signature of function or type of e.g. rrb-vector
+;; what primitive types will be available on GPU ?
+;;------------------------------------------------------------------------------
