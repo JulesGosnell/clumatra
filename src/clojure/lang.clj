@@ -4,7 +4,8 @@
             PersistentVector PersistentVector$Node
             PersistentHashMap PersistentHashMap$INode
             ])
-  (:require [clumatra [core :as gpu]]))
+  ;;(:require [clumatra [core :as gpu]])
+  )
 
 (set! *warn-on-reflection* true)
 
@@ -31,21 +32,19 @@
  
 ;;------------------------------------------------------------------------------
 
-;; okra
-(defn kernel-compile-leaf [f] (gpu/kernel-compile f 32))
+(defmulti kernel-compile-leaf (fn [backend function] backend))
+(defmulti kernel-compile-branch (fn [backend function] backend))
 
-;; java7 - serial
-;; (defn kernel-compile-leaf [f]
-;;   (fn [^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out]
-;;     (loop [i 0]
-;;       (if (< i 32)
-;;         (do
-;;           (aset out i (f (aget in i)))
-;;           (recur (unchecked-inc i)))
-;;         out))))
+(defmethod kernel-compile-leaf :sequential [_ f]
+  (fn [^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out]
+    (loop [i 0]
+      (if (< i 32)
+        (do
+          (aset out i (f (aget in i)))
+          (recur (unchecked-inc i)))
+        out))))
 
-;;java 7 - serial
-(defn kernel-compile-branch [f]
+(defmethod kernel-compile-branch :sequential [_ f]
   (fn [^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out & args]
     (loop [i 0]
       (if (< i 32)
@@ -54,32 +53,27 @@
           (recur (unchecked-inc i)))
         out))))
 
-;; java7 - parallel - threads
-;; (defn kernel-compile-branch [f]
-;;   (fn [^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out & args]
-;;     (pmap (fn [i] (aset out i (apply f (aget in i) args))) (range 32))
-;;     out
-;;     ))
+(defmethod kernel-compile-branch :threads-parallel [f]
+  (fn [^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out & args]
+    (pmap (fn [i] (aset out i (apply f (aget in i) args))) (range 32))
+    out
+    ))
 
-;;; java7 -  parallel - forkjoin - TODO
+;; :forkjoin-parallel - TODO
 
-;; java8 - serial - this is going to be slow as we have to reify a
-;; IntConsumer closing over arrays and args on each call...
-;; actually surprisingly fast - as good as simple serial solution, despite churn
-;; (defn kernel-compile-branch [f]
-;;   (fn [^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out & args]
-;;     (let [consumer (reify java.util.function.IntConsumer
-;;                      (accept [self i] (aset out i (apply f (aget in i) args))))]
-;;       (.forEach (java.util.stream.IntStream/range 0 32) consumer))))
+(defmethod kernel-compile-branch :stream-sequential [_ f]
+  (fn [^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out & args]
+    (let [consumer (reify java.util.function.IntConsumer
+                     (accept [self i] (aset out i (apply f (aget in i) args))))]
+      (.forEach (java.util.stream.IntStream/range 0 32) consumer))))
 
-;; ;; java8 - parallel
-;; (defn kernel-compile-branch [f]
-;;   (fn [^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out & args]
-;;     (let [consumer (reify java.util.function.IntConsumer
-;;                      (accept [self i] (aset out i (apply f (aget in i) args))))]
-;;       (.forEach (.parallel ^java.util.stream.IntPipeline$Head (java.util.stream.IntStream/range 0 32) consumer)))))
+(defmethod kernel-compile-branch :stream-parallel [_ f]
+  (fn [^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out & args]
+    (let [consumer (reify java.util.function.IntConsumer
+                     (accept [self i] (aset out i (apply f (aget in i) args))))]
+      (.forEach (.parallel (java.util.stream.IntStream/range 0 32)) consumer))))
 
-;; see core for graal/java8
+;;(defmethod compile-leaf :okra-parallel [_ f] (gpu/kernel-compile f 32))
 
 ;;------------------------------------------------------------------------------
 
@@ -121,18 +115,22 @@
              Class
              [(Integer/TYPE) (Integer/TYPE) PersistentVector$Node ObjectArray]))]
 
-  (defn vmap [f ^PersistentVector v]
-    (let [lk (kernel-compile-leaf f)
-          bk (kernel-compile-branch (fn [n l bk] (if n (vmap-node n l bk lk))))
-          shift (.shift v)]
-      (.newInstance
-       ctor
-       (into-array
-        Object
-        [(count v)
-         shift
-         (vmap-node (.root v) (/ shift 5) bk lk)
-         (process-tail f (.tail v))])))))
+
+  (defn vmap 
+    ([f ^PersistentVector v]
+       (vmap :sequential :sequential f v))
+    ([branch-backend leaf-backend f ^PersistentVector v]
+       (let [lk (kernel-compile-leaf :sequential f)
+             bk (kernel-compile-branch :sequential (fn [n l bk] (if n (vmap-node n l bk lk))))
+             shift (.shift v)]
+         (.newInstance
+          ctor
+          (into-array
+           Object
+           [(count v)
+            shift
+            (vmap-node (.root v) (/ shift 5) bk lk)
+            (process-tail f (.tail v))]))))))
 
 ;;------------------------------------------------------------------------------
 ;; TODO:
