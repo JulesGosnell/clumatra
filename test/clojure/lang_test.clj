@@ -39,8 +39,6 @@
   (testing "backends"
     (is (test-foo2 :sequential        :sequential 33 identity))
     (is (test-foo2 :threads-parallel  :sequential 33 identity))
-    (is (test-foo2 :stream-sequential :sequential 33 identity))
-    (is (test-foo2 :stream-parallel   :sequential 33 identity))
     ))
 
 ;; TODO:
