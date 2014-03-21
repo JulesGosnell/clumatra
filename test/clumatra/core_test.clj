@@ -326,15 +326,16 @@
    (Double/TYPE)    (class (double-array 0))})
 
 
-;; (defmacro make-kernel [name t]
-;;   (let [array-type# (type->array-type (eval t))]
-;;     `(do
-;;        (definterface
-;;          ~(symbol name)
-;;          (~(with-meta 'invoke {:tag (Void/TYPE)}) [~(with-meta 'in  {:tag array-type#})
-;;                                                    ~(with-meta 'out {:tag array-type#})
-;;                                                    ~(with-meta 'gid {:tag (Integer/TYPE)})]))
-;;        (reify ~(symbol name) (~'invoke [~'self ~'in ~'out ~'gid] (aset ~'out ~'gid (aget ~'in ~'gid)))))))
+(defmacro make-kernel [name t]
+  (let [array-type# (type->array-type (eval t))
+        name# (symbol name)]
+    `(do
+       (definterface
+         ~name#
+         (~(with-meta 'invoke {:tag (Void/TYPE)}) [~(with-meta 'in  {:tag array-type#})
+                                                   ~(with-meta 'out {:tag array-type#})
+                                                   ~(with-meta 'gid {:tag (Integer/TYPE)})]))
+       (reify ~name# (~'invoke [~'self ~'in ~'out ~'gid] (aset ~'out ~'gid (aget ~'in ~'gid)))))))
   
 ;; ;;------------------------------------------------------------------------------
 
