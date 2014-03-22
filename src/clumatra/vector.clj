@@ -1,4 +1,4 @@
-(ns clojure.lang
+(ns clumatra.vector
   (:import [java.util.concurrent.atomic AtomicReference]
            [clojure.lang
             PersistentVector PersistentVector$Node

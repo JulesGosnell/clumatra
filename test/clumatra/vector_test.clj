@@ -1,6 +1,6 @@
-(ns clojure.lang-test
+(ns clumatra.vector-test
   (:require [clojure.test :refer :all]
-            [clojure.lang :refer :all]))
+            [clumatra.vector :refer :all]))
 
 (set! *warn-on-reflection* true)
 
