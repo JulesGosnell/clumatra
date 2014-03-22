@@ -79,6 +79,11 @@
       <artifactId>core.rrb-vector</artifactId>
       <version>0.0.10</version>
     </dependency>
+    <dependency>
+      <groupId>com.amd</groupId>
+      <artifactId>okra-with-sim</artifactId>
+      <version>1.8</version>
+    </dependency>
   </dependencies>
 
   <build>
@@ -90,15 +95,16 @@
 	<extensions>true</extensions>
 	<configuration>
 	  <warnOnReflection>true</warnOnReflection>
-	  <vmargs>-server -XX:+GPUOffload -XX:+TraceGPUInteraction</vmargs>
+	  <vmargs>-Xms1g -Xmx1g -server -XX:+GPUOffload -XX:+TraceGPUInteraction</vmargs>
 	  <sourceDirectories>
 	    <sourceDirectory>src</sourceDirectory>
 	  </sourceDirectories>
 	  <testSourceDirectories>
-	    <testSourceDirectory>src</testSourceDirectory>
+	    <testSourceDirectory>test</testSourceDirectory>
 	  </testSourceDirectories>
 	</configuration>
       </plugin>
+<!--
       <plugin>
 	<groupId>org.apache.maven.plugins</groupId>
 	<artifactId>maven-dependency-plugin</artifactId>
@@ -118,6 +124,7 @@
 	  </execution>
 	</executions>
       </plugin>
+-->
       <plugin>
 	<groupId>org.apache.maven.plugins</groupId>
 	<artifactId>maven-jar-plugin</artifactId>
