@@ -34,7 +34,7 @@
     (println)
 
 (compile-if
- (= (System/getProperty "os.arch") "amd64")
+  (Class/forName "com.amd.okra.OkraContext")
  (do
    ;; looks like okra is available :-)
    (println "*** TESTING WITH OKRA ***")

@@ -24,7 +24,7 @@
 	    <sourceDirectory>src</sourceDirectory>
 	  </sourceDirectories>
 	  <testSourceDirectories>
-	    <testSourceDirectory>src</testSourceDirectory>
+	    <testSourceDirectory>test</testSourceDirectory>
 	  </testSourceDirectories>
 	</configuration>
       </plugin>
