@@ -10,7 +10,7 @@
   
   <version>1.0-SNAPSHOT</version>
   <name>clumatra</name>
-  <url>http://maven.apache.org</url>
+  <url>https://github.com/JulesGosnell/clumatra</url>
 
   <distributionManagement>
     <repository>
@@ -22,20 +22,20 @@
 
   <repositories>
     <repository>
-      <id>Maven Central Repository</id>
-      <url>http://repo1.maven.org/maven2/</url>
-    </repository>
-    <repository>
       <id>ouroboros</id>
       <url>http://ouroboros.dyndns-free.com/artifactory/repo</url>
+    </repository>
+    <repository>
+      <id>clojars.org</id>
+      <url>http://clojars.org/repo</url>
     </repository>
     <repository>
       <id>clojure-releases</id>
       <url>http://build.clojure.org/releases</url>
     </repository>
     <repository>
-      <id>clojars.org</id>
-      <url>http://clojars.org/repo</url>
+      <id>Maven Central Repository</id>
+      <url>http://repo1.maven.org/maven2/</url>
     </repository>
   </repositories>
 
