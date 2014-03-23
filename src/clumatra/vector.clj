@@ -61,18 +61,6 @@
 
 ;; :forkjoin-parallel - TODO
 
-(defmethod kernel-compile-branch :stream-sequential [_ f]
-  (fn [^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out & args]
-    (let [consumer (reify java.util.function.IntConsumer
-                     (accept [self i] (aset out i (apply f (aget in i) args))))]
-      (.forEach (java.util.stream.IntStream/range 0 32) consumer))))
-
-(defmethod kernel-compile-branch :stream-parallel [_ f]
-  (fn [^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out & args]
-    (let [consumer (reify java.util.function.IntConsumer
-                     (accept [self i] (aset out i (apply f (aget in i) args))))]
-      (.forEach (.parallel (java.util.stream.IntStream/range 0 32)) consumer))))
-
 ;;(defmethod compile-leaf :okra-parallel [_ f] (gpu/kernel-compile f 32))
 
 ;;------------------------------------------------------------------------------
