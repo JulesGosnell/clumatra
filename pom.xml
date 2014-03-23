@@ -92,6 +92,7 @@
 	<okra.version>1.8</okra.version>
       </properties>
     </profile>
+<!--
     <profile>
       <id>hardware-acceleration</id>
       <activation>
@@ -111,6 +112,7 @@
 	<okra.version>1.8</okra.version>
       </properties>
     </profile>
+-->
   </profiles>
   
   <dependencies>
