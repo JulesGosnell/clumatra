@@ -10,11 +10,13 @@
                  [com.amd/okra-with-sim "1.8"]
                  ]
 
-  :plugins [[lein-nodisassemble "0.1.2"]]
+  :plugins [[lein-nodisassemble "0.1.3"]]
 
   :global-vars {*warn-on-reflection* true
                 *assert* false
                 *unchecked-math* true}
 
-  :jvm-opts ["-Xms1g" "-Xmx1g" "-server" "-Dclumatra.verbose=true" "-XX:+GPUOffload" "-XX:+TraceGPUInteraction"]
+  :jvm-opts ["-Xms1g" "-Xmx1g" "-server"
+             ;;"-Dclumatra.verbose=true"
+             "-XX:+GPUOffload" "-XX:+TraceGPUInteraction"]
   )
