@@ -41,12 +41,12 @@
 
   <pluginRepositories>
     <pluginRepository>
-      <id>Maven Central Repository</id>
-      <url>http://repo1.maven.org/maven2/</url>
-    </pluginRepository>
-    <pluginRepository>
       <id>ouroboros</id>
       <url>http://ouroboros.dyndns-free.com/artifactory/repo</url>
+    </pluginRepository>
+    <pluginRepository>
+      <id>Maven Central Repository</id>
+      <url>http://repo1.maven.org/maven2/</url>
     </pluginRepository>
   </pluginRepositories>
 
@@ -55,7 +55,7 @@
       <id>jules</id>
       <name>Jules Gosnell</name>
       <email>jules_gosnell@yahoo.com</email>
-      <url>https://github.com/JulesGosnell/clumatra</url>
+      <url>https://github.com/JulesGosnell</url>
       <roles>
         <role>developer</role>
       </roles>
@@ -73,7 +73,7 @@
 	</property>
       </activation>
       <properties>
-	<clojure.vmargs></clojure.vmargs>
+	<clojure.vmargs>-Xms1g -Xmx1g -server</clojure.vmargs>
 	<clojure.excluded.namespaces>clumatra.core</clojure.excluded.namespaces>
 	<okra.groupId>org.clojure</okra.groupId>
 	<okra.artifactId>clojure</okra.artifactId>
