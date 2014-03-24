@@ -343,6 +343,28 @@
            (into-array ^Object (range 32))
            (boolean-array n))))))
 
+(deftest isPos-test
+  (testing "apply static java function to elements of Object[]"
+    (let [n 32
+          kernel (reify ObjectBooleanKernel
+                   (invoke [self in out gid]
+                     (aset out gid (clojure.lang.Numbers/isPos (aget in gid)))))]
+      (is (test-kernel
+           kernel (find-method kernel "invoke") n
+           (into-array ^Object (range -16 16))
+           (boolean-array n))))))
+
+(deftest isNeg-test
+  (testing "apply static java function to elements of Object[]"
+    (let [n 32
+          kernel (reify ObjectBooleanKernel
+                   (invoke [self in out gid]
+                     (aset out gid (clojure.lang.Numbers/isNeg (aget in gid)))))]
+      (is (test-kernel
+           kernel (find-method kernel "invoke") n
+           (into-array ^Object (range -16 16))
+           (boolean-array n))))))
+
 ;;------------------------------------------------------------------------------
 
 (definterface StringIntKernel (^void invoke [^"[Ljava.lang.String;" in ^ints out ^int gid]))
@@ -410,7 +432,7 @@
                                                    ~(with-meta 'gid {:tag (Integer/TYPE)})]))
        (reify ~name# (~'invoke [~'self ~'in ~'out ~'gid] (aset ~'out ~'gid (aget ~'in ~'gid)))))))
   
-;; ;;------------------------------------------------------------------------------
+;;------------------------------------------------------------------------------
 
 ;; (deftest float-test
 ;;   (testing "increment elements of an float[] via application of a java static method"
