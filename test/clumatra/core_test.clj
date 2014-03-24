@@ -181,18 +181,6 @@
            kernel (find-method kernel "invoke") n
            (int-array (range n)) (int-array n))))))
 
-;; com.oracle.graal.graph.GraalInternalError: java.lang.ClassCastException: com.oracle.graal.hotspot.hsail.HSAILHotSpotLIRGenerator cannot be cast to com.oracle.graal.hotspot.HotSpotLIRGenerator
-
-;; (deftest unchecked-inc-int-test
-;;   (testing "increment elements of a int[] via application of a java static method"
-;;     (let [n 32
-;;           kernel (reify IntKernel
-;;                    (^void invoke [^IntKernel self ^ints in ^ints out ^int gid]
-;;                      (aset out gid (clojure.lang.Numbers/unchecked-inc (aget in gid)))))]
-;;       (is (test-kernel
-;;            kernel (find-method kernel "invoke") n
-;;            (int-array (range n)) (int-array n))))))
-
 ;;------------------------------------------------------------------------------
 
 (definterface LongKernel (^void invoke [^longs in ^longs out ^int gid]))
