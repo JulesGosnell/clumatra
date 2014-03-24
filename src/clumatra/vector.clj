@@ -10,27 +10,6 @@
 (set! *warn-on-reflection* true)
 
 ;;------------------------------------------------------------------------------
-;; (clojure.pprint/pprint (macroexpand-1 '(map-array (inc 2) (into-array [1 2 3]) inc)))
-;; (seq (map-array (inc 2) (into-array [1 2 3]) inc))
-
-;; using this seems to be slightly slower - probably set up costs with let
-
-;; (defmacro map-array [size i o function]
-;;   (let [in  (with-meta (gensym) {:tag "[Ljava.lang.Object;"})
-;;         out (with-meta (gensym) {:tag "[Ljava.lang.Object;"})
-;;         f (gensym)
-;;         s# (eval size)]
-;;     `(let [~in  ~i
-;;            ~out ~o
-;;            ~f ~function]
-;;        (do
-;;          ~@(doall
-;;             (map
-;;              (fn [i] `(aset ^"[Ljava.lang.Object;" ~out ~i (~f (aget ~in ~i))))
-;;              (range s#))))
-;;        ~out)))
- 
-;;------------------------------------------------------------------------------
 
 (defmulti kernel-compile-leaf (fn [backend function] backend))
 (defmulti kernel-compile-branch (fn [backend function] backend))
@@ -103,7 +82,6 @@
              Class
              [(Integer/TYPE) (Integer/TYPE) PersistentVector$Node ObjectArray]))]
 
-
   (defn vmap 
     ([f ^PersistentVector v]
        (vmap :sequential :sequential f v))
@@ -121,33 +99,6 @@
             (process-tail f (.tail v))]))))))
 
 ;;------------------------------------------------------------------------------
-;; TODO:
-;; - integrate with core
-;; - unroll array loops with macro
-;; - unroll level loop to/from given depth with macro - then we won't need to pass param to branch-kernel
-;; - implement reduction into hashset/map in similar way
-;;------------------------------------------------------------------------------
+;; TODO: fjvmap
 
 
-;;------------------------------------------------------------------------------
-;; not sure that this is actually productive
-;; - on the input side it WOULD save a little in terms of iterator churn
-;; - on the output side, the cost of producing tuples of [size, node] and [key, value] might be more expensive than just putting a PersistentMap around the node and calling (assoc) on it. Perhaps all HashMap nodes could be HashMaps in their own right and carry size and an assoc/conj method.
-
-;; (defn ^PersistentHashMap$INode reduce-vector-array-into-hashmap-node [f l ^"[Ljava.lang.Object;" in]
-;; )
-
-;; (let [ctor (unlock-constructor
-;;             PersistentHashMap
-;;             (into-array
-;;              Class
-;;              [(Integer/TYPE) clojure.lang.PersistentHashMap$INode (Boolean/TYPE) Object]))]
-;;   (defn reduce-vector-into-hashmap [f ^PersistentVector v]
-;;     (let [levels (/ (.shift v) 5)
-;;           [root-count root-node] (reduce-vector-array-into-hashmap-node f levels (.root v))
-;;           [tail-count tail-node] (reduce-vector-array-into-hashmap-node f levels (.tail v))
-;;           [new-count new-node] [0 nil] somehow merge root and tail
-;;           ]
-;;     (.newInstance ctor (into-array Object [(int new-count) new-node false nil])))))
-
-;; (reduce-vector-into-hashmap inc [0 1 2 3 4 5])
