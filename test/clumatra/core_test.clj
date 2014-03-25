@@ -10,7 +10,9 @@
 
 (set! *warn-on-reflection* true)
 
-(defn -main [& args]
+(defn -main
+  "run individual tests by name from the command line...no args runs all the tests."
+  [& args]
   (let [interns (ns-interns 'clumatra.core-test)]
     (if args
       (doseq [test args]
