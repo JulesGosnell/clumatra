@@ -437,38 +437,47 @@
    (Float/TYPE)     (class (float-array 0))
    (Double/TYPE)    (class (double-array 0))})
 
+(defn with-tag [s t]
+  (with-meta s {:tag t}))
+
 (defn make-param-symbol
   ([t] (make-param-symbol (gensym) t))
-  ([s t] (with-meta s {:tag t})))
+  ([s t] (with-tag s t)))
 
 (defn make-array-param-symbol
   ([t] (make-array-param-symbol (gensym) t))
-  ([s t] (with-meta s {:tag (type->array-type t)})))
+  ([s t] (with-tag s (type->array-type t))))
 
-(defmacro make-kernel [& param-types]
-  (let [param-types# ~param-types]
-    `(definterface ~(gensym "Kernel") (~(make-param-symbol 'invoke (Void/TYPE))
-                                       ~(conj
-                                         (mapv make-array-param-symbol param-types#)
-                                         (make-param-symbol (Integer/TYPE)))))))
+(defmacro make-kernel [param-types]
+  `(definterface
+     ~(gensym "Kernel")
+     (~(make-param-symbol 'invoke Void/TYPE)
+      ~(concat 
+        (map make-array-param-symbol (eval param-types))
+        (list (make-param-symbol Integer/TYPE))))))
 
 (let [types->kernel (atom {})]
   
-  (defn ensure-kernel [& args]
-    (let [kernel (or (types->kernel args))]
-      ))
+  (defn ensure-kernel [param-types]
+    (let [kernel (or (@types->kernel param-types))]
+      (if (not kernel)
+        (let [k (eval (list 'make-kernel param-types))] 
+          (swap! types->kernel conj [param-types k])
+          k)
+        kernel)))
+
   )
 
-(defmacro make-kernel [name t]
-  (let [array-type# (type->array-type (eval t))
-        name# (symbol name)]
-    `(do
-       (definterface
-         ~name#
-         (~(with-meta 'invoke {:tag (Void/TYPE)}) [~(with-meta 'in  {:tag array-type#})
-                                                   ~(with-meta 'out {:tag array-type#})
-                                                   ~(with-meta 'gid {:tag (Integer/TYPE)})]))
-       (reify ~name# (~'invoke [~'self ~'in ~'out ~'gid] (aset ~'out ~'gid (aget ~'in ~'gid)))))))
+;; (defmacro make-kernel [name t]
+;;   (let [array-type# (type->array-type (eval t))
+;;         name# (symbol name)]
+;;     `(do
+;;        (definterface
+;;          ~name#
+;;          (~(with-meta 'invoke {:tag (Void/TYPE)}) [~(with-meta 'in  {:tag array-type#})
+;;                                                    ~(with-meta 'out {:tag array-type#})
+;;                                                    ~(with-meta 'gid {:tag (Integer/TYPE)})]))
+;;        (reify ~name# (~'invoke [~'self ~'in ~'out ~'gid] (aset ~'out ~'gid (aget ~'in ~'gid)))))))
   
 ;;------------------------------------------------------------------------------
 
@@ -487,7 +496,7 @@
     (and (java.lang.reflect.Modifier/isPublic modifiers)
          (java.lang.reflect.Modifier/isStatic modifiers))))
 
-(def primitive-types (conj (into #{} (keys type->array-type)) Void/TYPE))
+(def primitive-types (into #{} (keys type->array-type)))
 
 (defn primitive? [^Class t]
   (contains? primitive-types t))
@@ -503,6 +512,7 @@
           (filter takes-only-primitives?
                   (filter public-static?
                           (.getDeclaredMethods clojure.lang.Numbers)))))
+
 
 ;; now write automatic tests for all 112 of these methods :-) and
 ;; remove duplicates above...
