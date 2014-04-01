@@ -498,19 +498,24 @@
   (symbol (let [n (name s)] (.substring n (inc (.lastIndexOf n "."))))))
 
 (defmacro instantiate-kernel [kernel method]
-  (let [kernel# (eval kernel)
-        params# (into [] (take (+ 3 (count (.getParameterTypes ^Method (eval method)))) (repeatedly gensym)))
-        input-params# (subvec params# 3 (- (count params#) 1))
-        output-param# (nth params# 3)
-        gid-param# (last params#)]
+  (let [kernel# ^Class (eval kernel)
+        method# ^Method (eval method)
+        params# (into [] (take (+ 3 (count (.getParameterTypes method#))) (repeatedly gensym)))
+        input-params# (subvec params# 1 (- (count params#) 2))
+        output-param# (nth params# (- (count params#) 2))
+        gid-param# (last params#)
+        foo# (map (fn [i#] `(aget ~i# ~gid-param#)) input-params#)
+        ]
     `(reify
-       ~(symbol (.getSimpleName ^Class kernel#))
+       ~(symbol (.getSimpleName kernel#))
        (~(symbol "invoke")
-         ~params#
-         (aset ~output-param# ~gid-param# (aget ~(first input-params#) ~gid-param#))
-         )
+        ~params#
+        (aset ~output-param# ~gid-param# 
+          (~(symbol (str (.getName (.getDeclaringClass method#)) "/" (.getName method#))) ~@foo#)
+          )
+        )
        )
-))
+    ))
 
 (defn get-param-types [^java.lang.reflect.Method m]
   (conj (into [] (.getParameterTypes m)) (.getReturnType m)))
@@ -546,7 +551,7 @@
 ;; (def in1 (long-array (range 32)))
 ;; (def in2 (long-array (range 32)))
 ;; (def out (long-array 32))
-;; (.invoke r in1 in2 out 0)
+;; (seq (do (doseq [i (range 32)] (.invoke r in1 in2 out i)) out))
 
 ;; (set! *print-meta* true)
 ;; (macroexpand-1 '(make-kernel (get-param-types m)))
