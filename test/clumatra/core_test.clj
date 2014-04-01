@@ -451,13 +451,16 @@
 (defmacro make-kernel [param-types]
   `(definterface
      ~(gensym "Kernel")
-     (~(make-param-symbol 'invoke Void/TYPE)
+     (~(make-param-symbol (symbol "invoke") Void/TYPE)
       ~(concat 
         (map make-array-param-symbol (eval param-types))
         (list (make-param-symbol Integer/TYPE))))))
 
+;; could we use memoise instead ?
 (let [types->kernel (atom {})]
-  
+
+  (def A types->kernel)
+
   (defn ensure-kernel [param-types]
     (let [kernel (or (@types->kernel param-types))]
       (if (not kernel)
@@ -467,27 +470,6 @@
         kernel)))
 
   )
-
-;; (defmacro make-kernel [name t]
-;;   (let [array-type# (type->array-type (eval t))
-;;         name# (symbol name)]
-;;     `(do
-;;        (definterface
-;;          ~name#
-;;          (~(with-meta 'invoke {:tag (Void/TYPE)}) [~(with-meta 'in  {:tag array-type#})
-;;                                                    ~(with-meta 'out {:tag array-type#})
-;;                                                    ~(with-meta 'gid {:tag (Integer/TYPE)})]))
-;;        (reify ~name# (~'invoke [~'self ~'in ~'out ~'gid] (aset ~'out ~'gid (aget ~'in ~'gid)))))))
-  
-;;------------------------------------------------------------------------------
-
-;; (deftest float-test
-;;   (testing "increment elements of an float[] via application of a java static method"
-;;     (let [n 32
-;;           kernel (make-kernel "FooKernel" Float/Type)]
-;;       (is (test-kernel
-;;            kernel (find-method kernel "invoke") n
-;;            (float-array (range n)) (float-array n))))))
 
 ;;------------------------------------------------------------------------------
 
@@ -512,7 +494,32 @@
           (filter takes-only-primitives?
                   (filter public-static?
                           (.getDeclaredMethods clojure.lang.Numbers)))))
+(defn simple-name [s]
+  (symbol (let [n (name s)] (.substring n (inc (.lastIndexOf n "."))))))
 
+(defmacro instantiate-kernel [kernel method]
+  (let [kernel# (eval kernel)
+        params# (into [] (take (+ 3 (count (.getParameterTypes ^Method (eval method)))) (repeatedly gensym)))
+        input-params# (subvec params# 3 (- (count params#) 1))
+        output-param# (nth params# 3)
+        gid-param# (last params#)]
+    `(reify
+       ~(symbol (.getSimpleName ^Class kernel#))
+       (~(symbol "invoke")
+         ~params#
+         (aset ~output-param# ~gid-param# (aget ~(first input-params#) ~gid-param#))
+         )
+       )
+))
+
+(defn get-param-types [^java.lang.reflect.Method m]
+  (conj (into [] (.getParameterTypes m)) (.getReturnType m)))
+
+(map
+ (fn [^Method m]
+   (let [kernel (ensure-kernel (get-param-types m))]
+     [m kernel]))
+ primitive-number-methods)
 
 ;; now write automatic tests for all 112 of these methods :-) and
 ;; remove duplicates above...
@@ -532,3 +539,16 @@
 ;; boolean[32]/int and boolean[16]/short etc. If we could it would
 ;; make the reduction of something yielding boolean values pretty
 ;; small...
+
+;; (def m (first primitive-number-methods))
+;; (def k (make-kernel (get-param-types m)))
+;; (eval (list 'def (with-meta 'r {:tag k}) '(instantiate-kernel k m)))
+;; (def in1 (long-array (range 32)))
+;; (def in2 (long-array (range 32)))
+;; (def out (long-array 32))
+;; (.invoke r in1 in2 out 0)
+
+;; (set! *print-meta* true)
+;; (macroexpand-1 '(make-kernel (get-param-types m)))
+;; (macroexpand-1 '(instantiate-kernel k m))
+
