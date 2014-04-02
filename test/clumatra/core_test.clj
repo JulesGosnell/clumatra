@@ -520,11 +520,36 @@
 (defn get-param-types [^java.lang.reflect.Method m]
   (conj (into [] (.getParameterTypes m)) (.getReturnType m)))
 
-(map
- (fn [^Method m]
-   (let [kernel (ensure-kernel (get-param-types m))]
-     [m kernel]))
- primitive-number-methods)
+(defmacro call-kernel [t k i o s]
+  (let [t# t
+        k# k
+        i# i
+        o# o
+        s# s]
+    `(dotimes [n# ~s#] (.invoke ~(with-meta k# {:tag (eval t#)}) ~@i# ~o# n#))))
+
+(defn test-method [^Method m]
+  (let [wavefront-size 64
+        param-types (.getParameterTypes m)
+        kernel (ensure-kernel param-types)
+        output (make-array (.getReturnType m) wavefront-size)
+        inputs (map (fn [t] (into-array t (range wavefront-size))) (get-param-types m))
+        reification (instantiate-kernel k m)
+        ]
+
+    ;;(call-kernel kernel reification inputs output wavefront-size)
+
+    (seq output)
+
+ ))
+
+
+
+
+;; (def in1 (long-array (range 32)))
+;; (def in2 (long-array (range 32)))
+;; (def out (long-array 32))
+;; (seq (do (doseq [i (range 32)] (.invoke r in1 in2 out i)) out))
 
 ;; now write automatic tests for all 112 of these methods :-) and
 ;; remove duplicates above...
@@ -556,4 +581,22 @@
 ;; (set! *print-meta* true)
 ;; (macroexpand-1 '(make-kernel (get-param-types m)))
 ;; (macroexpand-1 '(instantiate-kernel k m))
+;; (macroexpand-1 '(call-kernel k r [in1 in2] out 32))
+;; (test-method m)
+
+
+;; TONIGHT:
+;; - buy knee brace
+;; - answer email from a/c-ant
+;; - answer email on graal-dev
+;; - fix clumatra builds
+;; - investigate whether native tests are actually working
+;; - investigate speed of native code
+;; - merge code from pter/smil/liop
+;; - can I use jane's old phone as hotspot on train
+;; - can people see jenkins externally
+;; - fix jenkins warnings
+;; - publish okra jars to artifactory and check
+;; - etc
+
 
