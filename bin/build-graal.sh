@@ -19,6 +19,7 @@ cd ..
 
 ## build graal and install in sumatra-dev tree
 export JAVA_HOME=`pwd`/sumatra-dev/build/linux-x86_64-normal-server-release/images/j2sdk-image/
+export EXTRA_JAVA_HOMES=/etc/alternatives/java_sdk_1.7.0
 hg clone http://hg.openjdk.java.net/graal/graal
 cd graal
 ./mx.sh --vmbuild product --vm server build
