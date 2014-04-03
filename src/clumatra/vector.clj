@@ -1,20 +1,20 @@
 (ns clumatra.vector
+  ;;;(:use [clojure.tools.cli :only [cli]])
   (:import [java.util.concurrent.atomic AtomicReference]
            [clojure.lang
             PersistentVector PersistentVector$Node
             PersistentHashMap PersistentHashMap$INode
             ])
-  ;;(:require [clumatra [core :as gpu]])
+  (:require [clojure.core
+             [reducers :as r]
+             [rrb-vector :as v]]
+            [clumatra
+             [util :as u]])
   )
 
 (set! *warn-on-reflection* true)
 
-;;------------------------------------------------------------------------------
-
-(defmulti kernel-compile-leaf (fn [backend function] backend))
-(defmulti kernel-compile-branch (fn [backend function] backend))
-
-(defmethod kernel-compile-leaf :sequential [_ f]
+(defn kernel-compile-leaf [f]
   (fn [^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out]
     (loop [i 0]
       (if (< i 32)
@@ -23,7 +23,7 @@
           (recur (unchecked-inc i)))
         out))))
 
-(defmethod kernel-compile-branch :sequential [_ f]
+(defn kernel-compile-branch [f]
   (fn [^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out & args]
     (loop [i 0]
       (if (< i 32)
@@ -31,18 +31,6 @@
           (aset out i (apply f (aget in i) args))
           (recur (unchecked-inc i)))
         out))))
-
-(defmethod kernel-compile-branch :threads-parallel [f]
-  (fn [^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out & args]
-    (pmap (fn [i] (aset out i (apply f (aget in i) args))) (range 32))
-    out
-    ))
-
-;; :forkjoin-parallel - TODO
-
-;;(defmethod compile-leaf :okra-parallel [_ f] (gpu/kernel-compile f 32))
-
-;;------------------------------------------------------------------------------
 
 ;; map a kernel across an input array returning the output array...
 (defn vmap-leaf-array [^"[Ljava.lang.Object;" in k]
@@ -62,9 +50,6 @@
        (vmap-branch-array a (dec level) bk)
        ))))
 
-(defn ^java.lang.reflect.Constructor unlock-constructor [^Class class param-types]
-  (doto (.getDeclaredConstructor class param-types) (.setAccessible true)))
-
 (defn process-tail [f ^"[Ljava.lang.Object;" in]
   (let [n (count in)
         ^"[Ljava.lang.Object;" out (make-array Object n)]
@@ -76,29 +61,55 @@
         out))))
 
 (let [ObjectArray (type (into-array Object []))
-      ctor (unlock-constructor
+      ctor (u/unlock-constructor
             PersistentVector
             (into-array
              Class
              [(Integer/TYPE) (Integer/TYPE) PersistentVector$Node ObjectArray]))]
 
-  (defn vmap 
-    ([f ^PersistentVector v]
-       (vmap :sequential :sequential f v))
-    ([branch-backend leaf-backend f ^PersistentVector v]
-       (let [lk (kernel-compile-leaf :sequential f)
-             bk (kernel-compile-branch :sequential (fn [n l bk] (if n (vmap-node n l bk lk))))
-             shift (.shift v)]
-         (.newInstance
-          ctor
-          (into-array
-           Object
-           [(count v)
-            shift
-            (vmap-node (.root v) (/ shift 5) bk lk)
-            (process-tail f (.tail v))]))))))
+  (defn vmap [f ^PersistentVector v]
+    (let [lk (kernel-compile-leaf f)
+          bk (kernel-compile-branch (fn [n l bk] (if n (vmap-node n l bk lk))))
+          shift (.shift v)]
+      (.newInstance
+       ctor
+       (into-array
+        Object
+        [(count v)
+         shift
+         (vmap-node (.root v) (/ shift 5) bk lk)
+         (process-tail f (.tail v))]))))
+
+  (let [[fjpool fjtask fjinvoke fjfork fjjoin] (u/with-ns 'clojure.core.reducers [pool fjtask fjinvoke fjfork fjjoin])]
+
+    (defn fjkernel-compile-branch [f]
+      (fn [^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out & args]
+        (fjinvoke
+         (fn []
+           (doseq [task (mapv 
+                         (fn [i] (fjfork (fjtask #(aset out i (apply f (aget in i) args)))))
+                         [0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31])]
+             (fjjoin task))))
+        out))
+  
+    (defn fjvmap [f ^PersistentVector v]
+      (let [lk (kernel-compile-leaf f)
+            bk (kernel-compile-branch (fn [n l bk] (if n (vmap-node n l bk lk))))
+            pbk (fjkernel-compile-branch (fn [n l pbk] (if n (vmap-node n l bk lk))))
+            shift (.shift v)
+            tail-task (fjinvoke (fn [] (fjfork (fjtask #(process-tail f (.tail v))))))]
+        (.newInstance
+         ctor
+         (into-array
+          Object
+          [(count v)
+           shift
+           (vmap-node (.root v) (/ shift 5) pbk lk)
+           (fjjoin tail-task)])))))
+
+  )
 
 ;;------------------------------------------------------------------------------
-;; TODO: fjvmap
+
 
 

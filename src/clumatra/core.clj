@@ -17,14 +17,14 @@
 ;;------------------------------------------------------------------------------
 
 (defn kernel-compile2 [kernel ^Method method n]
-  (let [verbose (Boolean/getBoolean "clumatra.verbose")
+  (let [verbose (if (System/getProperty "clumatra.verbose") true false)
         okra-context (doto (OkraContext.) (.setVerbose (true? verbose)))]
     (with-open [a (OptionValue/override (GraalOptions/InlineEverything) true)
                 b (OptionValue/override (GraalOptions/PrintCompilation) verbose)
                 c (OptionValue/override (GraalOptions/PrintProfilingInformation) verbose)
                 ;; d (OptionValue/override (GraalOptions/RemoveNeverExecutedCode) true)
                 ]
-      (println "OKRA:" (if (OkraContext/isSimulator) "SIMULATED" "NATIVE"))
+      (if verbose (println "OKRA:" (if (OkraContext/isSimulator) "SIMULATED" "NATIVE")))
       (if verbose (println (d/disassemble kernel)))
       (let [^HSAILHotSpotBackend backend (.getBackend (HotSpotGraalRuntime/runtime) HSAIL)
             okra-kernel (OkraKernel.
