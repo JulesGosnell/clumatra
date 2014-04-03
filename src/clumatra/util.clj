@@ -1,9 +1,6 @@
 (ns clumatra.util
   (:import [java.lang.reflect Constructor]))
 
-(println "PATH:" (System/getenv "PATH"))
-(println "LD_LIBRARY_PATH:" (System/getenv "LD_LIBRARY_PATH"))
-
 (defn ^Constructor unlock-constructor [^Class class param-types]
   (doto (.getDeclaredConstructor class param-types) (.setAccessible true)))
 
