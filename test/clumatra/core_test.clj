@@ -526,21 +526,19 @@
 (defmacro kernel-fn [t# k# i# o#]
   `(fn [^long n#] (.invoke ~(with-meta k# {:tag (eval t#)}) ~@i# ~o# n#)))
 
-(defn test-method [^Method m]
-  (let [wavefront-size 64
-        param-types (.getParameterTypes m)
-        kernel (ensure-kernel param-types)
-        output (make-array (.getReturnType m) wavefront-size)
-        inputs (map (fn [t] (into-array t (range wavefront-size))) (get-param-types m))
-        reification (instantiate-kernel k m)]
+;; (defn test-method [^Method m]
+;;   (let [wavefront-size 64
+;;         param-types (.getParameterTypes m)
+;;         kernel (ensure-kernel param-types)
+;;         output (make-array (.getReturnType m) wavefront-size)
+;;         inputs (map (fn [t] (into-array t (range wavefront-size))) (get-param-types m))
+;;         reification (instantiate-kernel k m)]
 
-    (dotimes [n wavefront-size] ((kernel-fn kernel reification inputs output) n))
+;;     (dotimes [n wavefront-size] ((kernel-fn kernel reification inputs output) n))
 
-    (seq output)
+;;     (seq output)
 
- ))
-
-
+;;  ))
 
 
 ;; (def in1 (long-array (range 32)))
@@ -581,20 +579,3 @@
 ;; (macroexpand-1 '(call-kernel k r [in1 in2] out 32))
 ;; (macroexpand-1 '(kernel-fn k r [in1 in2] out))
 ;; (test-method m)
-
-
-;; TONIGHT:
-;; - buy knee brace
-;; - answer email from a/c-ant
-;; - answer email on graal-dev
-;; - fix clumatra builds
-;; - investigate whether native tests are actually working
-;; - investigate speed of native code
-;; - merge code from pter/smil/liop
-;; - can I use jane's old phone as hotspot on train
-;; - can people see jenkins externally
-;; - fix jenkins warnings
-;; - publish okra jars to artifactory and check
-;; - etc
-
-
