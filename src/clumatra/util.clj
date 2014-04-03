@@ -12,3 +12,9 @@
   [ns & body]
   `(binding [*ns* (the-ns ~ns)]
      ~@(map (fn [form] `(eval '~form)) body)))
+
+;; pinched from core reducers...
+(defmacro compile-if [exp then else]
+  (if (try (eval exp) (catch Throwable _ false))
+    `(do ~then)
+    `(do ~else)))
