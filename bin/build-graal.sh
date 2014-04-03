@@ -29,7 +29,6 @@ cd graal
 ## Note you must use the extra option -XX:+GPUOffload to enable offloading and
 ## use -XX:+TraceGPUInteraction to see extra messages about GPU initialization etc.
 
-## install okra into maven repo so lein can see it...
 cd ../..
-mvn install:install-file -DgroupId=com.amd -DartifactId=okra -Dversion=1.8 -Dpackaging=jar -Dfile=./graal/graal/lib/okra-1.8.jar
-mvn install:install-file -DgroupId=com.amd -DartifactId=okra-with-sim -Dversion=1.8 -Dpackaging=jar -Dfile=./graal/graal/lib/okra-1.8-with-sim.jar
+
+
