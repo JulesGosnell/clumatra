@@ -18,5 +18,5 @@
 
   :jvm-opts ["-Xms1g" "-Xmx1g" "-server"
              ;;"-Dclumatra.verbose=true"
-             "-XX:+GPUOffload" "-XX:+TraceGPUInteraction"]
+             "-G:Log=CodeGen -XX:+GPUOffload" "-XX:+TraceGPUInteraction -XX:-UseHSAILDeoptimization"]
   )
