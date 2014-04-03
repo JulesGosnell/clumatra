@@ -507,26 +507,24 @@
         foo# (map (fn [i#] `(aget ~i# ~gid-param#)) input-params#)
         ]
     `(reify
-       ~(symbol (.getSimpleName kernel#))
-       (~(symbol "invoke")
-        ~params#
-        (aset ~output-param# ~gid-param# 
-          (~(symbol (str (.getName (.getDeclaringClass method#)) "/" (.getName method#))) ~@foo#)
+         ~(symbol (.getSimpleName kernel#))
+         (~(symbol "invoke")
+          ~params#
+          (aset ~output-param# ~gid-param# 
+            (~(symbol (str (.getName (.getDeclaringClass method#)) "/" (.getName method#))) ~@foo#)
+            )
           )
-        )
-       )
+         )
     ))
 
 (defn get-param-types [^java.lang.reflect.Method m]
   (conj (into [] (.getParameterTypes m)) (.getReturnType m)))
 
-(defmacro call-kernel [t k i o s]
-  (let [t# t
-        k# k
-        i# i
-        o# o
-        s# s]
-    `(dotimes [n# ~s#] (.invoke ~(with-meta k# {:tag (eval t#)}) ~@i# ~o# n#))))
+(defmacro call-kernel [t# k# i# o# s#]
+    `(dotimes [n# ~s#] (.invoke ~(with-meta k# {:tag (eval t#)}) ~@i# ~o# n#)))
+
+(defmacro kernel-fn [t# k# i# o#]
+  `(fn [^long n#] (.invoke ~(with-meta k# {:tag (eval t#)}) ~@i# ~o# n#)))
 
 (defn test-method [^Method m]
   (let [wavefront-size 64
@@ -534,10 +532,9 @@
         kernel (ensure-kernel param-types)
         output (make-array (.getReturnType m) wavefront-size)
         inputs (map (fn [t] (into-array t (range wavefront-size))) (get-param-types m))
-        reification (instantiate-kernel k m)
-        ]
+        reification (instantiate-kernel k m)]
 
-    ;;(call-kernel kernel reification inputs output wavefront-size)
+    (dotimes [n wavefront-size] ((kernel-fn kernel reification inputs output) n))
 
     (seq output)
 
@@ -582,6 +579,7 @@
 ;; (macroexpand-1 '(make-kernel (get-param-types m)))
 ;; (macroexpand-1 '(instantiate-kernel k m))
 ;; (macroexpand-1 '(call-kernel k r [in1 in2] out 32))
+;; (macroexpand-1 '(kernel-fn k r [in1 in2] out))
 ;; (test-method m)
 
 
