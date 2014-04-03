@@ -8,9 +8,6 @@
             )
   (:gen-class))
 
-(println "PATH:" (System/getenv "PATH"))
-(println "LD_LIBRARY_PATH:" (System/getenv "LD_LIBRARY_PATH"))
-
 (set! *warn-on-reflection* true)
 
 (defn -main
