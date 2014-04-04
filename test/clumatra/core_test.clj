@@ -1,8 +1,10 @@
 (ns clumatra.core-test
   (:import  [java.lang.reflect Method])
   (:require [clojure.test :refer :all]
-            [clojure.core [reducers :as r]]
-            [clojure.core [rrb-vector :as v]])
+            [clojure.core
+             [reducers :as r]
+             [rrb-vector :as v]]
+            [clumatra [util :as u]])
   (:gen-class))
 
 (set! *warn-on-reflection* true)
@@ -24,28 +26,21 @@
       (.invoke method kernel (into-array Object [in out (int i)])))
     out))
 
-;; pinched from core reducers...
-(defmacro ^:private compile-if [exp then else]
-  (if (try (eval exp) (catch Throwable _ false))
-    `(do ~then)
-    `(do ~else)))
-
-    (println)
-
-(compile-if
-  (Class/forName "com.amd.okra.OkraContext")
+(println)
+(u/compile-if
+ (Class/forName "com.amd.okra.OkraContext")
  (do
    ;; looks like okra is available :-)
    (println "*** TESTING WITH OKRA ***")
    (use '(clumatra core))
    (def okra-kernel-compile kernel-compile2)
    )
-  (do
+ (do
    ;; we must be on my i386 laptop :-(
-    (println "*** TESTING WITHOUT OKRA ***")
+   (println "*** TESTING WITHOUT OKRA ***")
     
-    (defn find-method [object ^String name]
-      (first (filter (fn [^Method method] (= (.getName method) "invoke")) (.getDeclaredMethods (class object)))))
+   (defn find-method [object ^String name]
+     (first (filter (fn [^Method method] (= (.getName method) "invoke")) (.getDeclaredMethods (class object)))))
     
    (def okra-kernel-compile local-kernel-compile)
    ))
