@@ -370,52 +370,51 @@
            (into-array ^Object (range 64))
            (boolean-array n))))))
 
-;; ;; com.oracle.graal.graph.GraalInternalError: unimplemented
-;; ;;
-;; ;; (deftest isPos-test
-;; ;; (println "isPos-test")
-;; ;;   (testing "apply static java function to elements of Object[]"
-;; ;;     (let [n 64
-;; ;;           kernel (reify ObjectBooleanKernel
-;; ;;                    (invoke [self in out gid]
-;; ;;                      (aset out gid (clojure.lang.Numbers/isPos (aget in gid)))))]
-;; ;;       (is (test-kernel
-;; ;;            kernel (find-method kernel "invoke") n
-;; ;;            (into-array ^Object (range -16 16))
-;; ;;            (boolean-array n))))))
+;; #  SIGSEGV (0xb) at pc=0x00007fec8635b91c, pid=10777, tid=140653852776192
 
+;; (deftest isPos-test
+;;   (println "isPos-test")
+;;   (testing "apply static java function to elements of Object[]"
+;;     (let [n 64
+;;           kernel (reify ObjectBooleanKernel
+;;                    (invoke [self in out gid]
+;;                      (aset out gid (clojure.lang.Numbers/isPos (aget in gid)))))]
+;;       (is (test-kernel
+;;            kernel (find-method kernel "invoke") n
+;;            (into-array ^Object (range -16 16))
+;;            (boolean-array n))))))
 
-;; ;; com.oracle.graal.graph.GraalInternalError: unimplemented
-;; ;;
-;; ;; (deftest isNeg-test
-;; ;; (println "isNeg-test")
-;; ;;   (testing "apply static java function to elements of Object[]"
-;; ;;     (let [n 64
-;; ;;           kernel (reify ObjectBooleanKernel
-;; ;;                    (invoke [self in out gid]
-;; ;;                      (aset out gid (clojure.lang.Numbers/isNeg (aget in gid)))))]
-;; ;;       (is (test-kernel
-;; ;;            kernel (find-method kernel "invoke") n
-;; ;;            (into-array ^Object (range -16 16))
-;; ;;            (boolean-array n))))))
+;; com.oracle.graal.graph.GraalInternalError: unimplemented
 
-;; ;;------------------------------------------------------------------------------
+;; (deftest isNeg-test
+;;   (println "isNeg-test")
+;;   (testing "apply static java function to elements of Object[]"
+;;     (let [n 64
+;;           kernel (reify ObjectBooleanKernel
+;;                    (invoke [self in out gid]
+;;                      (aset out gid (clojure.lang.Numbers/isNeg (aget in gid)))))]
+;;       (is (test-kernel
+;;            kernel (find-method kernel "invoke") n
+;;            (into-array ^Object (range -16 16))
+;;            (boolean-array n))))))
 
-;; (definterface StringIntKernel (^void invoke [^"[Ljava.lang.String;" in ^ints out ^int gid]))
+;;------------------------------------------------------------------------------
 
-;; ;; (deftest string-length-test
-;; ;; (println "string-length-test")
-;; ;;   (testing "find lengths of an array of Strings via application of a java virtual method"
-;; ;;     (let [n 64
-;; ;;           kernel (reify StringIntKernel
-;; ;;                    (^void invoke [^StringIntKernel self ^"[Ljava.lang.String;" in ^ints out ^int gid]
-;; ;;                      (aset out gid (.length ^String (aget in gid)))))]
-;; ;;       (is (test-kernel
-;; ;;            kernel (find-method kernel "invoke") n
-;; ;;            (into-array ^String (map (fn [^Long i] (.toString i)) (range n)))
-;; ;;            (int-array n))))))
+(definterface StringIntKernel (^void invoke [^"[Ljava.lang.String;" in ^ints out ^int gid]))
 
-;; ;;------------------------------------------------------------------------------
+(deftest string-length-test
+  (println "string-length-test")
+  (testing "find lengths of an array of Strings via application of a java virtual method"
+    (let [n 64
+          kernel (reify StringIntKernel
+                   (^void invoke [^StringIntKernel self ^"[Ljava.lang.String;" in ^ints out ^int gid]
+                     (aset out gid (.length ^String (aget in gid)))))]
+      (is (test-kernel
+           kernel (find-method kernel "invoke") n
+           (into-array ^String (map (fn [^Long i] (.toString i)) (range n)))
+           (int-array n))))))
+
+;;------------------------------------------------------------------------------
 
 ;; (definterface ListLongKernel (^void invoke [^"[Lclojure.lang.PersistentList;" in ^longs out ^int i]))
 
