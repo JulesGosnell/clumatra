@@ -356,6 +356,32 @@
 
 ;;------------------------------------------------------------------------------
 
+(deftest Long-test
+  (println "Long-test")
+  (testing "copy Long elements of an Object[]"
+    (let [n 64
+          kernel (reify ObjectKernel
+                   (^void invoke [^ObjectKernel self ^objects in ^objects out ^int gid]
+                     (aset out gid (aget in gid))))]
+      (is (test-kernel
+           kernel (find-method kernel "invoke") n
+           (into-array Object (range n)) (make-array Object n))))))
+
+;; com.oracle.graal.graph.GraalInternalError: unimplemented
+
+;; (deftest Long-multiplication-test
+;;   (println "Long-test")
+;;   (testing "copy Long elements of an Object[]"
+;;     (let [n 64
+;;           kernel (reify ObjectKernel
+;;                    (^void invoke [^ObjectKernel self ^objects in ^objects out ^int gid]
+;;                      (aset out gid (* (aget in gid) (aget in gid)))))]
+;;       (is (test-kernel
+;;            kernel (find-method kernel "invoke") n
+;;            (into-array Object (range n)) (make-array Object n))))))
+
+;;------------------------------------------------------------------------------
+
 ;; (definterface ObjectBooleanKernel (^void invoke [^"[Ljava.lang.Object;" in ^booleans out ^int gid]))
 
 ;; fails under jenkins !!
