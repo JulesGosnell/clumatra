@@ -161,33 +161,35 @@
            kernel (find-method kernel "invoke") n
            (short-array (range n)) (short-array n))))))
 
-;; ;; (deftest inc-short-test
-;; ;; (println "inc-short-test")
-;; ;;   (testing "increment elements of a short[] via application of a java static method"
-;; ;;     (let [n 64
-;; ;;           kernel (reify ShortKernel
-;; ;;                    (^void invoke [^ShortKernel self ^shorts in ^shorts out ^int gid]
-;; ;;                      (aset out gid (short (inc (aget in gid))))))]
-;; ;;       (is (test-kernel
-;; ;;            kernel (find-method kernel "invoke") n
-;; ;;            (short-array (range n)) (short-array n))))))
+;; seems to have killed jvm
 
-;; ;;------------------------------------------------------------------------------
-
-;; (definterface IntKernel (^void invoke [^ints in ^ints out ^int gid]))
-
-;; (deftest int-test
-;; (println "int-test")
-;;   (testing "copy elements of an int[]"
+;; (deftest inc-short-test
+;;   (println "inc-short-test")
+;;   (testing "increment elements of a short[] via application of a java static method"
 ;;     (let [n 64
-;;           kernel (reify IntKernel
-;;                    (^void invoke [^IntKernel self ^ints in ^ints out ^int gid]
-;;                      (aset out gid (aget in gid))))]
+;;           kernel (reify ShortKernel
+;;                    (^void invoke [^ShortKernel self ^shorts in ^shorts out ^int gid]
+;;                      (aset out gid (short (inc (aget in gid))))))]
 ;;       (is (test-kernel
 ;;            kernel (find-method kernel "invoke") n
-;;            (int-array (range n)) (int-array n))))))
+;;            (short-array (range n)) (short-array n))))))
 
-;; ;;------------------------------------------------------------------------------
+;;------------------------------------------------------------------------------
+
+(definterface IntKernel (^void invoke [^ints in ^ints out ^int gid]))
+
+(deftest int-test
+(println "int-test")
+  (testing "copy elements of an int[]"
+    (let [n 64
+          kernel (reify IntKernel
+                   (^void invoke [^IntKernel self ^ints in ^ints out ^int gid]
+                     (aset out gid (aget in gid))))]
+      (is (test-kernel
+           kernel (find-method kernel "invoke") n
+           (int-array (range n)) (int-array n))))))
+
+;;------------------------------------------------------------------------------
 
 ;; (definterface LongKernel (^void invoke [^longs in ^longs out ^int gid]))
 
