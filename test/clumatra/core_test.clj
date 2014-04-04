@@ -2,10 +2,7 @@
   (:import  [java.lang.reflect Method])
   (:require [clojure.test :refer :all]
             [clojure.core [reducers :as r]]
-            [clojure.core [rrb-vector :as v]]
-            ;;[clumatra.core :refer :all]
-            ;;[no [disassemble :as d]]
-            )
+            [clojure.core [rrb-vector :as v]])
   (:gen-class))
 
 (set! *warn-on-reflection* true)
@@ -155,17 +152,15 @@
            kernel (find-method kernel "invoke") n
            (short-array (range n)) (short-array n))))))
 
-;; com.oracle.graal.graph.GraalInternalError: java.lang.ClassCastException: com.oracle.graal.hotspot.hsail.HSAILHotSpotLIRGenerator cannot be cast to com.oracle.graal.hotspot.HotSpotLIRGenerator
-
-;; (deftest inc-short-test
-;;   (testing "increment elements of a short[] via application of a java static method"
-;;     (let [n 32
-;;           kernel (reify ShortKernel
-;;                    (^void invoke [^ShortKernel self ^shorts in ^shorts out ^int gid]
-;;                      (aset out gid (short (inc (aget in gid))))))]
-;;       (is (test-kernel
-;;            kernel (find-method kernel "invoke") n
-;;            (short-array (range n)) (short-array n))))))
+(deftest inc-short-test
+  (testing "increment elements of a short[] via application of a java static method"
+    (let [n 32
+          kernel (reify ShortKernel
+                   (^void invoke [^ShortKernel self ^shorts in ^shorts out ^int gid]
+                     (aset out gid (short (inc (aget in gid))))))]
+      (is (test-kernel
+           kernel (find-method kernel "invoke") n
+           (short-array (range n)) (short-array n))))))
 
 ;;------------------------------------------------------------------------------
 
