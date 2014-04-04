@@ -356,21 +356,19 @@
 
 ;;------------------------------------------------------------------------------
 
-;; (definterface ObjectBooleanKernel (^void invoke [^"[Ljava.lang.Object;" in ^booleans out ^int gid]))
+(definterface ObjectBooleanKernel (^void invoke [^"[Ljava.lang.Object;" in ^booleans out ^int gid]))
 
-;; ;; com.oracle.graal.graph.GraalInternalError: unimplemented
-;; ;;
-;; ;; (deftest isZero-test
-;; ;; (println "isZero-test")
-;; ;;   (testing "apply static java function to elements of Object[]"
-;; ;;     (let [n 64
-;; ;;           kernel (reify ObjectBooleanKernel
-;; ;;                    (invoke [self in out gid]
-;; ;;                      (aset out gid (clojure.lang.Numbers/isZero (aget in gid)))))]
-;; ;;       (is (test-kernel
-;; ;;            kernel (find-method kernel "invoke") n
-;; ;;            (into-array ^Object (range 64))
-;; ;;            (boolean-array n))))))
+(deftest isZero-test
+  (println "isZero-test")
+  (testing "apply static java function to elements of Object[]"
+    (let [n 64
+          kernel (reify ObjectBooleanKernel
+                   (invoke [self in out gid]
+                     (aset out gid (clojure.lang.Numbers/isZero (aget in gid)))))]
+      (is (test-kernel
+           kernel (find-method kernel "invoke") n
+           (into-array ^Object (range 64))
+           (boolean-array n))))))
 
 ;; ;; com.oracle.graal.graph.GraalInternalError: unimplemented
 ;; ;;
