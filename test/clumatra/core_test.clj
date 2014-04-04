@@ -102,17 +102,15 @@
            kernel (find-method kernel "invoke") n
            (byte-array (range n)) (byte-array n))))))
 
-;; com.oracle.graal.graph.GraalInternalError: java.lang.ClassCastException: com.oracle.graal.hotspot.hsail.HSAILHotSpotLIRGenerator cannot be cast to com.oracle.graal.hotspot.HotSpotLIRGenerator
-
-;; (deftest inc-byte-test
-;;   (testing "increment elements of a byte[] via application of a java static method"
-;;     (let [n 32
-;;           kernel (reify ByteKernel
-;;                    (^void invoke [^ByteKernel self ^bytes in ^bytes out ^int gid]
-;;                      (aset out gid (byte (inc (aget in gid))))))]
-;;       (is (test-kernel
-;;            kernel (find-method kernel "invoke") n
-;;            (byte-array (range n)) (byte-array n))))))
+(deftest inc-byte-test
+  (testing "increment elements of a byte[] via application of a java static method"
+    (let [n 32
+          kernel (reify ByteKernel
+                   (^void invoke [^ByteKernel self ^bytes in ^bytes out ^int gid]
+                     (aset out gid (byte (inc (aget in gid))))))]
+      (is (test-kernel
+           kernel (find-method kernel "invoke") n
+           (byte-array (range n)) (byte-array n))))))
 
 ;;------------------------------------------------------------------------------
 
