@@ -99,18 +99,16 @@
            kernel (find-method kernel "invoke") n
            (byte-array (range n)) (byte-array n))))))
 
-;;  SIGSEGV (0xb) at pc=0x00007f7c015d1623, pid=5069, tid=140170587764480
-
-;; (deftest inc-byte-test
-;;   (println "inc-byte-test")
-;;   (testing "increment elements of a byte[] via application of a java static method"
-;;     (let [n 64
-;;           kernel (reify ByteKernel
-;;                    (^void invoke [^ByteKernel self ^bytes in ^bytes out ^int gid]
-;;                      (aset out gid (byte (inc (aget in gid))))))]
-;;       (is (test-kernel
-;;            kernel (find-method kernel "invoke") n
-;;            (byte-array (range n)) (byte-array n))))))
+(deftest inc-byte-test
+  (println "inc-byte-test")
+  (testing "increment elements of a byte[] via application of a java static method"
+    (let [n 64
+          kernel (reify ByteKernel
+                   (^void invoke [^ByteKernel self ^bytes in ^bytes out ^int gid]
+                     (aset out gid (byte (inc (aget in gid))))))]
+      (is (test-kernel
+           kernel (find-method kernel "invoke") n
+           (byte-array (range n)) (byte-array n))))))
 
 ;; ;;------------------------------------------------------------------------------
 
@@ -118,30 +116,30 @@
 
 ;; ;; looks like it upsets Jenkins JUnit test result parser
 
-;; ;; (deftest char-test
-;; (println "char-test")
-;; ;;   (testing "copy elements of a char[]"
-;; ;;     (let [n 26
-;; ;;           kernel (reify CharKernel
-;; ;;                    (^void invoke [^CharKernel self ^chars in ^chars out ^int gid]
-;; ;;                      (aset out gid (aget in gid))))]
-;; ;;       (is (test-kernel
-;; ;;            kernel (find-method kernel "invoke") n
-;; ;;            (char-array (map char (range 65 (+ 65 n)))) (char-array n))))))
+;; (deftest char-test
+(println "char-test")
+;;   (testing "copy elements of a char[]"
+;;     (let [n 26
+;;           kernel (reify CharKernel
+;;                    (^void invoke [^CharKernel self ^chars in ^chars out ^int gid]
+;;                      (aset out gid (aget in gid))))]
+;;       (is (test-kernel
+;;            kernel (find-method kernel "invoke") n
+;;            (char-array (map char (range 65 (+ 65 n)))) (char-array n))))))
 
-;; ;; wierd - I would expect this one to work - investigate...
-;; ;; com.oracle.graal.graph.GraalInternalError: unimplemented
+;; wierd - I would expect this one to work - investigate...
+;; com.oracle.graal.graph.GraalInternalError: unimplemented
 
-;; ;; (deftest toLowercase-char-test
-;; ;; (println "toLowercase-char-test")
-;; ;;   (testing "downcase elements of an char[] via application of a java static method"
-;; ;;     (let [n 26
-;; ;;           kernel (reify CharKernel
-;; ;;                    (^void invoke [^CharKernel self ^chars in ^chars out ^int gid]
-;; ;;                      (aset out gid (java.lang.Character/toLowerCase (aget in gid)))))]
-;; ;;       (is (test-kernel
-;; ;;            kernel (find-method kernel "invoke") n
-;; ;;            (char-array (map char (range 65 (+ 65 n)))) (char-array n))))))
+;; (deftest toLowercase-char-test
+;; (println "toLowercase-char-test")
+;;   (testing "downcase elements of an char[] via application of a java static method"
+;;     (let [n 26
+;;           kernel (reify CharKernel
+;;                    (^void invoke [^CharKernel self ^chars in ^chars out ^int gid]
+;;                      (aset out gid (java.lang.Character/toLowerCase (aget in gid)))))]
+;;       (is (test-kernel
+;;            kernel (find-method kernel "invoke") n
+;;            (char-array (map char (range 65 (+ 65 n)))) (char-array n))))))
 
 ;;------------------------------------------------------------------------------
 
@@ -176,7 +174,7 @@
 (definterface IntKernel (^void invoke [^ints in ^ints out ^int gid]))
 
 (deftest int-test
-(println "int-test")
+  (println "int-test")
   (testing "copy elements of an int[]"
     (let [n 64
           kernel (reify IntKernel
@@ -191,7 +189,7 @@
 (definterface LongKernel (^void invoke [^longs in ^longs out ^int gid]))
 
 (deftest long-test
-(println "long-test")
+  (println "long-test")
   (testing "copy elements of a long[]"
     (let [n 64
           kernel (reify LongKernel
