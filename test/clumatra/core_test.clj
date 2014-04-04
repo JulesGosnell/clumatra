@@ -102,8 +102,10 @@
            kernel (find-method kernel "invoke") n
            (byte-array (range n)) (byte-array n))))))
 
+;;  SIGSEGV (0xb) at pc=0x00007f7c015d1623, pid=5069, tid=140170587764480
+
 ;; (deftest inc-byte-test
-;; (println "inc-byte-test")
+;;   (println "inc-byte-test")
 ;;   (testing "increment elements of a byte[] via application of a java static method"
 ;;     (let [n 64
 ;;           kernel (reify ByteKernel
