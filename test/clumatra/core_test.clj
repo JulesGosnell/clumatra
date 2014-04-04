@@ -61,12 +61,12 @@
        (seq (apply compiled runtime-args)) ;run twice
        (seq (apply (local-kernel-compile kernel method n) runtime-args))))) ;compare against control
 
-;; ;;------------------------------------------------------------------------------
+;;------------------------------------------------------------------------------
 
 (definterface BooleanKernel (^void invoke [^booleans in ^booleans out ^int gid]))
 
-(println "boolean-test")
 (deftest boolean-test
+  (println "boolean-test")
   (testing "copy elements of a boolean[]"
     (let [n 64
           kernel (reify BooleanKernel
@@ -76,8 +76,8 @@
            kernel (find-method kernel "invoke") n
            (boolean-array (map even? (range n))) (boolean-array n))))))
 
-(println "boolean-flip-test")
 (deftest boolean-flip-test
+  (println "boolean-flip-test")
   (testing "flip elements of a boolean[]"
     (let [n 64
           kernel (reify BooleanKernel
@@ -87,23 +87,23 @@
            kernel (find-method kernel "invoke") n
            (boolean-array (map even? (range n))) (boolean-array n))))))
 
-;; ;;------------------------------------------------------------------------------
+;;------------------------------------------------------------------------------
 
-;; (definterface ByteKernel (^void invoke [^bytes in ^bytes out ^int gid]))
+(definterface ByteKernel (^void invoke [^bytes in ^bytes out ^int gid]))
 
-;; (println "byte-test")
-;; (deftest byte-test
-;;   (testing "copy elements of a byte[]"
-;;     (let [n 64
-;;           kernel (reify ByteKernel
-;;                    (^void invoke [^ByteKernel self ^bytes in ^bytes out ^int gid]
-;;                      (aset out gid (aget in gid))))]
-;;       (is (test-kernel
-;;            kernel (find-method kernel "invoke") n
-;;            (byte-array (range n)) (byte-array n))))))
+(deftest byte-test
+  (println "byte-test")
+  (testing "copy elements of a byte[]"
+    (let [n 64
+          kernel (reify ByteKernel
+                   (^void invoke [^ByteKernel self ^bytes in ^bytes out ^int gid]
+                     (aset out gid (aget in gid))))]
+      (is (test-kernel
+           kernel (find-method kernel "invoke") n
+           (byte-array (range n)) (byte-array n))))))
 
-;; (println "inc-byte-test")
 ;; (deftest inc-byte-test
+;; (println "inc-byte-test")
 ;;   (testing "increment elements of a byte[] via application of a java static method"
 ;;     (let [n 64
 ;;           kernel (reify ByteKernel
@@ -119,8 +119,8 @@
 
 ;; ;; looks like it upsets Jenkins JUnit test result parser
 
-;; (println "char-test")
 ;; ;; (deftest char-test
+;; (println "char-test")
 ;; ;;   (testing "copy elements of a char[]"
 ;; ;;     (let [n 26
 ;; ;;           kernel (reify CharKernel
@@ -133,8 +133,8 @@
 ;; ;; wierd - I would expect this one to work - investigate...
 ;; ;; com.oracle.graal.graph.GraalInternalError: unimplemented
 
-;; ;; (println "toLowercase-char-test")
 ;; ;; (deftest toLowercase-char-test
+;; ;; (println "toLowercase-char-test")
 ;; ;;   (testing "downcase elements of an char[] via application of a java static method"
 ;; ;;     (let [n 26
 ;; ;;           kernel (reify CharKernel
@@ -148,8 +148,8 @@
 
 ;; (definterface ShortKernel (^void invoke [^shorts in ^shorts out ^int gid]))
 
-;; (println "short-test")
 ;; (deftest short-test
+;; (println "short-test")
 ;;   (testing "copy elements of a short[]"
 ;;     (let [n 64
 ;;           kernel (reify ShortKernel
@@ -159,8 +159,8 @@
 ;;            kernel (find-method kernel "invoke") n
 ;;            (short-array (range n)) (short-array n))))))
 
-;; ;; (println "inc-short-test")
 ;; ;; (deftest inc-short-test
+;; ;; (println "inc-short-test")
 ;; ;;   (testing "increment elements of a short[] via application of a java static method"
 ;; ;;     (let [n 64
 ;; ;;           kernel (reify ShortKernel
@@ -174,8 +174,8 @@
 
 ;; (definterface IntKernel (^void invoke [^ints in ^ints out ^int gid]))
 
-;; (println "int-test")
 ;; (deftest int-test
+;; (println "int-test")
 ;;   (testing "copy elements of an int[]"
 ;;     (let [n 64
 ;;           kernel (reify IntKernel
@@ -189,8 +189,8 @@
 
 ;; (definterface LongKernel (^void invoke [^longs in ^longs out ^int gid]))
 
-;; (println "long-test")
 ;; (deftest long-test
+;; (println "long-test")
 ;;   (testing "copy elements of a long[]"
 ;;     (let [n 64
 ;;           kernel (reify LongKernel
@@ -200,8 +200,8 @@
 ;;            kernel (find-method kernel "invoke") n
 ;;            (long-array (range n)) (long-array n))))))
 
-;; (println "unchecked-inc-long-test")
 ;; (deftest unchecked-inc-long-test
+;; (println "unchecked-inc-long-test")
 ;;   (testing "increment elements of a long[] via the application of a java static method"
 ;;     (let [n 64
 ;;           kernel (reify LongKernel
@@ -211,8 +211,8 @@
 ;;            kernel (find-method kernel "invoke") n
 ;;            (long-array (range n)) (long-array n))))))
 
-;; (println "inc-long-test")
 ;; (deftest inc-long-test
+;; (println "inc-long-test")
 ;;   (testing "increment elements of a long[] via the application of a builtin function"
 ;;     (let [n 64
 ;;           kernel (reify LongKernel
@@ -224,8 +224,8 @@
 
 ;; (defn ^long my-inc [^long l] (inc l))
 
-;; ;; (println "my-inc-long-test")
 ;; ;; (deftest my-inc-long-test
+;; ;; (println "my-inc-long-test")
 ;; ;;   (testing "increment elements of a long[] via the application of a named clojure function"
 ;; ;;     (let [n 64
 ;; ;;           kernel (reify LongKernel
@@ -240,8 +240,8 @@
 
 ;; ;; com.oracle.graal.graph.GraalInternalError.unimplemented (GraalInternalError.java:38)
 
-;; ;; (println "my-static-inc-long-test")
 ;; ;; (deftest my-static-inc-long-test
+;; ;; (println "my-static-inc-long-test")
 ;; ;;   (testing "increment elements of a long[] via the application of a named static clojure function"
 ;; ;;     (let [n 64
 ;; ;;           kernel (reify LongKernel
@@ -255,8 +255,8 @@
 ;; ;;com.oracle.graal.graph.GraalInternalError: java.lang.ClassCastException:
 ;; ;;   com.oracle.graal.hotspot.hsail.HSAILHotSpotLIRGenerator cannot be cast to com.oracle.graal.hotspot.HotSpotLIRGenerator
 
-;; ;; (println "anonymous-inc-long-test")
 ;; ;; (deftest anonymous-inc-long-test
+;; ;; (println "anonymous-inc-long-test")
 ;; ;;   (testing "increment elements of a long[] via the application of an anonymous clojure function"
 ;; ;;     (let [my-inc (fn [^long l] (inc l))
 ;; ;;           n 64
@@ -272,8 +272,8 @@
 
 ;; (definterface FloatKernel (^void invoke [^floats in ^floats out ^int gid]))
 
-;; (println "float-test")
 ;; (deftest float-test
+;; (println "float-test")
 ;;   (testing "copy elements of a float[]"
 ;;     (let [n 64
 ;;           kernel (reify FloatKernel
@@ -285,8 +285,8 @@
 
 ;; ;; com.oracle.graal.graph.GraalInternalError: unimplemented
 
-;; ;;;(println "inc-float-test")
 ;; ;; (deftest inc-float-test
+;; ;;;(println "inc-float-test")
 ;; ;;   (testing "increment elements of a float[] via application of a java static method"
 ;; ;;     (let [n 64
 ;; ;;           kernel (reify FloatKernel
@@ -300,8 +300,8 @@
 
 ;; (definterface DoubleKernel (^void invoke [^doubles in ^doubles out ^int gid]))
 
-;; (println "double-test")
 ;; (deftest double-test
+;; (println "double-test")
 ;;   (testing "copy elements of a double[]"
 ;;     (let [n 64
 ;;           kernel (reify DoubleKernel
@@ -311,8 +311,8 @@
 ;;            kernel (find-method kernel "invoke") n
 ;;            (double-array (range n)) (double-array n))))))
 
-;; (println "multiplyP-double-test")
 ;; (deftest multiplyP-double-test
+;; (println "multiplyP-double-test")
 ;;   (testing "double elements of a double[] via application of a java static method"
 ;;     (let [n 64
 ;;           kernel (reify DoubleKernel
@@ -324,8 +324,8 @@
 
 ;; ;; seems to hang jvm
 
-;; ;; (println "quotient-double-test")
 ;; ;; (deftest quotient-double-test
+;; ;; (println "quotient-double-test")
 ;; ;;   (testing "quotient elements of a double[] via application of a java static method"
 ;; ;;     (let [n 64
 ;; ;;           kernel (reify DoubleKernel
@@ -341,8 +341,8 @@
 
 ;; ;; unstable
 
-;; ;; (println "object-test")
 ;; ;; (deftest object-test
+;; ;; (println "object-test")
 ;; ;;   (testing "copy elements of an object[]"
 ;; ;;     (let [n 64
 ;; ;;           kernel (reify ObjectKernel
@@ -358,8 +358,8 @@
 
 ;; ;; com.oracle.graal.graph.GraalInternalError: unimplemented
 ;; ;;
-;; ;; (println "isZero-test")
 ;; ;; (deftest isZero-test
+;; ;; (println "isZero-test")
 ;; ;;   (testing "apply static java function to elements of Object[]"
 ;; ;;     (let [n 64
 ;; ;;           kernel (reify ObjectBooleanKernel
@@ -372,8 +372,8 @@
 
 ;; ;; com.oracle.graal.graph.GraalInternalError: unimplemented
 ;; ;;
-;; ;; (println "isPos-test")
 ;; ;; (deftest isPos-test
+;; ;; (println "isPos-test")
 ;; ;;   (testing "apply static java function to elements of Object[]"
 ;; ;;     (let [n 64
 ;; ;;           kernel (reify ObjectBooleanKernel
@@ -387,8 +387,8 @@
 
 ;; ;; com.oracle.graal.graph.GraalInternalError: unimplemented
 ;; ;;
-;; ;; (println "isNeg-test")
 ;; ;; (deftest isNeg-test
+;; ;; (println "isNeg-test")
 ;; ;;   (testing "apply static java function to elements of Object[]"
 ;; ;;     (let [n 64
 ;; ;;           kernel (reify ObjectBooleanKernel
@@ -403,8 +403,8 @@
 
 ;; (definterface StringIntKernel (^void invoke [^"[Ljava.lang.String;" in ^ints out ^int gid]))
 
-;; ;; (println "string-length-test")
 ;; ;; (deftest string-length-test
+;; ;; (println "string-length-test")
 ;; ;;   (testing "find lengths of an array of Strings via application of a java virtual method"
 ;; ;;     (let [n 64
 ;; ;;           kernel (reify StringIntKernel
@@ -422,8 +422,8 @@
 ;; ;; a bit optimistic :-) - doesn't do any allocation, but does use more of Clojure's runtime...
 ;; ;; com.oracle.graal.graph.GraalInternalError: unimplemented
 
-;; ;; (println "list-peek-test")
 ;; ;; (deftest list-peek-test
+;; ;; (println "list-peek-test")
 ;; ;;   (testing "map 'peek' across an array of lists - call a method on a Clojure list"
 ;; ;;     (let [n 64
 ;; ;;           kernel (reify ListLongKernel
