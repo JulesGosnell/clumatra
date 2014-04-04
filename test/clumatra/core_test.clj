@@ -215,16 +215,16 @@
            kernel (find-method kernel "invoke") n
            (long-array (range n)) (long-array n))))))
 
-;; (deftest inc-long-test
-;; (println "inc-long-test")
-;;   (testing "increment elements of a long[] via the application of a builtin function"
-;;     (let [n 64
-;;           kernel (reify LongKernel
-;;                    (^void invoke [^LongKernel self ^longs in ^longs out ^int gid]
-;;                      (aset out gid (inc (aget in gid)))))]
-;;       (is (test-kernel
-;;            kernel (find-method kernel "invoke") n
-;;            (long-array (range n)) (long-array n))))))
+(deftest inc-long-test
+  (println "inc-long-test")
+  (testing "increment elements of a long[] via the application of a builtin function"
+    (let [n 64
+          kernel (reify LongKernel
+                   (^void invoke [^LongKernel self ^longs in ^longs out ^int gid]
+                     (aset out gid (inc (aget in gid)))))]
+      (is (test-kernel
+           kernel (find-method kernel "invoke") n
+           (long-array (range n)) (long-array n))))))
 
 ;; (defn ^long my-inc [^long l] (inc l))
 
