@@ -146,20 +146,20 @@
 ;; ;;            kernel (find-method kernel "invoke") n
 ;; ;;            (char-array (map char (range 65 (+ 65 n)))) (char-array n))))))
 
-;; ;;------------------------------------------------------------------------------
+;;------------------------------------------------------------------------------
 
-;; (definterface ShortKernel (^void invoke [^shorts in ^shorts out ^int gid]))
+(definterface ShortKernel (^void invoke [^shorts in ^shorts out ^int gid]))
 
-;; (deftest short-test
-;; (println "short-test")
-;;   (testing "copy elements of a short[]"
-;;     (let [n 64
-;;           kernel (reify ShortKernel
-;;                    (^void invoke [^ShortKernel self ^shorts in ^shorts out ^int gid]
-;;                      (aset out gid (aget in gid))))]
-;;       (is (test-kernel
-;;            kernel (find-method kernel "invoke") n
-;;            (short-array (range n)) (short-array n))))))
+(deftest short-test
+  (println "short-test")
+  (testing "copy elements of a short[]"
+    (let [n 64
+          kernel (reify ShortKernel
+                   (^void invoke [^ShortKernel self ^shorts in ^shorts out ^int gid]
+                     (aset out gid (aget in gid))))]
+      (is (test-kernel
+           kernel (find-method kernel "invoke") n
+           (short-array (range n)) (short-array n))))))
 
 ;; ;; (deftest inc-short-test
 ;; ;; (println "inc-short-test")
