@@ -399,17 +399,17 @@
 
 (definterface StringIntKernel (^void invoke [^"[Ljava.lang.String;" in ^ints out ^int gid]))
 
-(println "string-length-test")
-(deftest string-length-test
-  (testing "find lengths of an array of Strings via application of a java virtual method"
-    (let [n 32
-          kernel (reify StringIntKernel
-                   (^void invoke [^StringIntKernel self ^"[Ljava.lang.String;" in ^ints out ^int gid]
-                     (aset out gid (.length ^String (aget in gid)))))]
-      (is (test-kernel
-           kernel (find-method kernel "invoke") n
-           (into-array ^String (map (fn [^Long i] (.toString i)) (range n)))
-           (int-array n))))))
+;; (println "string-length-test")
+;; (deftest string-length-test
+;;   (testing "find lengths of an array of Strings via application of a java virtual method"
+;;     (let [n 32
+;;           kernel (reify StringIntKernel
+;;                    (^void invoke [^StringIntKernel self ^"[Ljava.lang.String;" in ^ints out ^int gid]
+;;                      (aset out gid (.length ^String (aget in gid)))))]
+;;       (is (test-kernel
+;;            kernel (find-method kernel "invoke") n
+;;            (into-array ^String (map (fn [^Long i] (.toString i)) (range n)))
+;;            (int-array n))))))
 
 ;;------------------------------------------------------------------------------
 
