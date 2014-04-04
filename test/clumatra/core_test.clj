@@ -191,18 +191,18 @@
 
 ;;------------------------------------------------------------------------------
 
-;; (definterface LongKernel (^void invoke [^longs in ^longs out ^int gid]))
+(definterface LongKernel (^void invoke [^longs in ^longs out ^int gid]))
 
-;; (deftest long-test
-;; (println "long-test")
-;;   (testing "copy elements of a long[]"
-;;     (let [n 64
-;;           kernel (reify LongKernel
-;;                    (^void invoke [^LongKernel self ^longs in ^longs out ^int gid]
-;;                      (aset out gid (aget in gid))))]
-;;       (is (test-kernel
-;;            kernel (find-method kernel "invoke") n
-;;            (long-array (range n)) (long-array n))))))
+(deftest long-test
+(println "long-test")
+  (testing "copy elements of a long[]"
+    (let [n 64
+          kernel (reify LongKernel
+                   (^void invoke [^LongKernel self ^longs in ^longs out ^int gid]
+                     (aset out gid (aget in gid))))]
+      (is (test-kernel
+           kernel (find-method kernel "invoke") n
+           (long-array (range n)) (long-array n))))))
 
 ;; (deftest unchecked-inc-long-test
 ;; (println "unchecked-inc-long-test")
