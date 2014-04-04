@@ -99,25 +99,28 @@
            kernel (find-method kernel "invoke") n
            (byte-array (range n)) (byte-array n))))))
 
-(deftest inc-byte-test
-  (println "inc-byte-test")
-  (testing "increment elements of a byte[] via application of a java static method"
-    (let [n 64
-          kernel (reify ByteKernel
-                   (^void invoke [^ByteKernel self ^bytes in ^bytes out ^int gid]
-                     (aset out gid (byte (inc (aget in gid))))))]
-      (is (test-kernel
-           kernel (find-method kernel "invoke") n
-           (byte-array (range n)) (byte-array n))))))
+;; occasionally - nasty !
+;; *** Error in `/home/jules/workspace/clumatra/jdk1.8.0-graal/bin/java': free(): invalid next size (fast): 0x00007f9458a20820 ***
 
-;; ;;------------------------------------------------------------------------------
+;; (deftest inc-byte-test
+;;   (println "inc-byte-test")
+;;   (testing "increment elements of a byte[] via application of a java static method"
+;;     (let [n 64
+;;           kernel (reify ByteKernel
+;;                    (^void invoke [^ByteKernel self ^bytes in ^bytes out ^int gid]
+;;                      (aset out gid (byte (inc (aget in gid))))))]
+;;       (is (test-kernel
+;;            kernel (find-method kernel "invoke") n
+;;            (byte-array (range n)) (byte-array n))))))
 
-;; (definterface CharKernel (^void invoke [^chars in ^chars out ^int gid]))
+;;------------------------------------------------------------------------------
 
-;; ;; looks like it upsets Jenkins JUnit test result parser
+(definterface CharKernel (^void invoke [^chars in ^chars out ^int gid]))
+
+;; looks like it upsets Jenkins JUnit test result parser
 
 ;; (deftest char-test
-(println "char-test")
+;;  (println "char-test")
 ;;   (testing "copy elements of a char[]"
 ;;     (let [n 26
 ;;           kernel (reify CharKernel
@@ -130,8 +133,10 @@
 ;; wierd - I would expect this one to work - investigate...
 ;; com.oracle.graal.graph.GraalInternalError: unimplemented
 
+;; #  SIGSEGV (0xb) at pc=0x00007fd8270a171a, pid=15768, tid=140566356842240
+
 ;; (deftest toLowercase-char-test
-;; (println "toLowercase-char-test")
+;;   (println "toLowercase-char-test")
 ;;   (testing "downcase elements of an char[] via application of a java static method"
 ;;     (let [n 26
 ;;           kernel (reify CharKernel
