@@ -339,24 +339,22 @@
            kernel (find-method kernel "invoke") n
            (double-array (range n)) (double-array n))))))
 
-;; ;;------------------------------------------------------------------------------
+;;------------------------------------------------------------------------------
 
-;; (definterface ObjectKernel (^void invoke [^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out ^int i]))
+(definterface ObjectKernel (^void invoke [^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out ^int i]))
 
-;; ;; unstable
+(deftest object-test
+  (println "object-test")
+  (testing "copy elements of an object[]"
+    (let [n 64
+          kernel (reify ObjectKernel
+                   (^void invoke [^ObjectKernel self ^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out ^int i]
+                     (aset out i (aget in i))))]
+      (is (test-kernel
+           kernel (find-method kernel "invoke") n
+           (into-array Object (range n)) (make-array Object n))))))
 
-;; ;; (deftest object-test
-;; ;; (println "object-test")
-;; ;;   (testing "copy elements of an object[]"
-;; ;;     (let [n 64
-;; ;;           kernel (reify ObjectKernel
-;; ;;                    (^void invoke [^ObjectKernel self ^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out ^int i]
-;; ;;                      (aset out i (aget in i))))]
-;; ;;       (is (test-kernel
-;; ;;            kernel (find-method kernel "invoke") n
-;; ;;            (into-array Object (range n)) (make-array Object n))))))
-
-;; ;;------------------------------------------------------------------------------
+;;------------------------------------------------------------------------------
 
 ;; (definterface ObjectBooleanKernel (^void invoke [^"[Ljava.lang.Object;" in ^booleans out ^int gid]))
 
