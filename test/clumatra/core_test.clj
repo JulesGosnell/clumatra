@@ -76,16 +76,16 @@
            kernel (find-method kernel "invoke") n
            (boolean-array (map even? (range n))) (boolean-array n))))))
 
-;; (println "boolean-flip-test")
-;; (deftest boolean-flip-test
-;;   (testing "flip elements of a boolean[]"
-;;     (let [n 64
-;;           kernel (reify BooleanKernel
-;;                    (^void invoke [^BooleanKernel self ^booleans in ^booleans out ^int gid]
-;;                      (aset out gid (if (aget in gid) false true))))]
-;;       (is (test-kernel
-;;            kernel (find-method kernel "invoke") n
-;;            (boolean-array (map even? (range n))) (boolean-array n))))))
+(println "boolean-flip-test")
+(deftest boolean-flip-test
+  (testing "flip elements of a boolean[]"
+    (let [n 64
+          kernel (reify BooleanKernel
+                   (^void invoke [^BooleanKernel self ^booleans in ^booleans out ^int gid]
+                     (aset out gid (if (aget in gid) false true))))]
+      (is (test-kernel
+           kernel (find-method kernel "invoke") n
+           (boolean-array (map even? (range n))) (boolean-array n))))))
 
 ;; ;;------------------------------------------------------------------------------
 
