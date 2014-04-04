@@ -61,14 +61,14 @@
        (seq (apply compiled runtime-args)) ;run twice
        (seq (apply (local-kernel-compile kernel method n) runtime-args))))) ;compare against control
 
-;;------------------------------------------------------------------------------
+;; ;;------------------------------------------------------------------------------
 
 (definterface BooleanKernel (^void invoke [^booleans in ^booleans out ^int gid]))
 
 (println "boolean-test")
 (deftest boolean-test
   (testing "copy elements of a boolean[]"
-    (let [n 32
+    (let [n 64
           kernel (reify BooleanKernel
                    (^void invoke [^BooleanKernel self ^booleans in ^booleans out ^int gid]
                      (aset out gid (aget in gid))))]
@@ -76,525 +76,525 @@
            kernel (find-method kernel "invoke") n
            (boolean-array (map even? (range n))) (boolean-array n))))))
 
-(println "boolean-flip-test")
-(deftest boolean-flip-test
-  (testing "flip elements of a boolean[]"
-    (let [n 32
-          kernel (reify BooleanKernel
-                   (^void invoke [^BooleanKernel self ^booleans in ^booleans out ^int gid]
-                     (aset out gid (if (aget in gid) false true))))]
-      (is (test-kernel
-           kernel (find-method kernel "invoke") n
-           (boolean-array (map even? (range n))) (boolean-array n))))))
+;; (println "boolean-flip-test")
+;; (deftest boolean-flip-test
+;;   (testing "flip elements of a boolean[]"
+;;     (let [n 64
+;;           kernel (reify BooleanKernel
+;;                    (^void invoke [^BooleanKernel self ^booleans in ^booleans out ^int gid]
+;;                      (aset out gid (if (aget in gid) false true))))]
+;;       (is (test-kernel
+;;            kernel (find-method kernel "invoke") n
+;;            (boolean-array (map even? (range n))) (boolean-array n))))))
 
-;;------------------------------------------------------------------------------
+;; ;;------------------------------------------------------------------------------
 
-(definterface ByteKernel (^void invoke [^bytes in ^bytes out ^int gid]))
+;; (definterface ByteKernel (^void invoke [^bytes in ^bytes out ^int gid]))
 
-(println "byte-test")
-(deftest byte-test
-  (testing "copy elements of a byte[]"
-    (let [n 32
-          kernel (reify ByteKernel
-                   (^void invoke [^ByteKernel self ^bytes in ^bytes out ^int gid]
-                     (aset out gid (aget in gid))))]
-      (is (test-kernel
-           kernel (find-method kernel "invoke") n
-           (byte-array (range n)) (byte-array n))))))
-
-(println "inc-byte-test")
-(deftest inc-byte-test
-  (testing "increment elements of a byte[] via application of a java static method"
-    (let [n 32
-          kernel (reify ByteKernel
-                   (^void invoke [^ByteKernel self ^bytes in ^bytes out ^int gid]
-                     (aset out gid (byte (inc (aget in gid))))))]
-      (is (test-kernel
-           kernel (find-method kernel "invoke") n
-           (byte-array (range n)) (byte-array n))))))
-
-;;------------------------------------------------------------------------------
-
-(definterface CharKernel (^void invoke [^chars in ^chars out ^int gid]))
-
-;; looks like it upsets Jenkins JUnit test result parser
-
-(println "char-test")
-;; (deftest char-test
-;;   (testing "copy elements of a char[]"
-;;     (let [n 26
-;;           kernel (reify CharKernel
-;;                    (^void invoke [^CharKernel self ^chars in ^chars out ^int gid]
+;; (println "byte-test")
+;; (deftest byte-test
+;;   (testing "copy elements of a byte[]"
+;;     (let [n 64
+;;           kernel (reify ByteKernel
+;;                    (^void invoke [^ByteKernel self ^bytes in ^bytes out ^int gid]
 ;;                      (aset out gid (aget in gid))))]
 ;;       (is (test-kernel
 ;;            kernel (find-method kernel "invoke") n
-;;            (char-array (map char (range 65 (+ 65 n)))) (char-array n))))))
+;;            (byte-array (range n)) (byte-array n))))))
 
-;; wierd - I would expect this one to work - investigate...
-;; com.oracle.graal.graph.GraalInternalError: unimplemented
-
-;; (println "toLowercase-char-test")
-;; (deftest toLowercase-char-test
-;;   (testing "downcase elements of an char[] via application of a java static method"
-;;     (let [n 26
-;;           kernel (reify CharKernel
-;;                    (^void invoke [^CharKernel self ^chars in ^chars out ^int gid]
-;;                      (aset out gid (java.lang.Character/toLowerCase (aget in gid)))))]
+;; (println "inc-byte-test")
+;; (deftest inc-byte-test
+;;   (testing "increment elements of a byte[] via application of a java static method"
+;;     (let [n 64
+;;           kernel (reify ByteKernel
+;;                    (^void invoke [^ByteKernel self ^bytes in ^bytes out ^int gid]
+;;                      (aset out gid (byte (inc (aget in gid))))))]
 ;;       (is (test-kernel
 ;;            kernel (find-method kernel "invoke") n
-;;            (char-array (map char (range 65 (+ 65 n)))) (char-array n))))))
+;;            (byte-array (range n)) (byte-array n))))))
 
-;;------------------------------------------------------------------------------
+;; ;;------------------------------------------------------------------------------
 
-(definterface ShortKernel (^void invoke [^shorts in ^shorts out ^int gid]))
+;; (definterface CharKernel (^void invoke [^chars in ^chars out ^int gid]))
 
-(println "short-test")
-(deftest short-test
-  (testing "copy elements of a short[]"
-    (let [n 32
-          kernel (reify ShortKernel
-                   (^void invoke [^ShortKernel self ^shorts in ^shorts out ^int gid]
-                     (aset out gid (aget in gid))))]
-      (is (test-kernel
-           kernel (find-method kernel "invoke") n
-           (short-array (range n)) (short-array n))))))
+;; ;; looks like it upsets Jenkins JUnit test result parser
 
-;; (println "inc-short-test")
-;; (deftest inc-short-test
-;;   (testing "increment elements of a short[] via application of a java static method"
-;;     (let [n 32
+;; (println "char-test")
+;; ;; (deftest char-test
+;; ;;   (testing "copy elements of a char[]"
+;; ;;     (let [n 26
+;; ;;           kernel (reify CharKernel
+;; ;;                    (^void invoke [^CharKernel self ^chars in ^chars out ^int gid]
+;; ;;                      (aset out gid (aget in gid))))]
+;; ;;       (is (test-kernel
+;; ;;            kernel (find-method kernel "invoke") n
+;; ;;            (char-array (map char (range 65 (+ 65 n)))) (char-array n))))))
+
+;; ;; wierd - I would expect this one to work - investigate...
+;; ;; com.oracle.graal.graph.GraalInternalError: unimplemented
+
+;; ;; (println "toLowercase-char-test")
+;; ;; (deftest toLowercase-char-test
+;; ;;   (testing "downcase elements of an char[] via application of a java static method"
+;; ;;     (let [n 26
+;; ;;           kernel (reify CharKernel
+;; ;;                    (^void invoke [^CharKernel self ^chars in ^chars out ^int gid]
+;; ;;                      (aset out gid (java.lang.Character/toLowerCase (aget in gid)))))]
+;; ;;       (is (test-kernel
+;; ;;            kernel (find-method kernel "invoke") n
+;; ;;            (char-array (map char (range 65 (+ 65 n)))) (char-array n))))))
+
+;; ;;------------------------------------------------------------------------------
+
+;; (definterface ShortKernel (^void invoke [^shorts in ^shorts out ^int gid]))
+
+;; (println "short-test")
+;; (deftest short-test
+;;   (testing "copy elements of a short[]"
+;;     (let [n 64
 ;;           kernel (reify ShortKernel
 ;;                    (^void invoke [^ShortKernel self ^shorts in ^shorts out ^int gid]
-;;                      (aset out gid (short (inc (aget in gid))))))]
+;;                      (aset out gid (aget in gid))))]
 ;;       (is (test-kernel
 ;;            kernel (find-method kernel "invoke") n
 ;;            (short-array (range n)) (short-array n))))))
 
-;;------------------------------------------------------------------------------
+;; ;; (println "inc-short-test")
+;; ;; (deftest inc-short-test
+;; ;;   (testing "increment elements of a short[] via application of a java static method"
+;; ;;     (let [n 64
+;; ;;           kernel (reify ShortKernel
+;; ;;                    (^void invoke [^ShortKernel self ^shorts in ^shorts out ^int gid]
+;; ;;                      (aset out gid (short (inc (aget in gid))))))]
+;; ;;       (is (test-kernel
+;; ;;            kernel (find-method kernel "invoke") n
+;; ;;            (short-array (range n)) (short-array n))))))
 
-(definterface IntKernel (^void invoke [^ints in ^ints out ^int gid]))
+;; ;;------------------------------------------------------------------------------
 
-(println "int-test")
-(deftest int-test
-  (testing "copy elements of an int[]"
-    (let [n 32
-          kernel (reify IntKernel
-                   (^void invoke [^IntKernel self ^ints in ^ints out ^int gid]
-                     (aset out gid (aget in gid))))]
-      (is (test-kernel
-           kernel (find-method kernel "invoke") n
-           (int-array (range n)) (int-array n))))))
+;; (definterface IntKernel (^void invoke [^ints in ^ints out ^int gid]))
 
-;;------------------------------------------------------------------------------
-
-(definterface LongKernel (^void invoke [^longs in ^longs out ^int gid]))
-
-(println "long-test")
-(deftest long-test
-  (testing "copy elements of a long[]"
-    (let [n 32
-          kernel (reify LongKernel
-                   (^void invoke [^LongKernel self ^longs in ^longs out ^int gid]
-                     (aset out gid (aget in gid))))]
-      (is (test-kernel
-           kernel (find-method kernel "invoke") n
-           (long-array (range n)) (long-array n))))))
-
-(println "unchecked-inc-long-test")
-(deftest unchecked-inc-long-test
-  (testing "increment elements of a long[] via the application of a java static method"
-    (let [n 32
-          kernel (reify LongKernel
-                   (^void invoke [^LongKernel self ^longs in ^longs out ^int gid]
-                     (aset out gid (clojure.lang.Numbers/unchecked-inc (aget in gid)))))]
-      (is (test-kernel
-           kernel (find-method kernel "invoke") n
-           (long-array (range n)) (long-array n))))))
-
-(println "inc-long-test")
-(deftest inc-long-test
-  (testing "increment elements of a long[] via the application of a builtin function"
-    (let [n 32
-          kernel (reify LongKernel
-                   (^void invoke [^LongKernel self ^longs in ^longs out ^int gid]
-                     (aset out gid (inc (aget in gid)))))]
-      (is (test-kernel
-           kernel (find-method kernel "invoke") n
-           (long-array (range n)) (long-array n))))))
-
-(defn ^long my-inc [^long l] (inc l))
-
-;; (println "my-inc-long-test")
-;; (deftest my-inc-long-test
-;;   (testing "increment elements of a long[] via the application of a named clojure function"
-;;     (let [n 32
-;;           kernel (reify LongKernel
-;;                    (^void invoke [^LongKernel self ^longs in ^longs out ^int gid]
-;;                      (aset out gid (long (my-inc (aget in gid))))))]
+;; (println "int-test")
+;; (deftest int-test
+;;   (testing "copy elements of an int[]"
+;;     (let [n 64
+;;           kernel (reify IntKernel
+;;                    (^void invoke [^IntKernel self ^ints in ^ints out ^int gid]
+;;                      (aset out gid (aget in gid))))]
 ;;       (is (test-kernel
 ;;            kernel (find-method kernel "invoke") n
-;;            (long-array (range n))
-;;            (long-array n))))))
+;;            (int-array (range n)) (int-array n))))))
 
-(defn ^:static ^long my-static-inc [^long l] (inc l)) ;I don't think this is static..
+;; ;;------------------------------------------------------------------------------
 
-;; com.oracle.graal.graph.GraalInternalError.unimplemented (GraalInternalError.java:38)
+;; (definterface LongKernel (^void invoke [^longs in ^longs out ^int gid]))
 
-;; (println "my-static-inc-long-test")
-;; (deftest my-static-inc-long-test
-;;   (testing "increment elements of a long[] via the application of a named static clojure function"
-;;     (let [n 32
+;; (println "long-test")
+;; (deftest long-test
+;;   (testing "copy elements of a long[]"
+;;     (let [n 64
 ;;           kernel (reify LongKernel
 ;;                    (^void invoke [^LongKernel self ^longs in ^longs out ^int gid]
-;;                      (aset out gid (long (my-static-inc (aget in gid))))))]
+;;                      (aset out gid (aget in gid))))]
 ;;       (is (test-kernel
 ;;            kernel (find-method kernel "invoke") n
-;;            (long-array (range n))
-;;            (long-array n))))))
+;;            (long-array (range n)) (long-array n))))))
 
-;;com.oracle.graal.graph.GraalInternalError: java.lang.ClassCastException:
-;;   com.oracle.graal.hotspot.hsail.HSAILHotSpotLIRGenerator cannot be cast to com.oracle.graal.hotspot.HotSpotLIRGenerator
-
-;; (println "anonymous-inc-long-test")
-;; (deftest anonymous-inc-long-test
-;;   (testing "increment elements of a long[] via the application of an anonymous clojure function"
-;;     (let [my-inc (fn [^long l] (inc l))
-;;           n 32
+;; (println "unchecked-inc-long-test")
+;; (deftest unchecked-inc-long-test
+;;   (testing "increment elements of a long[] via the application of a java static method"
+;;     (let [n 64
 ;;           kernel (reify LongKernel
 ;;                    (^void invoke [^LongKernel self ^longs in ^longs out ^int gid]
-;;                      (aset out gid (long (my-inc (aget in gid))))))]
+;;                      (aset out gid (clojure.lang.Numbers/unchecked-inc (aget in gid)))))]
 ;;       (is (test-kernel
 ;;            kernel (find-method kernel "invoke") n
-;;            (long-array (range n))
-;;            (long-array n))))))
+;;            (long-array (range n)) (long-array n))))))
 
-;;------------------------------------------------------------------------------
+;; (println "inc-long-test")
+;; (deftest inc-long-test
+;;   (testing "increment elements of a long[] via the application of a builtin function"
+;;     (let [n 64
+;;           kernel (reify LongKernel
+;;                    (^void invoke [^LongKernel self ^longs in ^longs out ^int gid]
+;;                      (aset out gid (inc (aget in gid)))))]
+;;       (is (test-kernel
+;;            kernel (find-method kernel "invoke") n
+;;            (long-array (range n)) (long-array n))))))
 
-(definterface FloatKernel (^void invoke [^floats in ^floats out ^int gid]))
+;; (defn ^long my-inc [^long l] (inc l))
 
-(println "float-test")
-(deftest float-test
-  (testing "copy elements of a float[]"
-    (let [n 32
-          kernel (reify FloatKernel
-                   (^void invoke [^FloatKernel self ^floats in ^floats out ^int gid]
-                     (aset out gid (aget in gid))))]
-      (is (test-kernel
-           kernel (find-method kernel "invoke") n
-           (float-array (range n)) (float-array n))))))
+;; ;; (println "my-inc-long-test")
+;; ;; (deftest my-inc-long-test
+;; ;;   (testing "increment elements of a long[] via the application of a named clojure function"
+;; ;;     (let [n 64
+;; ;;           kernel (reify LongKernel
+;; ;;                    (^void invoke [^LongKernel self ^longs in ^longs out ^int gid]
+;; ;;                      (aset out gid (long (my-inc (aget in gid))))))]
+;; ;;       (is (test-kernel
+;; ;;            kernel (find-method kernel "invoke") n
+;; ;;            (long-array (range n))
+;; ;;            (long-array n))))))
 
-;; com.oracle.graal.graph.GraalInternalError: unimplemented
+;; (defn ^:static ^long my-static-inc [^long l] (inc l)) ;I don't think this is static..
 
-;;;(println "inc-float-test")
-;; (deftest inc-float-test
-;;   (testing "increment elements of a float[] via application of a java static method"
-;;     (let [n 32
+;; ;; com.oracle.graal.graph.GraalInternalError.unimplemented (GraalInternalError.java:38)
+
+;; ;; (println "my-static-inc-long-test")
+;; ;; (deftest my-static-inc-long-test
+;; ;;   (testing "increment elements of a long[] via the application of a named static clojure function"
+;; ;;     (let [n 64
+;; ;;           kernel (reify LongKernel
+;; ;;                    (^void invoke [^LongKernel self ^longs in ^longs out ^int gid]
+;; ;;                      (aset out gid (long (my-static-inc (aget in gid))))))]
+;; ;;       (is (test-kernel
+;; ;;            kernel (find-method kernel "invoke") n
+;; ;;            (long-array (range n))
+;; ;;            (long-array n))))))
+
+;; ;;com.oracle.graal.graph.GraalInternalError: java.lang.ClassCastException:
+;; ;;   com.oracle.graal.hotspot.hsail.HSAILHotSpotLIRGenerator cannot be cast to com.oracle.graal.hotspot.HotSpotLIRGenerator
+
+;; ;; (println "anonymous-inc-long-test")
+;; ;; (deftest anonymous-inc-long-test
+;; ;;   (testing "increment elements of a long[] via the application of an anonymous clojure function"
+;; ;;     (let [my-inc (fn [^long l] (inc l))
+;; ;;           n 64
+;; ;;           kernel (reify LongKernel
+;; ;;                    (^void invoke [^LongKernel self ^longs in ^longs out ^int gid]
+;; ;;                      (aset out gid (long (my-inc (aget in gid))))))]
+;; ;;       (is (test-kernel
+;; ;;            kernel (find-method kernel "invoke") n
+;; ;;            (long-array (range n))
+;; ;;            (long-array n))))))
+
+;; ;;------------------------------------------------------------------------------
+
+;; (definterface FloatKernel (^void invoke [^floats in ^floats out ^int gid]))
+
+;; (println "float-test")
+;; (deftest float-test
+;;   (testing "copy elements of a float[]"
+;;     (let [n 64
 ;;           kernel (reify FloatKernel
 ;;                    (^void invoke [^FloatKernel self ^floats in ^floats out ^int gid]
-;;                      (aset out gid (float (inc (aget in gid))))))]
+;;                      (aset out gid (aget in gid))))]
 ;;       (is (test-kernel
 ;;            kernel (find-method kernel "invoke") n
 ;;            (float-array (range n)) (float-array n))))))
 
-;;------------------------------------------------------------------------------
+;; ;; com.oracle.graal.graph.GraalInternalError: unimplemented
 
-(definterface DoubleKernel (^void invoke [^doubles in ^doubles out ^int gid]))
+;; ;;;(println "inc-float-test")
+;; ;; (deftest inc-float-test
+;; ;;   (testing "increment elements of a float[] via application of a java static method"
+;; ;;     (let [n 64
+;; ;;           kernel (reify FloatKernel
+;; ;;                    (^void invoke [^FloatKernel self ^floats in ^floats out ^int gid]
+;; ;;                      (aset out gid (float (inc (aget in gid))))))]
+;; ;;       (is (test-kernel
+;; ;;            kernel (find-method kernel "invoke") n
+;; ;;            (float-array (range n)) (float-array n))))))
 
-(println "double-test")
-(deftest double-test
-  (testing "copy elements of a double[]"
-    (let [n 32
-          kernel (reify DoubleKernel
-                   (^void invoke [^CharKernel self ^doubles in ^doubles out ^int gid]
-                     (aset out gid (aget in gid))))]
-      (is (test-kernel
-           kernel (find-method kernel "invoke") n
-           (double-array (range n)) (double-array n))))))
+;; ;;------------------------------------------------------------------------------
 
-(println "multiplyP-double-test")
-(deftest multiplyP-double-test
-  (testing "double elements of a double[] via application of a java static method"
-    (let [n 32
-          kernel (reify DoubleKernel
-                   (^void invoke [^CharKernel self ^doubles in ^doubles out ^int gid]
-                     (aset out gid (clojure.lang.Numbers/multiplyP (aget in gid) (double 2.0)))))]
-      (is (test-kernel
-           kernel (find-method kernel "invoke") n
-           (double-array (range n)) (double-array n))))))
+;; (definterface DoubleKernel (^void invoke [^doubles in ^doubles out ^int gid]))
 
-;; seems to hang jvm
-
-;; (println "quotient-double-test")
-;; (deftest quotient-double-test
-;;   (testing "quotient elements of a double[] via application of a java static method"
-;;     (let [n 32
+;; (println "double-test")
+;; (deftest double-test
+;;   (testing "copy elements of a double[]"
+;;     (let [n 64
 ;;           kernel (reify DoubleKernel
 ;;                    (^void invoke [^CharKernel self ^doubles in ^doubles out ^int gid]
-;;                      (aset out gid (clojure.lang.Numbers/quotient (aget in gid) (double 2.0)))))]
+;;                      (aset out gid (aget in gid))))]
 ;;       (is (test-kernel
 ;;            kernel (find-method kernel "invoke") n
 ;;            (double-array (range n)) (double-array n))))))
 
-;;------------------------------------------------------------------------------
-
-(definterface ObjectKernel (^void invoke [^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out ^int i]))
-
-;; unstable
-
-;; (println "object-test")
-;; (deftest object-test
-;;   (testing "copy elements of an object[]"
-;;     (let [n 32
-;;           kernel (reify ObjectKernel
-;;                    (^void invoke [^ObjectKernel self ^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out ^int i]
-;;                      (aset out i (aget in i))))]
+;; (println "multiplyP-double-test")
+;; (deftest multiplyP-double-test
+;;   (testing "double elements of a double[] via application of a java static method"
+;;     (let [n 64
+;;           kernel (reify DoubleKernel
+;;                    (^void invoke [^CharKernel self ^doubles in ^doubles out ^int gid]
+;;                      (aset out gid (clojure.lang.Numbers/multiplyP (aget in gid) (double 2.0)))))]
 ;;       (is (test-kernel
 ;;            kernel (find-method kernel "invoke") n
-;;            (into-array Object (range n)) (make-array Object n))))))
+;;            (double-array (range n)) (double-array n))))))
 
-;;------------------------------------------------------------------------------
+;; ;; seems to hang jvm
 
-(definterface ObjectBooleanKernel (^void invoke [^"[Ljava.lang.Object;" in ^booleans out ^int gid]))
+;; ;; (println "quotient-double-test")
+;; ;; (deftest quotient-double-test
+;; ;;   (testing "quotient elements of a double[] via application of a java static method"
+;; ;;     (let [n 64
+;; ;;           kernel (reify DoubleKernel
+;; ;;                    (^void invoke [^CharKernel self ^doubles in ^doubles out ^int gid]
+;; ;;                      (aset out gid (clojure.lang.Numbers/quotient (aget in gid) (double 2.0)))))]
+;; ;;       (is (test-kernel
+;; ;;            kernel (find-method kernel "invoke") n
+;; ;;            (double-array (range n)) (double-array n))))))
 
-;; com.oracle.graal.graph.GraalInternalError: unimplemented
-;;
-;; (println "isZero-test")
-;; (deftest isZero-test
-;;   (testing "apply static java function to elements of Object[]"
-;;     (let [n 32
-;;           kernel (reify ObjectBooleanKernel
-;;                    (invoke [self in out gid]
-;;                      (aset out gid (clojure.lang.Numbers/isZero (aget in gid)))))]
-;;       (is (test-kernel
-;;            kernel (find-method kernel "invoke") n
-;;            (into-array ^Object (range 32))
-;;            (boolean-array n))))))
+;; ;;------------------------------------------------------------------------------
 
-;; com.oracle.graal.graph.GraalInternalError: unimplemented
-;;
-;; (println "isPos-test")
-;; (deftest isPos-test
-;;   (testing "apply static java function to elements of Object[]"
-;;     (let [n 32
-;;           kernel (reify ObjectBooleanKernel
-;;                    (invoke [self in out gid]
-;;                      (aset out gid (clojure.lang.Numbers/isPos (aget in gid)))))]
-;;       (is (test-kernel
-;;            kernel (find-method kernel "invoke") n
-;;            (into-array ^Object (range -16 16))
-;;            (boolean-array n))))))
+;; (definterface ObjectKernel (^void invoke [^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out ^int i]))
+
+;; ;; unstable
+
+;; ;; (println "object-test")
+;; ;; (deftest object-test
+;; ;;   (testing "copy elements of an object[]"
+;; ;;     (let [n 64
+;; ;;           kernel (reify ObjectKernel
+;; ;;                    (^void invoke [^ObjectKernel self ^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out ^int i]
+;; ;;                      (aset out i (aget in i))))]
+;; ;;       (is (test-kernel
+;; ;;            kernel (find-method kernel "invoke") n
+;; ;;            (into-array Object (range n)) (make-array Object n))))))
+
+;; ;;------------------------------------------------------------------------------
+
+;; (definterface ObjectBooleanKernel (^void invoke [^"[Ljava.lang.Object;" in ^booleans out ^int gid]))
+
+;; ;; com.oracle.graal.graph.GraalInternalError: unimplemented
+;; ;;
+;; ;; (println "isZero-test")
+;; ;; (deftest isZero-test
+;; ;;   (testing "apply static java function to elements of Object[]"
+;; ;;     (let [n 64
+;; ;;           kernel (reify ObjectBooleanKernel
+;; ;;                    (invoke [self in out gid]
+;; ;;                      (aset out gid (clojure.lang.Numbers/isZero (aget in gid)))))]
+;; ;;       (is (test-kernel
+;; ;;            kernel (find-method kernel "invoke") n
+;; ;;            (into-array ^Object (range 64))
+;; ;;            (boolean-array n))))))
+
+;; ;; com.oracle.graal.graph.GraalInternalError: unimplemented
+;; ;;
+;; ;; (println "isPos-test")
+;; ;; (deftest isPos-test
+;; ;;   (testing "apply static java function to elements of Object[]"
+;; ;;     (let [n 64
+;; ;;           kernel (reify ObjectBooleanKernel
+;; ;;                    (invoke [self in out gid]
+;; ;;                      (aset out gid (clojure.lang.Numbers/isPos (aget in gid)))))]
+;; ;;       (is (test-kernel
+;; ;;            kernel (find-method kernel "invoke") n
+;; ;;            (into-array ^Object (range -16 16))
+;; ;;            (boolean-array n))))))
 
 
-;; com.oracle.graal.graph.GraalInternalError: unimplemented
-;;
-;; (println "isNeg-test")
-;; (deftest isNeg-test
-;;   (testing "apply static java function to elements of Object[]"
-;;     (let [n 32
-;;           kernel (reify ObjectBooleanKernel
-;;                    (invoke [self in out gid]
-;;                      (aset out gid (clojure.lang.Numbers/isNeg (aget in gid)))))]
-;;       (is (test-kernel
-;;            kernel (find-method kernel "invoke") n
-;;            (into-array ^Object (range -16 16))
-;;            (boolean-array n))))))
+;; ;; com.oracle.graal.graph.GraalInternalError: unimplemented
+;; ;;
+;; ;; (println "isNeg-test")
+;; ;; (deftest isNeg-test
+;; ;;   (testing "apply static java function to elements of Object[]"
+;; ;;     (let [n 64
+;; ;;           kernel (reify ObjectBooleanKernel
+;; ;;                    (invoke [self in out gid]
+;; ;;                      (aset out gid (clojure.lang.Numbers/isNeg (aget in gid)))))]
+;; ;;       (is (test-kernel
+;; ;;            kernel (find-method kernel "invoke") n
+;; ;;            (into-array ^Object (range -16 16))
+;; ;;            (boolean-array n))))))
 
-;;------------------------------------------------------------------------------
+;; ;;------------------------------------------------------------------------------
 
-(definterface StringIntKernel (^void invoke [^"[Ljava.lang.String;" in ^ints out ^int gid]))
+;; (definterface StringIntKernel (^void invoke [^"[Ljava.lang.String;" in ^ints out ^int gid]))
 
-;; (println "string-length-test")
-;; (deftest string-length-test
-;;   (testing "find lengths of an array of Strings via application of a java virtual method"
-;;     (let [n 32
-;;           kernel (reify StringIntKernel
-;;                    (^void invoke [^StringIntKernel self ^"[Ljava.lang.String;" in ^ints out ^int gid]
-;;                      (aset out gid (.length ^String (aget in gid)))))]
-;;       (is (test-kernel
-;;            kernel (find-method kernel "invoke") n
-;;            (into-array ^String (map (fn [^Long i] (.toString i)) (range n)))
-;;            (int-array n))))))
+;; ;; (println "string-length-test")
+;; ;; (deftest string-length-test
+;; ;;   (testing "find lengths of an array of Strings via application of a java virtual method"
+;; ;;     (let [n 64
+;; ;;           kernel (reify StringIntKernel
+;; ;;                    (^void invoke [^StringIntKernel self ^"[Ljava.lang.String;" in ^ints out ^int gid]
+;; ;;                      (aset out gid (.length ^String (aget in gid)))))]
+;; ;;       (is (test-kernel
+;; ;;            kernel (find-method kernel "invoke") n
+;; ;;            (into-array ^String (map (fn [^Long i] (.toString i)) (range n)))
+;; ;;            (int-array n))))))
 
-;;------------------------------------------------------------------------------
+;; ;;------------------------------------------------------------------------------
 
-(definterface ListLongKernel (^void invoke [^"[Lclojure.lang.PersistentList;" in ^longs out ^int i]))
+;; (definterface ListLongKernel (^void invoke [^"[Lclojure.lang.PersistentList;" in ^longs out ^int i]))
 
-;; a bit optimistic :-) - doesn't do any allocation, but does use more of Clojure's runtime...
-;; com.oracle.graal.graph.GraalInternalError: unimplemented
+;; ;; a bit optimistic :-) - doesn't do any allocation, but does use more of Clojure's runtime...
+;; ;; com.oracle.graal.graph.GraalInternalError: unimplemented
 
-;; (println "list-peek-test")
-;; (deftest list-peek-test
-;;   (testing "map 'peek' across an array of lists - call a method on a Clojure list"
-;;     (let [n 32
-;;           kernel (reify ListLongKernel
-;;                    (^void invoke [^ListLongKernel self ^"[Lclojure.lang.PersistentList;" in ^longs out ^int i]
-;;                      (aset out i (.peek ^clojure.lang.PersistentList (aget in i)))))]
-;;       (is (test-kernel
-;;            kernel (find-method kernel "invoke") n
-;;            (into-array clojure.lang.PersistentList (map list (range n))) (long-array n))))))
+;; ;; (println "list-peek-test")
+;; ;; (deftest list-peek-test
+;; ;;   (testing "map 'peek' across an array of lists - call a method on a Clojure list"
+;; ;;     (let [n 64
+;; ;;           kernel (reify ListLongKernel
+;; ;;                    (^void invoke [^ListLongKernel self ^"[Lclojure.lang.PersistentList;" in ^longs out ^int i]
+;; ;;                      (aset out i (.peek ^clojure.lang.PersistentList (aget in i)))))]
+;; ;;       (is (test-kernel
+;; ;;            kernel (find-method kernel "invoke") n
+;; ;;            (into-array clojure.lang.PersistentList (map list (range n))) (long-array n))))))
 
-;;------------------------------------------------------------------------------
-;; IDEAS:
-;;------------------------------------------------------------------------------
-;; Graal config option: warn-on-Box
-;; unimplemented error - what is unimplemented ?
-;; Sumatra feature completion page - which bytecodes are implemented
-;; Test should kick out kernel bytecode on failure
-;; should be easy to switch test from local / emulator / gpu
-;; how can we package these tests as junit so they can be run from command line ?
-;; can we derive interface and reification from looking at signature of function or type of e.g. rrb-vector
-;; what primitive types will be available on GPU ?
-;;------------------------------------------------------------------------------
+;; ;;------------------------------------------------------------------------------
+;; ;; IDEAS:
+;; ;;------------------------------------------------------------------------------
+;; ;; Graal config option: warn-on-Box
+;; ;; unimplemented error - what is unimplemented ?
+;; ;; Sumatra feature completion page - which bytecodes are implemented
+;; ;; Test should kick out kernel bytecode on failure
+;; ;; should be easy to switch test from local / emulator / gpu
+;; ;; how can we package these tests as junit so they can be run from command line ?
+;; ;; can we derive interface and reification from looking at signature of function or type of e.g. rrb-vector
+;; ;; what primitive types will be available on GPU ?
+;; ;;------------------------------------------------------------------------------
 
-(def type->array-type 
-  {(Boolean/TYPE)   (class (boolean-array 0))
-   (Character/TYPE) (class (char-array 0))
-   (Byte/TYPE)      (class (byte-array 0))
-   (Short/TYPE)     (class (short-array 0))
-   (Integer/TYPE)   (class (int-array 0))
-   (Long/TYPE)      (class (long-array 0))
-   (Float/TYPE)     (class (float-array 0))
-   (Double/TYPE)    (class (double-array 0))})
+;; (def type->array-type 
+;;   {(Boolean/TYPE)   (class (boolean-array 0))
+;;    (Character/TYPE) (class (char-array 0))
+;;    (Byte/TYPE)      (class (byte-array 0))
+;;    (Short/TYPE)     (class (short-array 0))
+;;    (Integer/TYPE)   (class (int-array 0))
+;;    (Long/TYPE)      (class (long-array 0))
+;;    (Float/TYPE)     (class (float-array 0))
+;;    (Double/TYPE)    (class (double-array 0))})
 
-(defn with-tag [s t]
-  (with-meta s {:tag t}))
+;; (defn with-tag [s t]
+;;   (with-meta s {:tag t}))
 
-(defn make-param-symbol
-  ([t] (make-param-symbol (gensym) t))
-  ([s t] (with-tag s t)))
+;; (defn make-param-symbol
+;;   ([t] (make-param-symbol (gensym) t))
+;;   ([s t] (with-tag s t)))
 
-(defn make-array-param-symbol
-  ([t] (make-array-param-symbol (gensym) t))
-  ([s t] (with-tag s (type->array-type t))))
+;; (defn make-array-param-symbol
+;;   ([t] (make-array-param-symbol (gensym) t))
+;;   ([s t] (with-tag s (type->array-type t))))
 
-(defmacro make-kernel [param-types]
-  `(definterface
-     ~(gensym "Kernel")
-     (~(make-param-symbol (symbol "invoke") Void/TYPE)
-      ~(concat 
-        (map make-array-param-symbol (eval param-types))
-        (list (make-param-symbol Integer/TYPE))))))
+;; (defmacro make-kernel [param-types]
+;;   `(definterface
+;;      ~(gensym "Kernel")
+;;      (~(make-param-symbol (symbol "invoke") Void/TYPE)
+;;       ~(concat 
+;;         (map make-array-param-symbol (eval param-types))
+;;         (list (make-param-symbol Integer/TYPE))))))
 
-;; could we use memoise instead ?
-(let [types->kernel (atom {})]
+;; ;; could we use memoise instead ?
+;; (let [types->kernel (atom {})]
 
-  (def A types->kernel)
+;;   (def A types->kernel)
 
-  (defn ensure-kernel [param-types]
-    (let [kernel (or (@types->kernel param-types))]
-      (if (not kernel)
-        (let [k (eval (list 'make-kernel param-types))] 
-          (swap! types->kernel conj [param-types k])
-          k)
-        kernel)))
+;;   (defn ensure-kernel [param-types]
+;;     (let [kernel (or (@types->kernel param-types))]
+;;       (if (not kernel)
+;;         (let [k (eval (list 'make-kernel param-types))] 
+;;           (swap! types->kernel conj [param-types k])
+;;           k)
+;;         kernel)))
 
-  )
+;;   )
 
-;;------------------------------------------------------------------------------
+;; ;;------------------------------------------------------------------------------
 
-(defn public-static? [^Method m]
-  (let [modifiers (.getModifiers m)]
-    (and (java.lang.reflect.Modifier/isPublic modifiers)
-         (java.lang.reflect.Modifier/isStatic modifiers))))
+;; (defn public-static? [^Method m]
+;;   (let [modifiers (.getModifiers m)]
+;;     (and (java.lang.reflect.Modifier/isPublic modifiers)
+;;          (java.lang.reflect.Modifier/isStatic modifiers))))
 
-(def primitive-types (into #{} (keys type->array-type)))
+;; (def primitive-types (into #{} (keys type->array-type)))
 
-(defn primitive? [^Class t]
-  (contains? primitive-types t))
+;; (defn primitive? [^Class t]
+;;   (contains? primitive-types t))
   
-(defn takes-only-primitives? [^Method m]
-  (every? primitive? (.getParameterTypes m)))
+;; (defn takes-only-primitives? [^Method m]
+;;   (every? primitive? (.getParameterTypes m)))
 
-(defn returns-primitive? [^Method m]
-  (primitive? (.getReturnType m)))
+;; (defn returns-primitive? [^Method m]
+;;   (primitive? (.getReturnType m)))
 
-(def primitive-number-methods
-  (filter returns-primitive?
-          (filter takes-only-primitives?
-                  (filter public-static?
-                          (.getDeclaredMethods clojure.lang.Numbers)))))
-(defn simple-name [s]
-  (symbol (let [n (name s)] (.substring n (inc (.lastIndexOf n "."))))))
+;; (def primitive-number-methods
+;;   (filter returns-primitive?
+;;           (filter takes-only-primitives?
+;;                   (filter public-static?
+;;                           (.getDeclaredMethods clojure.lang.Numbers)))))
+;; (defn simple-name [s]
+;;   (symbol (let [n (name s)] (.substring n (inc (.lastIndexOf n "."))))))
 
-(defmacro instantiate-kernel [kernel method]
-  (let [kernel# ^Class (eval kernel)
-        method# ^Method (eval method)
-        params# (into [] (take (+ 3 (count (.getParameterTypes method#))) (repeatedly gensym)))
-        input-params# (subvec params# 1 (- (count params#) 2))
-        output-param# (nth params# (- (count params#) 2))
-        gid-param# (last params#)
-        foo# (map (fn [i#] `(aget ~i# ~gid-param#)) input-params#)
-        ]
-    `(reify
-         ~(symbol (.getSimpleName kernel#))
-         (~(symbol "invoke")
-          ~params#
-          (aset ~output-param# ~gid-param# 
-            (~(symbol (str (.getName (.getDeclaringClass method#)) "/" (.getName method#))) ~@foo#)
-            )
-          )
-         )
-    ))
+;; (defmacro instantiate-kernel [kernel method]
+;;   (let [kernel# ^Class (eval kernel)
+;;         method# ^Method (eval method)
+;;         params# (into [] (take (+ 3 (count (.getParameterTypes method#))) (repeatedly gensym)))
+;;         input-params# (subvec params# 1 (- (count params#) 2))
+;;         output-param# (nth params# (- (count params#) 2))
+;;         gid-param# (last params#)
+;;         foo# (map (fn [i#] `(aget ~i# ~gid-param#)) input-params#)
+;;         ]
+;;     `(reify
+;;          ~(symbol (.getSimpleName kernel#))
+;;          (~(symbol "invoke")
+;;           ~params#
+;;           (aset ~output-param# ~gid-param# 
+;;             (~(symbol (str (.getName (.getDeclaringClass method#)) "/" (.getName method#))) ~@foo#)
+;;             )
+;;           )
+;;          )
+;;     ))
 
-(defn get-param-types [^java.lang.reflect.Method m]
-  (conj (into [] (.getParameterTypes m)) (.getReturnType m)))
+;; (defn get-param-types [^java.lang.reflect.Method m]
+;;   (conj (into [] (.getParameterTypes m)) (.getReturnType m)))
 
-(defmacro call-kernel [t# k# i# o# s#]
-    `(dotimes [n# ~s#] (.invoke ~(with-meta k# {:tag (eval t#)}) ~@i# ~o# n#)))
+;; (defmacro call-kernel [t# k# i# o# s#]
+;;     `(dotimes [n# ~s#] (.invoke ~(with-meta k# {:tag (eval t#)}) ~@i# ~o# n#)))
 
-(defmacro kernel-fn [t# k# i# o#]
-  `(fn [^long n#] (.invoke ~(with-meta k# {:tag (eval t#)}) ~@i# ~o# n#)))
+;; (defmacro kernel-fn [t# k# i# o#]
+;;   `(fn [^long n#] (.invoke ~(with-meta k# {:tag (eval t#)}) ~@i# ~o# n#)))
 
-;; (defn test-method [^Method m]
-;;   (let [wavefront-size 64
-;;         param-types (.getParameterTypes m)
-;;         kernel (ensure-kernel param-types)
-;;         output (make-array (.getReturnType m) wavefront-size)
-;;         inputs (map (fn [t] (into-array t (range wavefront-size))) (get-param-types m))
-;;         reification (instantiate-kernel k m)]
+;; ;; (defn test-method [^Method m]
+;; ;;   (let [wavefront-size 64
+;; ;;         param-types (.getParameterTypes m)
+;; ;;         kernel (ensure-kernel param-types)
+;; ;;         output (make-array (.getReturnType m) wavefront-size)
+;; ;;         inputs (map (fn [t] (into-array t (range wavefront-size))) (get-param-types m))
+;; ;;         reification (instantiate-kernel k m)]
 
-;;     (dotimes [n wavefront-size] ((kernel-fn kernel reification inputs output) n))
+;; ;;     (dotimes [n wavefront-size] ((kernel-fn kernel reification inputs output) n))
 
-;;     (seq output)
+;; ;;     (seq output)
 
-;;  ))
+;; ;;  ))
 
 
-;; (def in1 (long-array (range 32)))
-;; (def in2 (long-array (range 32)))
-;; (def out (long-array 32))
-;; (seq (do (doseq [i (range 32)] (.invoke r in1 in2 out i)) out))
+;; ;; (def in1 (long-array (range 64)))
+;; ;; (def in2 (long-array (range 64)))
+;; ;; (def out (long-array 64))
+;; ;; (seq (do (doseq [i (range 64)] (.invoke r in1 in2 out i)) out))
 
-;; now write automatic tests for all 112 of these methods :-) and
-;; remove duplicates above...
+;; ;; now write automatic tests for all 112 of these methods :-) and
+;; ;; remove duplicates above...
 
-;; must be generated by a macro so that they show up at compile time...
+;; ;; must be generated by a macro so that they show up at compile time...
 
-;; we need default input values for each type, and a way of overlying
-;; more specifically targeted inputs
+;; ;; we need default input values for each type, and a way of overlying
+;; ;; more specifically targeted inputs
 
-;; we can assume one output and multiple input arrays
+;; ;; we can assume one output and multiple input arrays
 
-;; jenkins build needs to succeed no matter what the outcome - as
-;; sumatra matures we should see less and less red...
+;; ;; jenkins build needs to succeed no matter what the outcome - as
+;; ;; sumatra matures we should see less and less red...
 
-;; interesting thought - are boolean[64] and long interchangeable ?
-;; i.e. can we set bits concurrently in a long ? same applies to
-;; boolean[32]/int and boolean[16]/short etc. If we could it would
-;; make the reduction of something yielding boolean values pretty
-;; small...
+;; ;; interesting thought - are boolean[64] and long interchangeable ?
+;; ;; i.e. can we set bits concurrently in a long ? same applies to
+;; ;; boolean[64]/int and boolean[16]/short etc. If we could it would
+;; ;; make the reduction of something yielding boolean values pretty
+;; ;; small...
 
-;; (def m (first primitive-number-methods))
-;; (def k (make-kernel (get-param-types m)))
-;; (eval (list 'def (with-meta 'r {:tag k}) '(instantiate-kernel k m)))
-;; (def in1 (long-array (range 32)))
-;; (def in2 (long-array (range 32)))
-;; (def out (long-array 32))
-;; (seq (do (doseq [i (range 32)] (.invoke r in1 in2 out i)) out))
+;; ;; (def m (first primitive-number-methods))
+;; ;; (def k (make-kernel (get-param-types m)))
+;; ;; (eval (list 'def (with-meta 'r {:tag k}) '(instantiate-kernel k m)))
+;; ;; (def in1 (long-array (range 64)))
+;; ;; (def in2 (long-array (range 64)))
+;; ;; (def out (long-array 64))
+;; ;; (seq (do (doseq [i (range 64)] (.invoke r in1 in2 out i)) out))
 
-;; (set! *print-meta* true)
-;; (macroexpand-1 '(make-kernel (get-param-types m)))
-;; (macroexpand-1 '(instantiate-kernel k m))
-;; (macroexpand-1 '(call-kernel k r [in1 in2] out 32))
-;; (macroexpand-1 '(kernel-fn k r [in1 in2] out))
-;; (test-method m)
+;; ;; (set! *print-meta* true)
+;; ;; (macroexpand-1 '(make-kernel (get-param-types m)))
+;; ;; (macroexpand-1 '(instantiate-kernel k m))
+;; ;; (macroexpand-1 '(call-kernel k r [in1 in2] out 64))
+;; ;; (macroexpand-1 '(kernel-fn k r [in1 in2] out))
+;; ;; (test-method m)
