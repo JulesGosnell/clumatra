@@ -152,15 +152,15 @@
            kernel (find-method kernel "invoke") n
            (short-array (range n)) (short-array n))))))
 
-(deftest inc-short-test
-  (testing "increment elements of a short[] via application of a java static method"
-    (let [n 32
-          kernel (reify ShortKernel
-                   (^void invoke [^ShortKernel self ^shorts in ^shorts out ^int gid]
-                     (aset out gid (short (inc (aget in gid))))))]
-      (is (test-kernel
-           kernel (find-method kernel "invoke") n
-           (short-array (range n)) (short-array n))))))
+;; (deftest inc-short-test
+;;   (testing "increment elements of a short[] via application of a java static method"
+;;     (let [n 32
+;;           kernel (reify ShortKernel
+;;                    (^void invoke [^ShortKernel self ^shorts in ^shorts out ^int gid]
+;;                      (aset out gid (short (inc (aget in gid))))))]
+;;       (is (test-kernel
+;;            kernel (find-method kernel "invoke") n
+;;            (short-array (range n)) (short-array n))))))
 
 ;;------------------------------------------------------------------------------
 
