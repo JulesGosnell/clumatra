@@ -418,21 +418,20 @@
 
 ;;------------------------------------------------------------------------------
 
-;; (definterface ListLongKernel (^void invoke [^"[Lclojure.lang.PersistentList;" in ^longs out ^int i]))
+(definterface ListLongKernel (^void invoke [^"[Lclojure.lang.PersistentList;" in ^longs out ^int i]))
 
-;; ;; a bit optimistic :-) - doesn't do any allocation, but does use more of Clojure's runtime...
-;; ;; com.oracle.graal.graph.GraalInternalError: unimplemented
+;; com.oracle.graal.graph.GraalInternalError: Node implementing Lowerable not handled in HSAIL Backend: 358|NewInstance
 
-;; ;; (deftest list-peek-test
-;; ;; (println "list-peek-test")
-;; ;;   (testing "map 'peek' across an array of lists - call a method on a Clojure list"
-;; ;;     (let [n 64
-;; ;;           kernel (reify ListLongKernel
-;; ;;                    (^void invoke [^ListLongKernel self ^"[Lclojure.lang.PersistentList;" in ^longs out ^int i]
-;; ;;                      (aset out i (.peek ^clojure.lang.PersistentList (aget in i)))))]
-;; ;;       (is (test-kernel
-;; ;;            kernel (find-method kernel "invoke") n
-;; ;;            (into-array clojure.lang.PersistentList (map list (range n))) (long-array n))))))
+;; (deftest list-peek-test
+;;   (println "list-peek-test")
+;;   (testing "map 'peek' across an array of lists - call a method on a Clojure list"
+;;     (let [n 64
+;;           kernel (reify ListLongKernel
+;;                    (^void invoke [^ListLongKernel self ^"[Lclojure.lang.PersistentList;" in ^longs out ^int i]
+;;                      (aset out i (.peek ^clojure.lang.PersistentList (aget in i)))))]
+;;       (is (test-kernel
+;;            kernel (find-method kernel "invoke") n
+;;            (into-array clojure.lang.PersistentList (map list (range n))) (long-array n))))))
 
 ;; ;;------------------------------------------------------------------------------
 ;; ;; IDEAS:
