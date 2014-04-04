@@ -337,16 +337,18 @@
 
 (definterface ObjectKernel (^void invoke [^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out ^int i]))
 
-(println "object-test")
-(deftest object-test
-  (testing "copy elements of an object[]"
-    (let [n 32
-          kernel (reify ObjectKernel
-                   (^void invoke [^ObjectKernel self ^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out ^int i]
-                     (aset out i (aget in i))))]
-      (is (test-kernel
-           kernel (find-method kernel "invoke") n
-           (into-array Object (range n)) (make-array Object n))))))
+;; unstable
+
+;; (println "object-test")
+;; (deftest object-test
+;;   (testing "copy elements of an object[]"
+;;     (let [n 32
+;;           kernel (reify ObjectKernel
+;;                    (^void invoke [^ObjectKernel self ^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out ^int i]
+;;                      (aset out i (aget in i))))]
+;;       (is (test-kernel
+;;            kernel (find-method kernel "invoke") n
+;;            (into-array Object (range n)) (make-array Object n))))))
 
 ;;------------------------------------------------------------------------------
 
