@@ -161,7 +161,7 @@
            kernel (find-method kernel "invoke") n
            (short-array (range n)) (short-array n))))))
 
-;; seems to have killed jvm
+;; *** Error in `/home/jules/workspace/clumatra/jdk1.8.0-graal/bin/java': corrupted double-linked list: 0x00007f18a4af0f00 ***
 
 ;; (deftest inc-short-test
 ;;   (println "inc-short-test")
@@ -259,7 +259,7 @@
 ;;            (long-array (range n))
 ;;            (long-array n))))))
 
-;; fails comparison
+;; com.oracle.graal.graph.GraalInternalError: Node implementing Lowerable not handled in HSAIL Backend: 18|NewInstance
 
 ;; (deftest anonymous-inc-long-test
 ;;   (println "anonymous-inc-long-test")
@@ -274,7 +274,7 @@
 ;;            (long-array (range n))
 ;;            (long-array n))))))
 
-;; ;;------------------------------------------------------------------------------
+;;------------------------------------------------------------------------------
 
 (definterface FloatKernel (^void invoke [^floats in ^floats out ^int gid]))
 
