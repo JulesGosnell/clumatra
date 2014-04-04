@@ -289,33 +289,33 @@
            kernel (find-method kernel "invoke") n
            (float-array (range n)) (float-array n))))))
 
-;; ;; com.oracle.graal.graph.GraalInternalError: unimplemented
+;; com.oracle.graal.graph.GraalInternalError: Node implementing Lowerable not handled in HSAIL Backend: 110|NewArray
 
-;; ;; (deftest inc-float-test
-;; ;;;(println "inc-float-test")
-;; ;;   (testing "increment elements of a float[] via application of a java static method"
-;; ;;     (let [n 64
-;; ;;           kernel (reify FloatKernel
-;; ;;                    (^void invoke [^FloatKernel self ^floats in ^floats out ^int gid]
-;; ;;                      (aset out gid (float (inc (aget in gid))))))]
-;; ;;       (is (test-kernel
-;; ;;            kernel (find-method kernel "invoke") n
-;; ;;            (float-array (range n)) (float-array n))))))
-
-;; ;;------------------------------------------------------------------------------
-
-;; (definterface DoubleKernel (^void invoke [^doubles in ^doubles out ^int gid]))
-
-;; (deftest double-test
-;; (println "double-test")
-;;   (testing "copy elements of a double[]"
+;; (deftest inc-float-test
+;;   (println "inc-float-test")
+;;   (testing "increment elements of a float[] via application of a java static method"
 ;;     (let [n 64
-;;           kernel (reify DoubleKernel
-;;                    (^void invoke [^CharKernel self ^doubles in ^doubles out ^int gid]
-;;                      (aset out gid (aget in gid))))]
+;;           kernel (reify FloatKernel
+;;                    (^void invoke [^FloatKernel self ^floats in ^floats out ^int gid]
+;;                      (aset out gid (float (inc (aget in gid))))))]
 ;;       (is (test-kernel
 ;;            kernel (find-method kernel "invoke") n
-;;            (double-array (range n)) (double-array n))))))
+;;            (float-array (range n)) (float-array n))))))
+
+;;------------------------------------------------------------------------------
+
+(definterface DoubleKernel (^void invoke [^doubles in ^doubles out ^int gid]))
+
+(deftest double-test
+  (println "double-test")
+  (testing "copy elements of a double[]"
+    (let [n 64
+          kernel (reify DoubleKernel
+                   (^void invoke [^CharKernel self ^doubles in ^doubles out ^int gid]
+                     (aset out gid (aget in gid))))]
+      (is (test-kernel
+           kernel (find-method kernel "invoke") n
+           (double-array (range n)) (double-array n))))))
 
 ;; (deftest multiplyP-double-test
 ;; (println "multiplyP-double-test")
