@@ -212,16 +212,16 @@
 
 (defn ^long my-inc [^long l] (inc l))
 
-;; (deftest my-inc-long-test
-;;   (testing "increment elements of a long[] via the application of a named clojure function"
-;;     (let [n 32
-;;           kernel (reify LongKernel
-;;                    (^void invoke [^LongKernel self ^longs in ^longs out ^int gid]
-;;                      (aset out gid (long (my-inc (aget in gid))))))]
-;;       (is (test-kernel
-;;            kernel (find-method kernel "invoke") n
-;;            (long-array (range n))
-;;            (long-array n))))))
+(deftest my-inc-long-test
+  (testing "increment elements of a long[] via the application of a named clojure function"
+    (let [n 32
+          kernel (reify LongKernel
+                   (^void invoke [^LongKernel self ^longs in ^longs out ^int gid]
+                     (aset out gid (long (my-inc (aget in gid))))))]
+      (is (test-kernel
+           kernel (find-method kernel "invoke") n
+           (long-array (range n))
+           (long-array n))))))
 
 (defn ^:static ^long my-static-inc [^long l] (inc l)) ;I don't think this is static..
 
