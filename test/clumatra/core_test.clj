@@ -226,66 +226,68 @@
            kernel (find-method kernel "invoke") n
            (long-array (range n)) (long-array n))))))
 
+;; *** Error in `/home/jules/workspace/clumatra/jdk1.8.0-graal/bin/java': double free or corruption (out): 0x00007f64b88c4d10 ***
+;; *** Error in `/home/jules/workspace/clumatra/jdk1.8.0-graal/bin/java': malloc(): memory corruption: 0x00007f64b88c4d90 ***
+
 ;; (defn ^long my-inc [^long l] (inc l))
 
-;; ;; (deftest my-inc-long-test
-;; ;; (println "my-inc-long-test")
-;; ;;   (testing "increment elements of a long[] via the application of a named clojure function"
-;; ;;     (let [n 64
-;; ;;           kernel (reify LongKernel
-;; ;;                    (^void invoke [^LongKernel self ^longs in ^longs out ^int gid]
-;; ;;                      (aset out gid (long (my-inc (aget in gid))))))]
-;; ;;       (is (test-kernel
-;; ;;            kernel (find-method kernel "invoke") n
-;; ;;            (long-array (range n))
-;; ;;            (long-array n))))))
+;; (deftest my-inc-long-test
+;;   (println "my-inc-long-test")
+;;   (testing "increment elements of a long[] via the application of a named clojure function"
+;;     (let [n 64
+;;           kernel (reify LongKernel
+;;                    (^void invoke [^LongKernel self ^longs in ^longs out ^int gid]
+;;                      (aset out gid (long (my-inc (aget in gid))))))]
+;;       (is (test-kernel
+;;            kernel (find-method kernel "invoke") n
+;;            (long-array (range n))
+;;            (long-array n))))))
+
+;; *** Error in `/home/jules/workspace/clumatra/jdk1.8.0-graal/bin/java': corrupted double-linked list: 0x00007f30248bff00 ***
 
 ;; (defn ^:static ^long my-static-inc [^long l] (inc l)) ;I don't think this is static..
 
-;; ;; com.oracle.graal.graph.GraalInternalError.unimplemented (GraalInternalError.java:38)
+;; (deftest my-static-inc-long-test
+;;   (println "my-static-inc-long-test")
+;;   (testing "increment elements of a long[] via the application of a named static clojure function"
+;;     (let [n 64
+;;           kernel (reify LongKernel
+;;                    (^void invoke [^LongKernel self ^longs in ^longs out ^int gid]
+;;                      (aset out gid (long (my-static-inc (aget in gid))))))]
+;;       (is (test-kernel
+;;            kernel (find-method kernel "invoke") n
+;;            (long-array (range n))
+;;            (long-array n))))))
 
-;; ;; (deftest my-static-inc-long-test
-;; ;; (println "my-static-inc-long-test")
-;; ;;   (testing "increment elements of a long[] via the application of a named static clojure function"
-;; ;;     (let [n 64
-;; ;;           kernel (reify LongKernel
-;; ;;                    (^void invoke [^LongKernel self ^longs in ^longs out ^int gid]
-;; ;;                      (aset out gid (long (my-static-inc (aget in gid))))))]
-;; ;;       (is (test-kernel
-;; ;;            kernel (find-method kernel "invoke") n
-;; ;;            (long-array (range n))
-;; ;;            (long-array n))))))
+;; fails comparison
 
-;; ;;com.oracle.graal.graph.GraalInternalError: java.lang.ClassCastException:
-;; ;;   com.oracle.graal.hotspot.hsail.HSAILHotSpotLIRGenerator cannot be cast to com.oracle.graal.hotspot.HotSpotLIRGenerator
-
-;; ;; (deftest anonymous-inc-long-test
-;; ;; (println "anonymous-inc-long-test")
-;; ;;   (testing "increment elements of a long[] via the application of an anonymous clojure function"
-;; ;;     (let [my-inc (fn [^long l] (inc l))
-;; ;;           n 64
-;; ;;           kernel (reify LongKernel
-;; ;;                    (^void invoke [^LongKernel self ^longs in ^longs out ^int gid]
-;; ;;                      (aset out gid (long (my-inc (aget in gid))))))]
-;; ;;       (is (test-kernel
-;; ;;            kernel (find-method kernel "invoke") n
-;; ;;            (long-array (range n))
-;; ;;            (long-array n))))))
+;; (deftest anonymous-inc-long-test
+;;   (println "anonymous-inc-long-test")
+;;   (testing "increment elements of a long[] via the application of an anonymous clojure function"
+;;     (let [my-inc (fn [^long l] (inc l))
+;;           n 64
+;;           kernel (reify LongKernel
+;;                    (^void invoke [^LongKernel self ^longs in ^longs out ^int gid]
+;;                      (aset out gid (long (my-inc (aget in gid))))))]
+;;       (is (test-kernel
+;;            kernel (find-method kernel "invoke") n
+;;            (long-array (range n))
+;;            (long-array n))))))
 
 ;; ;;------------------------------------------------------------------------------
 
-;; (definterface FloatKernel (^void invoke [^floats in ^floats out ^int gid]))
+(definterface FloatKernel (^void invoke [^floats in ^floats out ^int gid]))
 
-;; (deftest float-test
-;; (println "float-test")
-;;   (testing "copy elements of a float[]"
-;;     (let [n 64
-;;           kernel (reify FloatKernel
-;;                    (^void invoke [^FloatKernel self ^floats in ^floats out ^int gid]
-;;                      (aset out gid (aget in gid))))]
-;;       (is (test-kernel
-;;            kernel (find-method kernel "invoke") n
-;;            (float-array (range n)) (float-array n))))))
+(deftest float-test
+  (println "float-test")
+  (testing "copy elements of a float[]"
+    (let [n 64
+          kernel (reify FloatKernel
+                   (^void invoke [^FloatKernel self ^floats in ^floats out ^int gid]
+                     (aset out gid (aget in gid))))]
+      (is (test-kernel
+           kernel (find-method kernel "invoke") n
+           (float-array (range n)) (float-array n))))))
 
 ;; ;; com.oracle.graal.graph.GraalInternalError: unimplemented
 
