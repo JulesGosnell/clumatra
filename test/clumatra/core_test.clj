@@ -328,18 +328,16 @@
            kernel (find-method kernel "invoke") n
            (double-array (range n)) (double-array n))))))
 
-;; ;; seems to hang jvm
-
-;; ;; (deftest quotient-double-test
-;; ;; (println "quotient-double-test")
-;; ;;   (testing "quotient elements of a double[] via application of a java static method"
-;; ;;     (let [n 64
-;; ;;           kernel (reify DoubleKernel
-;; ;;                    (^void invoke [^CharKernel self ^doubles in ^doubles out ^int gid]
-;; ;;                      (aset out gid (clojure.lang.Numbers/quotient (aget in gid) (double 2.0)))))]
-;; ;;       (is (test-kernel
-;; ;;            kernel (find-method kernel "invoke") n
-;; ;;            (double-array (range n)) (double-array n))))))
+(deftest quotient-double-test
+  (println "quotient-double-test")
+  (testing "quotient elements of a double[] via application of a java static method"
+    (let [n 64
+          kernel (reify DoubleKernel
+                   (^void invoke [^CharKernel self ^doubles in ^doubles out ^int gid]
+                     (aset out gid (clojure.lang.Numbers/quotient (aget in gid) (double 2.0)))))]
+      (is (test-kernel
+           kernel (find-method kernel "invoke") n
+           (double-array (range n)) (double-array n))))))
 
 ;; ;;------------------------------------------------------------------------------
 
