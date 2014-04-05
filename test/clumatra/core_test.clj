@@ -461,8 +461,6 @@
 
 ;;------------------------------------------------------------------------------
 
-;; another go at macro-ising this all up...
-
 (def type->array-type 
   {(Boolean/TYPE)   (class (boolean-array 0))
    (Character/TYPE) (class (char-array 0))
@@ -472,6 +470,31 @@
    (Long/TYPE)      (class (long-array 0))
    (Float/TYPE)     (class (float-array 0))
    (Double/TYPE)    (class (double-array 0))})
+
+(defn public-static? [^Method m]
+  (let [modifiers (.getModifiers m)]
+    (and (java.lang.reflect.Modifier/isPublic modifiers)
+         (java.lang.reflect.Modifier/isStatic modifiers))))
+
+(def primitive-types (into #{} (keys type->array-type)))
+
+(defn primitive? [^Class t]
+  (contains? primitive-types t))
+  
+(defn takes-only-primitives? [^Method m]
+  (every? primitive? (.getParameterTypes m)))
+
+(defn returns-primitive? [^Method m]
+  (primitive? (.getReturnType m)))
+
+(def primitive-number-methods
+  (filter returns-primitive?
+          (filter takes-only-primitives?
+                  (filter public-static?
+                          (.getDeclaredMethods clojure.lang.Numbers)))))
+
+;;------------------------------------------------------------------------------
+;; another go at macro-ising this all up...
 
 (defn make-param [t]
   (with-meta (gensym) {:tag t}))
