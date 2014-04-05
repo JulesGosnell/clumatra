@@ -262,50 +262,31 @@
 
 (deftest double-quotient-test
   (testing "quotient elements of a double[] via application of a java static method"
-    (let [n 64
-          kernel (reify DoubleKernel
+    (let [kernel (reify DoubleKernel
                    (^void invoke [^CharKernel self ^doubles in ^doubles out ^int gid]
                      (aset out gid (clojure.lang.Numbers/quotient (aget in gid) (double 2.0)))))
           results (test-kernel kernel (find-method kernel "invoke") Double/TYPE identity)]
-            (is (apply = results)))))
+      (is (apply = results)))))
 
-;; ;;------------------------------------------------------------------------------
+;;------------------------------------------------------------------------------
 
-;; (definterface ObjectKernel (^void invoke [^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out ^int i]))
+(definterface ObjectKernel (^void invoke [^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out ^int i]))
 
-;; (deftest object-copy-test
-;;   (testing "copy elements of an object[]"
-;;     (let [n 64
-;;           kernel (reify ObjectKernel
-;;                    (^void invoke [^ObjectKernel self ^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out ^int i]
-;;                      (aset out i (aget in i))))]
-;;       (is (test-kernel
-;;            kernel (find-method kernel "invoke") n
-;;            (into-array Object (range n)) (make-array Object n))))))
+(deftest object-copy-test
+  (testing "copy elements of an object[]"
+    (let [kernel (reify ObjectKernel
+                   (^void invoke [^ObjectKernel self ^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out ^int i]
+                     (aset out i (aget in i))))
+          results (test-kernel kernel (find-method kernel "invoke") Object identity)]
+      (is (apply = results)))))
 
-;; ;;------------------------------------------------------------------------------
-
-;; (deftest Long-copy-test
-;;   (testing "copy Long elements of an Object[]"
-;;     (let [n 64
-;;           kernel (reify ObjectKernel
-;;                    (^void invoke [^ObjectKernel self ^objects in ^objects out ^int gid]
-;;                      (aset out gid (aget in gid))))]
-;;       (is (test-kernel
-;;            kernel (find-method kernel "invoke") n
-;;            (into-array Object (range n)) (make-array Object n))))))
-
-;; ;; com.oracle.graal.graph.GraalInternalError: unimplemented
-
-;; ;; (deftest Long-multiplication-test
-;; ;;   (testing "copy Long elements of an Object[]"
-;; ;;     (let [n 64
-;; ;;           kernel (reify ObjectKernel
-;; ;;                    (^void invoke [^ObjectKernel self ^objects in ^objects out ^int gid]
-;; ;;                      (aset out gid (* (aget in gid) (aget in gid)))))]
-;; ;;       (is (test-kernel
-;; ;;            kernel (find-method kernel "invoke") n
-;; ;;            (into-array Object (range n)) (make-array Object n))))))
+(deftest multiplication-test
+  (testing "square ?Long? elements of an Object[]"
+    (let [kernel (reify ObjectKernel
+                   (^void invoke [^ObjectKernel self ^objects in ^objects out ^int gid]
+                     (aset out gid (* (aget in gid) (aget in gid)))))
+          results (test-kernel kernel (find-method kernel "invoke") Object identity)]
+      (is (apply = results)))))
 
 ;; ;;------------------------------------------------------------------------------
 
