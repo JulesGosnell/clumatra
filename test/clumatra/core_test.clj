@@ -102,9 +102,6 @@
           results (test-kernel kernel (find-method kernel "invoke") Byte/TYPE identity)]
       (is (apply = results)))))
 
-;; occasionally - nasty !
-;; *** Error in `/home/jules/workspace/clumatra/jdk1.8.0-graal/bin/java': free(): invalid next size (fast): 0x00007f9458a20820 ***
-
 (deftest byte-inc-test
   (testing "increment elements of a byte[] via application of a java static method"
     (let [n 64
@@ -118,8 +115,6 @@
 
 (definterface CharKernel (^void invoke [^chars in ^chars out ^int gid]))
 
-;; looks like it upsets Jenkins JUnit test result parser - I know why
-
 (deftest char-copy-test
   (testing "copy elements of a char[]"
     (let [kernel (reify CharKernel
@@ -127,9 +122,6 @@
                      (aset out gid (aget in gid))))
           results (test-kernel kernel (find-method kernel "invoke") Character/TYPE (fn [n] (+ 65 (mod n 26))))]
       (is (apply = results)))))
-
-;; wierd - I would expect this one to work - investigate...
-;; com.oracle.graal.graph.GraalInternalError: unimplemented
 
 (deftest char-toLowercase-test
   (testing "downcase elements of an char[] via application of a java static method"
@@ -209,8 +201,6 @@
           results (test-kernel kernel (find-method kernel "invoke") Long/TYPE identity)]
       (is (apply = results)))))
 
-;; *** Error in `/home/jules/workspace/clumatra/jdk1.8.0-graal/bin/java': corrupted double-linked list: 0x00007f30248bff00 ***
-
 (defn ^:static ^long my-static-inc [^long l] (inc l)) ;I don't think this is static..
 
 (deftest long-my-static-inc-test
@@ -221,79 +211,63 @@
           results (test-kernel kernel (find-method kernel "invoke") Long/TYPE identity)]
       (is (apply = results)))))
 
-;; ;; com.oracle.graal.graph.GraalInternalError: Node implementing Lowerable not handled in HSAIL Backend: 18|NewInstance
+(deftest long-anonymous-inc-test
+  (testing "increment elements of a long[] via the application of an anonymous clojure function"
+    (let [my-inc (fn [^long l] (inc l))
+          kernel (reify LongKernel
+                   (^void invoke [^LongKernel self ^longs in ^longs out ^int gid]
+                     (aset out gid (long (my-inc (aget in gid))))))
+          results (test-kernel kernel (find-method kernel "invoke") Long/TYPE identity)]
+      (is (apply = results)))))
 
-;; ;; (deftest long-anonymous-inc-test
-;; ;;   (testing "increment elements of a long[] via the application of an anonymous clojure function"
-;; ;;     (let [my-inc (fn [^long l] (inc l))
-;; ;;           n 64
-;; ;;           kernel (reify LongKernel
-;; ;;                    (^void invoke [^LongKernel self ^longs in ^longs out ^int gid]
-;; ;;                      (aset out gid (long (my-inc (aget in gid))))))]
-;; ;;       (is (test-kernel
-;; ;;            kernel (find-method kernel "invoke") n
-;; ;;            (long-array (range n))
-;; ;;            (long-array n))))))
+;;------------------------------------------------------------------------------
 
-;; ;;------------------------------------------------------------------------------
+(definterface FloatKernel (^void invoke [^floats in ^floats out ^int gid]))
 
-;; (definterface FloatKernel (^void invoke [^floats in ^floats out ^int gid]))
+(deftest float-copy-test
+  (testing "copy elements of a float[]"
+    (let [kernel (reify FloatKernel
+                   (^void invoke [^FloatKernel self ^floats in ^floats out ^int gid]
+                     (aset out gid (aget in gid))))
+          results (test-kernel kernel (find-method kernel "invoke") Float/TYPE identity)]
+      (is (apply = results)))))
 
-;; (deftest float-copy-test
-;;   (testing "copy elements of a float[]"
-;;     (let [n 64
-;;           kernel (reify FloatKernel
-;;                    (^void invoke [^FloatKernel self ^floats in ^floats out ^int gid]
-;;                      (aset out gid (aget in gid))))]
-;;       (is (test-kernel
-;;            kernel (find-method kernel "invoke") n
-;;            (float-array (range n)) (float-array n))))))
+(deftest float-inc-test
+  (testing "increment elements of a float[] via application of a java static method"
+    (let [kernel (reify FloatKernel
+                   (^void invoke [^FloatKernel self ^floats in ^floats out ^int gid]
+                     (aset out gid (float (inc (aget in gid))))))
+          results (test-kernel kernel (find-method kernel "invoke") Float/TYPE identity)]
+      (is (apply = results)))))
 
-;; ;; com.oracle.graal.graph.GraalInternalError: Node implementing Lowerable not handled in HSAIL Backend: 110|NewArray
+;;------------------------------------------------------------------------------
 
-;; ;; (deftest float-inc-test
-;; ;;   (testing "increment elements of a float[] via application of a java static method"
-;; ;;     (let [n 64
-;; ;;           kernel (reify FloatKernel
-;; ;;                    (^void invoke [^FloatKernel self ^floats in ^floats out ^int gid]
-;; ;;                      (aset out gid (float (inc (aget in gid))))))]
-;; ;;       (is (test-kernel
-;; ;;            kernel (find-method kernel "invoke") n
-;; ;;            (float-array (range n)) (float-array n))))))
+(definterface DoubleKernel (^void invoke [^doubles in ^doubles out ^int gid]))
 
-;; ;;------------------------------------------------------------------------------
+(deftest double-copy-test
+  (testing "copy elements of a double[]"
+    (let [kernel (reify DoubleKernel
+                   (^void invoke [^CharKernel self ^doubles in ^doubles out ^int gid]
+                     (aset out gid (aget in gid))))
+          results (test-kernel kernel (find-method kernel "invoke") Double/TYPE identity)]
+      (is (apply = results)))))
 
-;; (definterface DoubleKernel (^void invoke [^doubles in ^doubles out ^int gid]))
+(deftest double-multiplyP-test
+  (testing "double elements of a double[] via application of a java static method"
+    (let [kernel (reify DoubleKernel
+                   (^void invoke [^CharKernel self ^doubles in ^doubles out ^int gid]
+                     (aset out gid (clojure.lang.Numbers/multiplyP (aget in gid) (double 2.0)))))
+          results (test-kernel kernel (find-method kernel "invoke") Double/TYPE identity)]
+      (is (apply = results)))))
 
-;; (deftest double-copy-test
-;;   (testing "copy elements of a double[]"
-;;     (let [n 64
-;;           kernel (reify DoubleKernel
-;;                    (^void invoke [^CharKernel self ^doubles in ^doubles out ^int gid]
-;;                      (aset out gid (aget in gid))))]
-;;       (is (test-kernel
-;;            kernel (find-method kernel "invoke") n
-;;            (double-array (range n)) (double-array n))))))
-
-;; (deftest double-multiplyP-test
-;;   (testing "double elements of a double[] via application of a java static method"
-;;     (let [n 64
-;;           kernel (reify DoubleKernel
-;;                    (^void invoke [^CharKernel self ^doubles in ^doubles out ^int gid]
-;;                      (aset out gid (clojure.lang.Numbers/multiplyP (aget in gid) (double 2.0)))))]
-;;       (is (test-kernel
-;;            kernel (find-method kernel "invoke") n
-;;            (double-array (range n)) (double-array n))))))
-
-;; (deftest double-quotient-test
-;;   (testing "quotient elements of a double[] via application of a java static method"
-;;     (let [n 64
-;;           kernel (reify DoubleKernel
-;;                    (^void invoke [^CharKernel self ^doubles in ^doubles out ^int gid]
-;;                      (aset out gid (clojure.lang.Numbers/quotient (aget in gid) (double 2.0)))))]
-;;       (is (test-kernel
-;;            kernel (find-method kernel "invoke") n
-;;            (double-array (range n)) (double-array n))))))
+(deftest double-quotient-test
+  (testing "quotient elements of a double[] via application of a java static method"
+    (let [n 64
+          kernel (reify DoubleKernel
+                   (^void invoke [^CharKernel self ^doubles in ^doubles out ^int gid]
+                     (aset out gid (clojure.lang.Numbers/quotient (aget in gid) (double 2.0)))))
+          results (test-kernel kernel (find-method kernel "invoke") Double/TYPE identity)]
+            (is (apply = results)))))
 
 ;; ;;------------------------------------------------------------------------------
 
