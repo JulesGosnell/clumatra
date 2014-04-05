@@ -1,3 +1,5 @@
+;; bottom-up approach to enabling GPU to be used to map a function across a seqence
+
 (ns clumatra.core
   (:import
    [java.lang.reflect Method]

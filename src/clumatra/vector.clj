@@ -1,3 +1,5 @@
+;; top-down approach to enabling GPU to be used to map a function across a vector
+
 (ns clumatra.vector
   ;;;(:use [clojure.tools.cli :only [cli]])
   (:import [java.util.concurrent.atomic AtomicReference]
