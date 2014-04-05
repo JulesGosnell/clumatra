@@ -460,3 +460,49 @@
 ;;            (into-array clojure.lang.PersistentList (map list (range n))) (long-array n))))))
 
 ;;------------------------------------------------------------------------------
+
+;; another go at macro-ising this all up...
+
+(def type->array-type 
+  {(Boolean/TYPE)   (class (boolean-array 0))
+   (Character/TYPE) (class (char-array 0))
+   (Byte/TYPE)      (class (byte-array 0))
+   (Short/TYPE)     (class (short-array 0))
+   (Integer/TYPE)   (class (int-array 0))
+   (Long/TYPE)      (class (long-array 0))
+   (Float/TYPE)     (class (float-array 0))
+   (Double/TYPE)    (class (double-array 0))})
+
+(defn make-param [t]
+  (with-meta (gensym) {:tag t}))
+
+(defn make-array-param [t]
+  (make-param (type->array-type t)))
+
+(defmacro mt [^Method method]
+  (let [kernel-name# (gensym "Kernel")
+        ^Method method# (eval method)
+        method-name# (str (.getName (.getDeclaringClass method#)) "/" (.getName method#))
+        input-params# (mapv make-array-param (.getParameterTypes method#))
+        output-param# (make-array-param (.getReturnType method#))
+        gid-param# (make-param Integer/TYPE)
+        kernel# (gensym)]
+    `(do
+       (definterface
+         ~(symbol kernel-name#)
+         ~(list
+           (with-meta (symbol "invoke") {:tag Void/TYPE})
+           (into [] (concat input-params# (list output-param#) (list gid-param#)))))
+       (let [~(with-meta kernel# {:tag (symbol kernel-name#)})
+             (reify
+               ~(symbol kernel-name#)
+               (~(symbol "invoke")
+                ~(into [] (concat (list (gensym)) input-params# (list output-param#) (list gid-param#)))
+                (aset ~output-param#  ~gid-param#
+                  (~(symbol method-name#)
+                   ~@(map (fn [e#] (list 'aget e# gid-param#)) input-params#)))
+                ))]
+         [~kernel#]))))
+
+;; (mt (str "My" "Kernel2") (str "my" "Method") (list Long/TYPE Integer/TYPE ) (list Float/TYPE Character/TYPE))
+;; (seq (.getDeclaredMethods MyKernel2))
