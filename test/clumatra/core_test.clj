@@ -62,8 +62,8 @@
 
 (definterface BooleanKernel (^void invoke [^booleans in ^booleans out ^int gid]))
 
-(deftest boolean-test
-  (println "boolean-test")
+(deftest boolean-copy-test
+  (println "boolean-copy-test")
   (testing "copy elements of a boolean[]"
     (let [n 64
           kernel (reify BooleanKernel
@@ -73,8 +73,8 @@
            kernel (find-method kernel "invoke") n
            (boolean-array (map even? (range n))) (boolean-array n))))))
 
-(deftest boolean-flip-test
-  (println "boolean-flip-test")
+(deftest boolean-if-test
+  (println "boolean-if-test")
   (testing "flip elements of a boolean[]"
     (let [n 64
           kernel (reify BooleanKernel
@@ -88,8 +88,8 @@
 
 (definterface ByteKernel (^void invoke [^bytes in ^bytes out ^int gid]))
 
-(deftest byte-test
-  (println "byte-test")
+(deftest byte-copy-test
+  (println "byte-copy-test")
   (testing "copy elements of a byte[]"
     (let [n 64
           kernel (reify ByteKernel
@@ -102,8 +102,8 @@
 ;; occasionally - nasty !
 ;; *** Error in `/home/jules/workspace/clumatra/jdk1.8.0-graal/bin/java': free(): invalid next size (fast): 0x00007f9458a20820 ***
 
-;; (deftest inc-byte-test
-;;   (println "inc-byte-test")
+;; (deftest byte-inc-test
+;;   (println "byte-inc-test")
 ;;   (testing "increment elements of a byte[] via application of a java static method"
 ;;     (let [n 64
 ;;           kernel (reify ByteKernel
@@ -119,8 +119,8 @@
 
 ;; looks like it upsets Jenkins JUnit test result parser
 
-;; (deftest char-test
-;;  (println "char-test")
+;; (deftest char-copy-test
+;;  (println "char-copy-test")
 ;;   (testing "copy elements of a char[]"
 ;;     (let [n 26
 ;;           kernel (reify CharKernel
@@ -135,8 +135,8 @@
 
 ;; #  SIGSEGV (0xb) at pc=0x00007fd8270a171a, pid=15768, tid=140566356842240
 
-;; (deftest toLowercase-char-test
-;;   (println "toLowercase-char-test")
+;; (deftest char-toLowercase-test
+;;   (println "char-toLowercase-test")
 ;;   (testing "downcase elements of an char[] via application of a java static method"
 ;;     (let [n 26
 ;;           kernel (reify CharKernel
@@ -150,8 +150,8 @@
 
 (definterface ShortKernel (^void invoke [^shorts in ^shorts out ^int gid]))
 
-(deftest short-test
-  (println "short-test")
+(deftest short-copy-test
+  (println "short-copy-test")
   (testing "copy elements of a short[]"
     (let [n 64
           kernel (reify ShortKernel
@@ -163,8 +163,8 @@
 
 ;; *** Error in `/home/jules/workspace/clumatra/jdk1.8.0-graal/bin/java': corrupted double-linked list: 0x00007f18a4af0f00 ***
 
-;; (deftest inc-short-test
-;;   (println "inc-short-test")
+;; (deftest short-inc-test
+;;   (println "short-inc-test")
 ;;   (testing "increment elements of a short[] via application of a java static method"
 ;;     (let [n 64
 ;;           kernel (reify ShortKernel
@@ -178,8 +178,8 @@
 
 (definterface IntKernel (^void invoke [^ints in ^ints out ^int gid]))
 
-(deftest int-test
-  (println "int-test")
+(deftest int-copy-test
+  (println "int-copy-test")
   (testing "copy elements of an int[]"
     (let [n 64
           kernel (reify IntKernel
@@ -193,8 +193,8 @@
 
 (definterface LongKernel (^void invoke [^longs in ^longs out ^int gid]))
 
-(deftest long-test
-  (println "long-test")
+(deftest long-copy-test
+  (println "long-copy-test")
   (testing "copy elements of a long[]"
     (let [n 64
           kernel (reify LongKernel
@@ -204,8 +204,8 @@
            kernel (find-method kernel "invoke") n
            (long-array (range n)) (long-array n))))))
 
-(deftest unchecked-inc-long-test
-  (println "unchecked-inc-long-test")
+(deftest long-unchecked-inc-test
+  (println "long-unchecked-inc-test")
   (testing "increment elements of a long[] via the application of a java static method"
     (let [n 64
           kernel (reify LongKernel
@@ -215,8 +215,8 @@
            kernel (find-method kernel "invoke") n
            (long-array (range n)) (long-array n))))))
 
-(deftest inc-long-test
-  (println "inc-long-test")
+(deftest long-inc-test
+  (println "long-inc-test")
   (testing "increment elements of a long[] via the application of a builtin function"
     (let [n 64
           kernel (reify LongKernel
@@ -231,8 +231,8 @@
 
 ;; (defn ^long my-inc [^long l] (inc l))
 
-;; (deftest my-inc-long-test
-;;   (println "my-inc-long-test")
+;; (deftest long-my-inc-test
+;;   (println "long-my-inc-test")
 ;;   (testing "increment elements of a long[] via the application of a named clojure function"
 ;;     (let [n 64
 ;;           kernel (reify LongKernel
@@ -247,8 +247,8 @@
 
 ;; (defn ^:static ^long my-static-inc [^long l] (inc l)) ;I don't think this is static..
 
-;; (deftest my-static-inc-long-test
-;;   (println "my-static-inc-long-test")
+;; (deftest long-my-static-inc-test
+;;   (println "long-my-static-inc-test")
 ;;   (testing "increment elements of a long[] via the application of a named static clojure function"
 ;;     (let [n 64
 ;;           kernel (reify LongKernel
@@ -261,8 +261,8 @@
 
 ;; com.oracle.graal.graph.GraalInternalError: Node implementing Lowerable not handled in HSAIL Backend: 18|NewInstance
 
-;; (deftest anonymous-inc-long-test
-;;   (println "anonymous-inc-long-test")
+;; (deftest long-anonymous-inc-test
+;;   (println "long-anonymous-inc-test")
 ;;   (testing "increment elements of a long[] via the application of an anonymous clojure function"
 ;;     (let [my-inc (fn [^long l] (inc l))
 ;;           n 64
@@ -278,8 +278,8 @@
 
 (definterface FloatKernel (^void invoke [^floats in ^floats out ^int gid]))
 
-(deftest float-test
-  (println "float-test")
+(deftest float-copy-test
+  (println "float-copy-test")
   (testing "copy elements of a float[]"
     (let [n 64
           kernel (reify FloatKernel
@@ -291,8 +291,8 @@
 
 ;; com.oracle.graal.graph.GraalInternalError: Node implementing Lowerable not handled in HSAIL Backend: 110|NewArray
 
-;; (deftest inc-float-test
-;;   (println "inc-float-test")
+;; (deftest float-inc-test
+;;   (println "float-inc-test")
 ;;   (testing "increment elements of a float[] via application of a java static method"
 ;;     (let [n 64
 ;;           kernel (reify FloatKernel
@@ -306,8 +306,8 @@
 
 (definterface DoubleKernel (^void invoke [^doubles in ^doubles out ^int gid]))
 
-(deftest double-test
-  (println "double-test")
+(deftest double-copy-test
+  (println "double-copy-test")
   (testing "copy elements of a double[]"
     (let [n 64
           kernel (reify DoubleKernel
@@ -317,8 +317,8 @@
            kernel (find-method kernel "invoke") n
            (double-array (range n)) (double-array n))))))
 
-(deftest multiplyP-double-test
-  (println "multiplyP-double-test")
+(deftest double-multiplyP-test
+  (println "double-multiplyP-test")
   (testing "double elements of a double[] via application of a java static method"
     (let [n 64
           kernel (reify DoubleKernel
@@ -328,8 +328,8 @@
            kernel (find-method kernel "invoke") n
            (double-array (range n)) (double-array n))))))
 
-(deftest quotient-double-test
-  (println "quotient-double-test")
+(deftest double-quotient-test
+  (println "double-quotient-test")
   (testing "quotient elements of a double[] via application of a java static method"
     (let [n 64
           kernel (reify DoubleKernel
@@ -343,8 +343,8 @@
 
 (definterface ObjectKernel (^void invoke [^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out ^int i]))
 
-(deftest object-test
-  (println "object-test")
+(deftest object-copy-test
+  (println "object-copy-test")
   (testing "copy elements of an object[]"
     (let [n 64
           kernel (reify ObjectKernel
@@ -356,8 +356,8 @@
 
 ;;------------------------------------------------------------------------------
 
-(deftest Long-test
-  (println "Long-test")
+(deftest Long-copy-test
+  (println "Long-copy-test")
   (testing "copy Long elements of an Object[]"
     (let [n 64
           kernel (reify ObjectKernel
@@ -370,7 +370,7 @@
 ;; com.oracle.graal.graph.GraalInternalError: unimplemented
 
 ;; (deftest Long-multiplication-test
-;;   (println "Long-test")
+;;   (println "Long-multiplication-test")
 ;;   (testing "copy Long elements of an Object[]"
 ;;     (let [n 64
 ;;           kernel (reify ObjectKernel
