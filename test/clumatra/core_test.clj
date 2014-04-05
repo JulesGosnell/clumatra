@@ -48,6 +48,8 @@
    ))
 (println)
 
+;;------------------------------------------------------------------------------
+
 (def ^:dynamic *wavefront-size* 4)
 
 (def type->default
@@ -60,13 +62,14 @@
    (Float/TYPE)     (float 0)
    (Double/TYPE)    (double 0)})
 
-(defn test-kernel [kernel method t f]
-  (let [o (type->default t)
-        in (into-array t (map f (range *wavefront-size*)))
+(defn test-kernel [kernel in-types-and-fns out-type]
+  (let [method (find-method kernel "invoke")
+        out-element (type->default out-type)
+        in-arrays (mapv (fn [[t f]] (into-array t (map f (range *wavefront-size*)))) in-types-and-fns)
         compiled (okra-kernel-compile kernel method *wavefront-size*)] ;compile once
-    [(seq (compiled in (into-array t (repeat *wavefront-size* o))))              
-     (seq (compiled in (into-array t (repeat *wavefront-size* o)))) ;run twice
-     (seq ((local-kernel-compile kernel method *wavefront-size*) in (into-array t (repeat *wavefront-size* o))))])) ;compare against control
+    [(seq (apply compiled (conj in-arrays (into-array out-type (repeat *wavefront-size* out-element)))))              
+     (seq (apply compiled (conj in-arrays (into-array out-type (repeat *wavefront-size* out-element))))) ;run twice
+     (seq (apply (local-kernel-compile kernel method *wavefront-size*) (conj in-arrays (into-array out-type (repeat *wavefront-size* out-element)))))])) ;compare against control
 
 ;;------------------------------------------------------------------------------
 
@@ -77,16 +80,15 @@
     (let [kernel (reify BooleanKernel
                    (^void invoke [^BooleanKernel self ^booleans in ^booleans out ^int gid]
                      (aset out gid (aget in gid))))
-          results (test-kernel kernel (find-method kernel "invoke") Boolean/TYPE even?)]
+          results (test-kernel kernel [[Boolean/TYPE even?]] Boolean/TYPE)]
       (is (apply = results)))))
 
 (deftest boolean-if-test
   (testing "flip elements of a boolean[]"
-    (let [n 64
-          kernel (reify BooleanKernel
+    (let [kernel (reify BooleanKernel
                    (^void invoke [^BooleanKernel self ^booleans in ^booleans out ^int gid]
                      (aset out gid (if (aget in gid) false true))))
-          results (test-kernel kernel (find-method kernel "invoke") Boolean/TYPE even?)]
+          results (test-kernel kernel [[Boolean/TYPE even?]] Boolean/TYPE)]
       (is (apply = results)))))
 
 ;;------------------------------------------------------------------------------
@@ -95,20 +97,18 @@
 
 (deftest byte-copy-test
   (testing "copy elements of a byte[]"
-    (let [n 64
-          kernel (reify ByteKernel
+    (let [kernel (reify ByteKernel
                    (^void invoke [^ByteKernel self ^bytes in ^bytes out ^int gid]
                      (aset out gid (aget in gid))))
-          results (test-kernel kernel (find-method kernel "invoke") Byte/TYPE identity)]
+          results (test-kernel kernel [[Byte/TYPE identity]] Byte/TYPE)]
       (is (apply = results)))))
 
 (deftest byte-inc-test
   (testing "increment elements of a byte[] via application of a java static method"
-    (let [n 64
-          kernel (reify ByteKernel
+    (let [kernel (reify ByteKernel
                    (^void invoke [^ByteKernel self ^bytes in ^bytes out ^int gid]
                      (aset out gid (byte (inc (aget in gid))))))
-          results (test-kernel kernel (find-method kernel "invoke") Byte/TYPE identity)]
+          results (test-kernel kernel [[Byte/TYPE identity]] Byte/TYPE)]
       (is (apply = results)))))
 
 ;;------------------------------------------------------------------------------
@@ -120,7 +120,7 @@
     (let [kernel (reify CharKernel
                    (^void invoke [^CharKernel self ^chars in ^chars out ^int gid]
                      (aset out gid (aget in gid))))
-          results (test-kernel kernel (find-method kernel "invoke") Character/TYPE (fn [n] (+ 65 (mod n 26))))]
+          results (test-kernel kernel [[Character/TYPE (fn [n] (+ 65 (mod n 26)))]] Character/TYPE)]
       (is (apply = results)))))
 
 (deftest char-toLowercase-test
@@ -128,10 +128,10 @@
     (let [kernel (reify CharKernel
                    (^void invoke [^CharKernel self ^chars in ^chars out ^int gid]
                      (aset out gid (java.lang.Character/toLowerCase (aget in gid)))))
-          results (test-kernel kernel (find-method kernel "invoke") Character/TYPE (fn [n] (+ 65 (mod n 26))))]
+          results (test-kernel kernel [[Character/TYPE (fn [n] (+ 65 (mod n 26)))]] Character/TYPE)]
       (is (apply = results)))))
 
-;;------------------------------------------------------------------------------
+;; ;;------------------------------------------------------------------------------
 
 (definterface ShortKernel (^void invoke [^shorts in ^shorts out ^int gid]))
 
@@ -140,7 +140,7 @@
     (let [kernel (reify ShortKernel
                    (^void invoke [^ShortKernel self ^shorts in ^shorts out ^int gid]
                      (aset out gid (aget in gid))))
-          results (test-kernel kernel (find-method kernel "invoke") Short/TYPE identity)]
+          results (test-kernel kernel [[Short/TYPE identity]] Short/TYPE)]
       (is (apply = results)))))
 
 (deftest short-inc-test
@@ -148,7 +148,7 @@
     (let [kernel (reify ShortKernel
                    (^void invoke [^ShortKernel self ^shorts in ^shorts out ^int gid]
                      (aset out gid (short (inc (aget in gid))))))
-          results (test-kernel kernel (find-method kernel "invoke") Short/TYPE identity)]
+          results (test-kernel kernel [[Short/TYPE identity]] Short/TYPE)]
       (is (apply = results)))))
 
 ;;------------------------------------------------------------------------------
@@ -160,7 +160,7 @@
     (let [kernel (reify IntKernel
                    (^void invoke [^IntKernel self ^ints in ^ints out ^int gid]
                      (aset out gid (aget in gid))))
-          results (test-kernel kernel (find-method kernel "invoke") Integer/TYPE identity)]
+          results (test-kernel kernel [[Integer/TYPE identity]] Integer/TYPE)]
       (is (apply = results)))))
 
 ;;------------------------------------------------------------------------------
@@ -172,7 +172,7 @@
     (let [kernel (reify LongKernel
                    (^void invoke [^LongKernel self ^longs in ^longs out ^int gid]
                      (aset out gid (aget in gid))))
-          results (test-kernel kernel (find-method kernel "invoke") Long/TYPE identity)]
+          results (test-kernel kernel [[Long/TYPE identity]] Long/TYPE)]
       (is (apply = results)))))
 
 (deftest long-unchecked-inc-test
@@ -180,7 +180,7 @@
     (let [kernel (reify LongKernel
                    (^void invoke [^LongKernel self ^longs in ^longs out ^int gid]
                      (aset out gid (clojure.lang.Numbers/unchecked-inc (aget in gid)))))
-          results (test-kernel kernel (find-method kernel "invoke") Long/TYPE identity)]
+          results (test-kernel kernel [[Long/TYPE identity]] Long/TYPE)]
       (is (apply = results)))))
 
 (deftest long-inc-test
@@ -188,7 +188,7 @@
     (let [kernel (reify LongKernel
                    (^void invoke [^LongKernel self ^longs in ^longs out ^int gid]
                      (aset out gid (inc (aget in gid)))))
-          results (test-kernel kernel (find-method kernel "invoke") Long/TYPE identity)]
+          results (test-kernel kernel [[Long/TYPE identity]] Long/TYPE)]
       (is (apply = results)))))
 
 (defn ^long my-inc [^long l] (inc l))
@@ -198,7 +198,7 @@
     (let [kernel (reify LongKernel
                    (^void invoke [^LongKernel self ^longs in ^longs out ^int gid]
                      (aset out gid (long (my-inc (aget in gid))))))
-          results (test-kernel kernel (find-method kernel "invoke") Long/TYPE identity)]
+          results (test-kernel kernel [[Long/TYPE identity]] Long/TYPE)]
       (is (apply = results)))))
 
 (defn ^:static ^long my-static-inc [^long l] (inc l)) ;I don't think this is static..
@@ -208,7 +208,7 @@
     (let [kernel (reify LongKernel
                    (^void invoke [^LongKernel self ^longs in ^longs out ^int gid]
                      (aset out gid (long (my-static-inc (aget in gid))))))
-          results (test-kernel kernel (find-method kernel "invoke") Long/TYPE identity)]
+          results (test-kernel kernel [[Long/TYPE identity]] Long/TYPE)]
       (is (apply = results)))))
 
 (deftest long-anonymous-inc-test
@@ -217,7 +217,7 @@
           kernel (reify LongKernel
                    (^void invoke [^LongKernel self ^longs in ^longs out ^int gid]
                      (aset out gid (long (my-inc (aget in gid))))))
-          results (test-kernel kernel (find-method kernel "invoke") Long/TYPE identity)]
+          results (test-kernel kernel [[Long/TYPE identity]] Long/TYPE)]
       (is (apply = results)))))
 
 ;;------------------------------------------------------------------------------
@@ -229,7 +229,7 @@
     (let [kernel (reify FloatKernel
                    (^void invoke [^FloatKernel self ^floats in ^floats out ^int gid]
                      (aset out gid (aget in gid))))
-          results (test-kernel kernel (find-method kernel "invoke") Float/TYPE identity)]
+          results (test-kernel kernel [[Float/TYPE identity]] Float/TYPE)]
       (is (apply = results)))))
 
 (deftest float-inc-test
@@ -237,7 +237,7 @@
     (let [kernel (reify FloatKernel
                    (^void invoke [^FloatKernel self ^floats in ^floats out ^int gid]
                      (aset out gid (float (inc (aget in gid))))))
-          results (test-kernel kernel (find-method kernel "invoke") Float/TYPE identity)]
+          results (test-kernel kernel [[Float/TYPE identity]] Float/TYPE)]
       (is (apply = results)))))
 
 ;;------------------------------------------------------------------------------
@@ -249,7 +249,7 @@
     (let [kernel (reify DoubleKernel
                    (^void invoke [^CharKernel self ^doubles in ^doubles out ^int gid]
                      (aset out gid (aget in gid))))
-          results (test-kernel kernel (find-method kernel "invoke") Double/TYPE identity)]
+          results (test-kernel kernel [[Double/TYPE identity]] Double/TYPE)]
       (is (apply = results)))))
 
 (deftest double-multiplyP-test
@@ -257,7 +257,7 @@
     (let [kernel (reify DoubleKernel
                    (^void invoke [^CharKernel self ^doubles in ^doubles out ^int gid]
                      (aset out gid (clojure.lang.Numbers/multiplyP (aget in gid) (double 2.0)))))
-          results (test-kernel kernel (find-method kernel "invoke") Double/TYPE identity)]
+          results (test-kernel kernel [[Double/TYPE identity]] Double/TYPE)]
       (is (apply = results)))))
 
 (deftest double-quotient-test
@@ -265,7 +265,7 @@
     (let [kernel (reify DoubleKernel
                    (^void invoke [^CharKernel self ^doubles in ^doubles out ^int gid]
                      (aset out gid (clojure.lang.Numbers/quotient (aget in gid) (double 2.0)))))
-          results (test-kernel kernel (find-method kernel "invoke") Double/TYPE identity)]
+          results (test-kernel kernel [[Double/TYPE identity]] Double/TYPE)]
       (is (apply = results)))))
 
 ;;------------------------------------------------------------------------------
@@ -277,7 +277,7 @@
     (let [kernel (reify ObjectKernel
                    (^void invoke [^ObjectKernel self ^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out ^int i]
                      (aset out i (aget in i))))
-          results (test-kernel kernel (find-method kernel "invoke") Object identity)]
+          results (test-kernel kernel [[Object identity]] Object)]
       (is (apply = results)))))
 
 (deftest multiplication-test
@@ -285,150 +285,128 @@
     (let [kernel (reify ObjectKernel
                    (^void invoke [^ObjectKernel self ^objects in ^objects out ^int gid]
                      (aset out gid (* (aget in gid) (aget in gid)))))
-          results (test-kernel kernel (find-method kernel "invoke") Object identity)]
+          results (test-kernel kernel [[Object identity]] Object)]
       (is (apply = results)))))
 
-;; ;;------------------------------------------------------------------------------
+;;------------------------------------------------------------------------------
 
-;; ;; (definterface ObjectBooleanKernel (^void invoke [^"[Ljava.lang.Object;" in ^booleans out ^int gid]))
+(definterface ObjectBooleanKernel (^void invoke [^"[Ljava.lang.Object;" in ^booleans out ^int gid]))
 
-;; ;; fails under jenkins !!
+(deftest isZero-test
+  (testing "apply static java function to elements of Object[]"
+    (let [kernel (reify ObjectBooleanKernel
+                   (invoke [self in out gid]
+                     (aset out gid (clojure.lang.Numbers/isZero (aget in gid)))))
+          results (test-kernel kernel [[Object identity]] Boolean/TYPE)]
+      (is (apply = results)))))
 
-;; ;; (deftest isZero-test
-;; ;;   (testing "apply static java function to elements of Object[]"
-;; ;;     (let [n 64
-;; ;;           kernel (reify ObjectBooleanKernel
-;; ;;                    (invoke [self in out gid]
-;; ;;                      (aset out gid (clojure.lang.Numbers/isZero (aget in gid)))))]
-;; ;;       (is (test-kernel
-;; ;;            kernel (find-method kernel "invoke") n
-;; ;;            (into-array ^Object (range 64))
-;; ;;            (boolean-array n))))))
+(deftest isPos-test
+  (testing "apply static java function to elements of Object[]"
+    (let [kernel (reify ObjectBooleanKernel
+                   (invoke [self in out gid]
+                     (aset out gid (clojure.lang.Numbers/isPos (aget in gid)))))
+          results (test-kernel kernel [[Object (fn [n] (- n (/ *wavefront-size* 2)))]] Boolean/TYPE)]
+      (is (apply = results)))))
 
-;; ;; #  SIGSEGV (0xb) at pc=0x00007fec8635b91c, pid=10777, tid=140653852776192
+(deftest isNeg-test
+  (testing "apply static java function to elements of Object[]"
+    (let [kernel (reify ObjectBooleanKernel
+                   (invoke [self in out gid]
+                     (aset out gid (clojure.lang.Numbers/isNeg (aget in gid)))))
+          results (test-kernel kernel [[Object (fn [n] (- n (/ *wavefront-size* 2)))]] Boolean/TYPE)]
+      (is (apply = results)))))
 
-;; ;; (deftest isPos-test
-;; ;;   (testing "apply static java function to elements of Object[]"
-;; ;;     (let [n 64
-;; ;;           kernel (reify ObjectBooleanKernel
-;; ;;                    (invoke [self in out gid]
-;; ;;                      (aset out gid (clojure.lang.Numbers/isPos (aget in gid)))))]
-;; ;;       (is (test-kernel
-;; ;;            kernel (find-method kernel "invoke") n
-;; ;;            (into-array ^Object (range -16 16))
-;; ;;            (boolean-array n))))))
+;;------------------------------------------------------------------------------
 
-;; ;; com.oracle.graal.graph.GraalInternalError: unimplemented
+(definterface StringIntKernel (^void invoke [^"[Ljava.lang.String;" in ^ints out ^int gid]))
 
-;; ;; (deftest isNeg-test
-;; ;;   (testing "apply static java function to elements of Object[]"
-;; ;;     (let [n 64
-;; ;;           kernel (reify ObjectBooleanKernel
-;; ;;                    (invoke [self in out gid]
-;; ;;                      (aset out gid (clojure.lang.Numbers/isNeg (aget in gid)))))]
-;; ;;       (is (test-kernel
-;; ;;            kernel (find-method kernel "invoke") n
-;; ;;            (into-array ^Object (range -16 16))
-;; ;;            (boolean-array n))))))
+(deftest string-length-test
+  (testing "find lengths of an array of Strings via application of a java virtual method"
+    (let [kernel (reify StringIntKernel
+                   (^void invoke [^StringIntKernel self ^"[Ljava.lang.String;" in ^ints out ^int gid]
+                     (aset out gid (.length ^String (aget in gid)))))
+          results (test-kernel kernel [[String (fn [^Long i] (.toString i))]] Integer/TYPE)]
+      (is (apply = results)))))
 
-;; ;;------------------------------------------------------------------------------
+;;------------------------------------------------------------------------------
 
-;; (definterface StringIntKernel (^void invoke [^"[Ljava.lang.String;" in ^ints out ^int gid]))
+(definterface ListLongKernel (^void invoke [^"[Lclojure.lang.PersistentList;" in ^longs out ^int i]))
 
-;; (deftest string-length-test
-;;   (testing "find lengths of an array of Strings via application of a java virtual method"
-;;     (let [n 64
-;;           kernel (reify StringIntKernel
-;;                    (^void invoke [^StringIntKernel self ^"[Ljava.lang.String;" in ^ints out ^int gid]
-;;                      (aset out gid (.length ^String (aget in gid)))))]
-;;       (is (test-kernel
-;;            kernel (find-method kernel "invoke") n
-;;            (into-array ^String (map (fn [^Long i] (.toString i)) (range n)))
-;;            (int-array n))))))
+(deftest list-peek-test
+  (testing "map 'peek' across an array of lists - call a method on a Clojure list"
+    (let [kernel (reify ListLongKernel
+                   (^void invoke [^ListLongKernel self ^"[Lclojure.lang.PersistentList;" in ^longs out ^int i]
+                     (aset out i (.peek ^clojure.lang.PersistentList (aget in i)))))
+          results (test-kernel kernel [[clojure.lang.PersistentList list]] Long/TYPE)]
+      (is (apply = results)))))
 
-;; ;;------------------------------------------------------------------------------
+;;------------------------------------------------------------------------------
 
-;; (definterface ListLongKernel (^void invoke [^"[Lclojure.lang.PersistentList;" in ^longs out ^int i]))
+(def type->array-type 
+  {(Boolean/TYPE)   (class (boolean-array 0))
+   (Character/TYPE) (class (char-array 0))
+   (Byte/TYPE)      (class (byte-array 0))
+   (Short/TYPE)     (class (short-array 0))
+   (Integer/TYPE)   (class (int-array 0))
+   (Long/TYPE)      (class (long-array 0))
+   (Float/TYPE)     (class (float-array 0))
+   (Double/TYPE)    (class (double-array 0))})
 
-;; ;; com.oracle.graal.graph.GraalInternalError: Node implementing Lowerable not handled in HSAIL Backend: 358|NewInstance
+(defn public-static? [^Method m]
+  (let [modifiers (.getModifiers m)]
+    (and (java.lang.reflect.Modifier/isPublic modifiers)
+         (java.lang.reflect.Modifier/isStatic modifiers))))
 
-;; ;; (deftest list-peek-test
-;; ;;   (testing "map 'peek' across an array of lists - call a method on a Clojure list"
-;; ;;     (let [n 64
-;; ;;           kernel (reify ListLongKernel
-;; ;;                    (^void invoke [^ListLongKernel self ^"[Lclojure.lang.PersistentList;" in ^longs out ^int i]
-;; ;;                      (aset out i (.peek ^clojure.lang.PersistentList (aget in i)))))]
-;; ;;       (is (test-kernel
-;; ;;            kernel (find-method kernel "invoke") n
-;; ;;            (into-array clojure.lang.PersistentList (map list (range n))) (long-array n))))))
+(def primitive-types (into #{} (keys type->array-type)))
 
-;; ;;------------------------------------------------------------------------------
-
-;; (def type->array-type 
-;;   {(Boolean/TYPE)   (class (boolean-array 0))
-;;    (Character/TYPE) (class (char-array 0))
-;;    (Byte/TYPE)      (class (byte-array 0))
-;;    (Short/TYPE)     (class (short-array 0))
-;;    (Integer/TYPE)   (class (int-array 0))
-;;    (Long/TYPE)      (class (long-array 0))
-;;    (Float/TYPE)     (class (float-array 0))
-;;    (Double/TYPE)    (class (double-array 0))})
-
-;; (defn public-static? [^Method m]
-;;   (let [modifiers (.getModifiers m)]
-;;     (and (java.lang.reflect.Modifier/isPublic modifiers)
-;;          (java.lang.reflect.Modifier/isStatic modifiers))))
-
-;; (def primitive-types (into #{} (keys type->array-type)))
-
-;; (defn primitive? [^Class t]
-;;   (contains? primitive-types t))
+(defn primitive? [^Class t]
+  (contains? primitive-types t))
   
-;; (defn takes-only-primitives? [^Method m]
-;;   (every? primitive? (.getParameterTypes m)))
+(defn takes-only-primitives? [^Method m]
+  (every? primitive? (.getParameterTypes m)))
 
-;; (defn returns-primitive? [^Method m]
-;;   (primitive? (.getReturnType m)))
+(defn returns-primitive? [^Method m]
+  (primitive? (.getReturnType m)))
 
-;; (def primitive-number-methods
-;;   (filter returns-primitive?
-;;           (filter takes-only-primitives?
-;;                   (filter public-static?
-;;                           (.getDeclaredMethods clojure.lang.Numbers)))))
+(def primitive-number-methods
+  (filter returns-primitive?
+          (filter takes-only-primitives?
+                  (filter public-static?
+                          (.getDeclaredMethods clojure.lang.Numbers)))))
 
-;; ;;------------------------------------------------------------------------------
-;; ;; another go at macro-ising this all up...
+;;------------------------------------------------------------------------------
+;; another go at macro-ising this all up...
 
-;; (defn make-param [t]
-;;   (with-meta (gensym) {:tag t}))
+(defn make-param [t]
+  (with-meta (gensym) {:tag t}))
 
-;; (defn make-array-param [t]
-;;   (make-param (type->array-type t)))
+(defn make-array-param [t]
+  (make-param (type->array-type t)))
 
-;; (defmacro mt [^Method method]
-;;   (let [kernel-name# (gensym "Kernel")
-;;         ^Method method# (eval method)
-;;         method-name# (str (.getName (.getDeclaringClass method#)) "/" (.getName method#))
-;;         input-params# (mapv make-array-param (.getParameterTypes method#))
-;;         output-param# (make-array-param (.getReturnType method#))
-;;         gid-param# (make-param Integer/TYPE)
-;;         kernel# (gensym)]
-;;     `(do
-;;        (definterface
-;;          ~(symbol kernel-name#)
-;;          ~(list
-;;            (with-meta (symbol "invoke") {:tag Void/TYPE})
-;;            (into [] (concat input-params# (list output-param#) (list gid-param#)))))
-;;        (let [~(with-meta kernel# {:tag (symbol kernel-name#)})
-;;              (reify
-;;                ~(symbol kernel-name#)
-;;                (~(symbol "invoke")
-;;                 ~(into [] (concat (list (gensym)) input-params# (list output-param#) (list gid-param#)))
-;;                 (aset ~output-param#  ~gid-param#
-;;                   (~(symbol method-name#)
-;;                    ~@(map (fn [e#] (list 'aget e# gid-param#)) input-params#)))
-;;                 ))]
-;;          [~kernel#]))))
+(defmacro mt [^Method method]
+  (let [kernel-name# (gensym "Kernel")
+        ^Method method# (eval method)
+        method-name# (str (.getName (.getDeclaringClass method#)) "/" (.getName method#))
+        input-params# (mapv make-array-param (.getParameterTypes method#))
+        output-param# (make-array-param (.getReturnType method#))
+        gid-param# (make-param Integer/TYPE)
+        kernel# (gensym)]
+    `(do
+       (definterface
+         ~(symbol kernel-name#)
+         ~(list
+           (with-meta (symbol "invoke") {:tag Void/TYPE})
+           (into [] (concat input-params# (list output-param#) (list gid-param#)))))
+       (let [~(with-meta kernel# {:tag (symbol kernel-name#)})
+             (reify
+               ~(symbol kernel-name#)
+               (~(symbol "invoke")
+                ~(into [] (concat (list (gensym)) input-params# (list output-param#) (list gid-param#)))
+                (aset ~output-param#  ~gid-param#
+                  (~(symbol method-name#)
+                   ~@(map (fn [e#] (list 'aget e# gid-param#)) input-params#)))
+                ))]
+         [~kernel#]))))
 
-;; ;; (mt (str "My" "Kernel2") (str "my" "Method") (list Long/TYPE Integer/TYPE ) (list Float/TYPE Character/TYPE))
-;; ;; (seq (.getDeclaredMethods MyKernel2))
+;; (mt (str "My" "Kernel2") (str "my" "Method") (list Long/TYPE Integer/TYPE ) (list Float/TYPE Character/TYPE))
+;; (seq (.getDeclaredMethods MyKernel2))
