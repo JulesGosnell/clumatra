@@ -4,6 +4,7 @@
             [clojure.core
              [reducers :as r]
              [rrb-vector :as v]]
+            [clojure [pprint :as p]]
             [clumatra [util :as u]])
   (:gen-class))
 
@@ -62,6 +63,70 @@
    (Float/TYPE)     (float 0)
    (Double/TYPE)    (double 0)})
 
+;;------------------------------------------------------------------------------
+;; another go at macro-ising this all up...
+
+(def type->array-type 
+  {(Boolean/TYPE)   (class (boolean-array 0))
+   (Character/TYPE) (class (char-array 0))
+   (Byte/TYPE)      (class (byte-array 0))
+   (Short/TYPE)     (class (short-array 0))
+   (Integer/TYPE)   (class (int-array 0))
+   (Long/TYPE)      (class (long-array 0))
+   (Float/TYPE)     (class (float-array 0))
+   (Double/TYPE)    (class (double-array 0))})
+
+(defn make-param [n t]
+  (with-meta (gensym n) {:tag t}))
+
+(defn make-array-param [n t]
+  (make-param n (type->array-type t)))
+
+(definterface LongKernel (^void invoke [^longs in ^longs out ^int gid]))
+
+(defmacro make-kernel [^Method method]
+  (let [kernel-name# (gensym "Kernel_")
+        ^Method method# (eval method)
+        method-name# (str (.getName (.getDeclaringClass method#)) "/" (.getName method#))
+        input-params# (mapv (fn [t] (make-array-param "in_" t)) (.getParameterTypes method#))
+        output-param# (make-array-param "out_" (.getReturnType method#))
+        gid-param# (make-param "wid_" Integer/TYPE)
+        wid# (with-meta gid-param# nil)
+        kernel# (gensym "kernel_")
+        interface-params# (into [] (concat input-params# (list output-param#) (list gid-param#)))
+        implementation-params# (into [] (concat (list (gensym "self_")) interface-params#))]
+    `(do
+       (definterface
+         ~(symbol kernel-name#)
+         ~(list (with-meta (symbol "invoke") {:tag Void/TYPE}) interface-params#))
+       (let [
+             ;;~(with-meta kernel# {:tag (symbol kernel-name#)})
+             ~kernel#
+             (reify
+               ~(symbol kernel-name#)
+               (~(with-meta (symbol "invoke") {:tag Void/TYPE}) ~implementation-params#
+                (aset ~output-param# ~wid#
+                  (~(symbol method-name#)
+                   ~@(map (fn [e#] (list 'aget e# wid#)) input-params#)))
+                ))
+             ]
+         [
+          ~kernel#
+          (.getDeclaredMethod (.getClass ~kernel#) "invoke" (into-array Class [~@(map (fn [p#] (:tag (meta p#))) interface-params#)]))
+          ;;return a function that wraps a kernel and its invocation safely...
+          ]))))
+
+;; handle method invocations as well as static functions
+;; reuse kernel interfaces where appropriate
+;; write another macro to generate tests using this one
+;; write some tests for this macro
+
+;; 
+;; (p/pprint (macroexpand-1 '(make-kernel (first primitive-number-methods))))
+;; (seq (second (make-kernel (first primitive-number-methods))))
+
+;;------------------------------------------------------------------------------
+
 (defn test-kernel [kernel in-types-and-fns out-type]
   (let [method (find-method kernel "invoke")
         out-element (type->default out-type)
@@ -74,6 +139,7 @@
 ;;------------------------------------------------------------------------------
 
 (definterface BooleanKernel (^void invoke [^booleans in ^booleans out ^int gid]))
+
 
 (deftest boolean-copy-test
   (testing "copy elements of a boolean[]"
@@ -165,7 +231,7 @@
 
 ;;------------------------------------------------------------------------------
 
-(definterface LongKernel (^void invoke [^longs in ^longs out ^int gid]))
+
 
 (deftest long-copy-test
   (testing "copy elements of a long[]"
@@ -180,6 +246,14 @@
     (let [kernel (reify LongKernel
                    (^void invoke [^LongKernel self ^longs in ^longs out ^int gid]
                      (aset out gid (clojure.lang.Numbers/unchecked-inc (aget in gid)))))
+          results (test-kernel kernel [[Long/TYPE identity]] Long/TYPE)]
+      (is (apply = results)))))
+
+(deftest long-unchecked-inc-test2
+  (testing "increment elements of a long[] via the application of a java static method"
+    (let [[kernel _]
+          (make-kernel 
+           (.getDeclaredMethod clojure.lang.Numbers "unchecked_inc" (into-array Class [Long/TYPE])))
           results (test-kernel kernel [[Long/TYPE identity]] Long/TYPE)]
       (is (apply = results)))))
 
@@ -344,16 +418,6 @@
 
 ;;------------------------------------------------------------------------------
 
-(def type->array-type 
-  {(Boolean/TYPE)   (class (boolean-array 0))
-   (Character/TYPE) (class (char-array 0))
-   (Byte/TYPE)      (class (byte-array 0))
-   (Short/TYPE)     (class (short-array 0))
-   (Integer/TYPE)   (class (int-array 0))
-   (Long/TYPE)      (class (long-array 0))
-   (Float/TYPE)     (class (float-array 0))
-   (Double/TYPE)    (class (double-array 0))})
-
 (defn public-static? [^Method m]
   (let [modifiers (.getModifiers m)]
     (and (java.lang.reflect.Modifier/isPublic modifiers)
@@ -376,42 +440,4 @@
                   (filter public-static?
                           (.getDeclaredMethods clojure.lang.Numbers)))))
 
-;;------------------------------------------------------------------------------
-;; another go at macro-ising this all up...
-
-(defn make-param [n t]
-  (with-meta (gensym n) {:tag t}))
-
-(defn make-array-param [n t]
-  (make-param n (type->array-type t)))
-
-(defmacro mt [^Method method]
-  (let [kernel-name# (gensym "Kernel_")
-        ^Method method# (eval method)
-        method-name# (str (.getName (.getDeclaringClass method#)) "/" (.getName method#))
-        input-params# (mapv (fn [t] (make-array-param "in_" t)) (.getParameterTypes method#))
-        output-param# (make-array-param "out_" (.getReturnType method#))
-        gid-param# (make-param "wid_" Integer/TYPE)
-        kernel# (gensym "kernel_")
-        interface-params# (into [] (concat input-params# (list output-param#) (list gid-param#)))
-        implementation-params# (into [] (concat (list (gensym "self_")) interface-params#))]
-    `(do
-       (definterface
-         ~(symbol kernel-name#)
-         ~(list (with-meta (symbol "invoke") {:tag Void/TYPE}) interface-params#))
-       (let [~(with-meta kernel# {:tag (symbol kernel-name#)})
-             (reify
-               ~(symbol kernel-name#)
-               (~(symbol "invoke") ~implementation-params#
-                (aset ~output-param#  ~gid-param#
-                  (~(symbol method-name#)
-                   ~@(map (fn [e#] (list 'aget e# gid-param#)) input-params#)))
-                ))]
-         [~kernel#
-          (.getDeclaredMethod ~(symbol kernel-name#) "invoke" (into-array Class [~@(map (fn [p#] (:tag (meta p#))) interface-params#)]))
-          ]))))
-
-;; 
-;; (macroexpand-1 '(mt (first primitive-number-methods)))
-;; (seq (second (mt (first primitive-number-methods))))
 
