@@ -379,36 +379,39 @@
 ;;------------------------------------------------------------------------------
 ;; another go at macro-ising this all up...
 
-(defn make-param [t]
-  (with-meta (gensym) {:tag t}))
+(defn make-param [n t]
+  (with-meta (gensym n) {:tag t}))
 
-(defn make-array-param [t]
-  (make-param (type->array-type t)))
+(defn make-array-param [n t]
+  (make-param n (type->array-type t)))
 
 (defmacro mt [^Method method]
-  (let [kernel-name# (gensym "Kernel")
+  (let [kernel-name# (gensym "Kernel_")
         ^Method method# (eval method)
         method-name# (str (.getName (.getDeclaringClass method#)) "/" (.getName method#))
-        input-params# (mapv make-array-param (.getParameterTypes method#))
-        output-param# (make-array-param (.getReturnType method#))
-        gid-param# (make-param Integer/TYPE)
-        kernel# (gensym)]
+        input-params# (mapv (fn [t] (make-array-param "in_" t)) (.getParameterTypes method#))
+        output-param# (make-array-param "out_" (.getReturnType method#))
+        gid-param# (make-param "wid_" Integer/TYPE)
+        kernel# (gensym "kernel_")
+        interface-params# (into [] (concat input-params# (list output-param#) (list gid-param#)))
+        implementation-params# (into [] (concat (list (gensym "self_")) interface-params#))]
     `(do
        (definterface
          ~(symbol kernel-name#)
-         ~(list
-           (with-meta (symbol "invoke") {:tag Void/TYPE})
-           (into [] (concat input-params# (list output-param#) (list gid-param#)))))
+         ~(list (with-meta (symbol "invoke") {:tag Void/TYPE}) interface-params#))
        (let [~(with-meta kernel# {:tag (symbol kernel-name#)})
              (reify
                ~(symbol kernel-name#)
-               (~(symbol "invoke")
-                ~(into [] (concat (list (gensym)) input-params# (list output-param#) (list gid-param#)))
+               (~(symbol "invoke") ~implementation-params#
                 (aset ~output-param#  ~gid-param#
                   (~(symbol method-name#)
                    ~@(map (fn [e#] (list 'aget e# gid-param#)) input-params#)))
                 ))]
-         [~kernel#]))))
+         [~kernel#
+          (.getDeclaredMethod ~(symbol kernel-name#) "invoke" (into-array Class [~@(map (fn [p#] (:tag (meta p#))) interface-params#)]))
+          ]))))
 
-;; (mt (str "My" "Kernel2") (str "my" "Method") (list Long/TYPE Integer/TYPE ) (list Float/TYPE Character/TYPE))
-;; (seq (.getDeclaredMethods MyKernel2))
+;; 
+;; (macroexpand-1 '(mt (first primitive-number-methods)))
+;; (seq (second (mt (first primitive-number-methods))))
+
