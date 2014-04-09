@@ -84,37 +84,58 @@
 
 (definterface LongKernel (^void invoke [^longs in ^longs out ^int gid]))
 
-(defmacro make-kernel [^Method method]
-  (let [kernel-name# (gensym "Kernel_")
-        ^Method method# (eval method)
+
+;; (defmacro tm [method]
+;;   `(let [^Method m# ~method
+;;          n# (.getName m#)]
+;;      `(println "METHOD-NAME: " ~n#)))
+
+
+;; (let [method (.getDeclaredMethod clojure.lang.Numbers "unchecked_inc" (into-array Class [Long/TYPE]))
+;;       foo (tm method)]
+;;   foo)
+
+(def method->input-fns {})
+
+(defn method-symbol [^Method method]
+  (symbol (.replace (.toString method) " " "_")))
+
+(defmacro deftest-kernel [method]
+  (let [^Method method# (eval method)
+        input-fns# (method->input-fns method#)
         method-name# (str (.getName (.getDeclaringClass method#)) "/" (.getName method#))
-        input-params# (mapv (fn [t] (make-array-param "in_" t)) (.getParameterTypes method#))
-        output-param# (make-array-param "out_" (.getReturnType method#))
-        gid-param# (make-param "wid_" Integer/TYPE)
-        wid# (with-meta gid-param# nil)
+        input-types# (.getParameterTypes method#)
+        input-params# (mapv (fn [t] (make-array-param "in_" t)) input-types#)
+        output-type# (.getReturnType method#)
+        output-param# (make-array-param "out_" output-type#)
+        wid-param# (make-param "wid_" Integer/TYPE)
+        wid# (with-meta wid-param# nil)
+        Kernel# (gensym "Kernel_")
         kernel# (gensym "kernel_")
-        interface-params# (into [] (concat input-params# (list output-param#) (list gid-param#)))
-        implementation-params# (into [] (concat (list (gensym "self_")) interface-params#))]
+        interface-params# (into [] (concat input-params# (list output-param#) (list wid-param#)))
+        implementation-params# (into [] (concat (list (gensym "self_")) interface-params#))
+        invoke# (with-meta (symbol "invoke") {:tag Void/TYPE})]
     `(do
-       (definterface
-         ~(symbol kernel-name#)
-         ~(list (with-meta (symbol "invoke") {:tag Void/TYPE}) interface-params#))
-       (let [
-             ;;~(with-meta kernel# {:tag (symbol kernel-name#)})
-             ~kernel#
-             (reify
-               ~(symbol kernel-name#)
-               (~(with-meta (symbol "invoke") {:tag Void/TYPE}) ~implementation-params#
-                (aset ~output-param# ~wid#
-                  (~(symbol method-name#)
-                   ~@(map (fn [e#] (list 'aget e# wid#)) input-params#)))
-                ))
-             ]
-         [
-          ~kernel#
-          (.getDeclaredMethod (.getClass ~kernel#) "invoke" (into-array Class [~@(map (fn [p#] (:tag (meta p#))) interface-params#)]))
-          ;;return a function that wraps a kernel and its invocation safely...
-          ]))))
+       (println "TESTING:" ~(method-symbol method#))
+       (definterface ~Kernel# ~(list invoke# interface-params#))
+       (deftest ~(method-symbol method#)
+         (let [~(with-meta kernel# {:tag Kernel#})
+               (reify
+                 ~Kernel#
+                 (~invoke# ~implementation-params#
+                   (aset ~output-param# ~wid#
+                         (~(symbol method-name#)
+                          ~@(map (fn [e#] (list 'aget e# wid#)) input-params#)))))
+               results#
+               (test-kernel
+                ~kernel#
+                ~(mapv vector input-types#
+                      ;;(concat ~input-fns# 
+                      (repeat `identity)
+                      ;;)
+                      )
+                ~output-type#)]
+           (is (apply = results#)))))))
 
 ;; handle method invocations as well as static functions
 ;; reuse kernel interfaces where appropriate
@@ -122,12 +143,14 @@
 ;; write some tests for this macro
 
 ;; 
-;; (p/pprint (macroexpand-1 '(make-kernel (first primitive-number-methods))))
+;; (p/pprint (macroexpand-1 '(deftest-kernel (first primitive-number-methods))))
+;; (eval (macroexpand-1 '(deftest-kernel (first primitive-number-methods))))
 ;; (seq (second (make-kernel (first primitive-number-methods))))
 
 ;;------------------------------------------------------------------------------
 
 (defn test-kernel [kernel in-types-and-fns out-type]
+  (println "TEST-KERNEL:" kernel in-types-and-fns out-type)
   (let [method (find-method kernel "invoke")
         out-element (type->default out-type)
         in-arrays (mapv (fn [[t f]] (into-array t (map f (range *wavefront-size*)))) in-types-and-fns)
@@ -249,13 +272,14 @@
           results (test-kernel kernel [[Long/TYPE identity]] Long/TYPE)]
       (is (apply = results)))))
 
-(deftest long-unchecked-inc-test2
-  (testing "increment elements of a long[] via the application of a java static method"
-    (let [[kernel _]
-          (make-kernel 
-           (.getDeclaredMethod clojure.lang.Numbers "unchecked_inc" (into-array Class [Long/TYPE])))
-          results (test-kernel kernel [[Long/TYPE identity]] Long/TYPE)]
-      (is (apply = results)))))
+;; (deftest long-unchecked-inc-test2
+;;   (testing "increment elements of a long[] via the application of a java static method"
+;;     (let [[kernel method] 
+;;           (make-kernel
+;;            (.getDeclaredMethod clojure.lang.Numbers "unchecked_inc" (into-array Class [Long/TYPE])))
+;;           ;;results (test-kernel kernel [[Long/TYPE identity]] Long/TYPE)
+;;           ]
+;;       )))
 
 (deftest long-inc-test
   (testing "increment elements of a long[] via the application of a builtin function"
@@ -440,4 +464,4 @@
                   (filter public-static?
                           (.getDeclaredMethods clojure.lang.Numbers)))))
 
-
+(deftest-kernel (first primitive-number-methods))
