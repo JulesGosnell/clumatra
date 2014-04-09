@@ -24,10 +24,10 @@
 ;;------------------------------------------------------------------------------
 
 (defn local-kernel-compile [kernel ^Method method n]
-  (fn [in out]
+  (fn [& args]
     (doseq [^Long i (range n)]
-      (.invoke method kernel (into-array Object [in out (int i)])))
-    out))
+      (.invoke method kernel (into-array Object (concat args (list (int i))))))
+    (last args)))
 
 (println)
 (u/compile-if
@@ -116,7 +116,6 @@
         implementation-params# (into [] (concat (list (gensym "self_")) interface-params#))
         invoke# (with-meta (symbol "invoke") {:tag Void/TYPE})]
     `(do
-       (println "TESTING:" ~(method-symbol method#))
        (definterface ~Kernel# ~(list invoke# interface-params#))
        (deftest ~(method-symbol method#)
          (let [~(with-meta kernel# {:tag Kernel#})
@@ -145,7 +144,6 @@
 ;; 
 ;; (p/pprint (macroexpand-1 '(deftest-kernel (first primitive-number-methods))))
 ;; (eval (macroexpand-1 '(deftest-kernel (first primitive-number-methods))))
-;; (seq (second (make-kernel (first primitive-number-methods))))
 
 ;;------------------------------------------------------------------------------
 
@@ -155,280 +153,282 @@
         out-element (type->default out-type)
         in-arrays (mapv (fn [[t f]] (into-array t (map f (range *wavefront-size*)))) in-types-and-fns)
         compiled (okra-kernel-compile kernel method *wavefront-size*)] ;compile once
+    (println "COMPILED-ARGS:" 
+             (conj in-arrays (into-array out-type (repeat *wavefront-size* out-element))))
     [(seq (apply compiled (conj in-arrays (into-array out-type (repeat *wavefront-size* out-element)))))              
      (seq (apply compiled (conj in-arrays (into-array out-type (repeat *wavefront-size* out-element))))) ;run twice
      (seq (apply (local-kernel-compile kernel method *wavefront-size*) (conj in-arrays (into-array out-type (repeat *wavefront-size* out-element)))))])) ;compare against control
 
 ;;------------------------------------------------------------------------------
 
-(definterface BooleanKernel (^void invoke [^booleans in ^booleans out ^int gid]))
+;; (definterface BooleanKernel (^void invoke [^booleans in ^booleans out ^int gid]))
 
 
-(deftest boolean-copy-test
-  (testing "copy elements of a boolean[]"
-    (let [kernel (reify BooleanKernel
-                   (^void invoke [^BooleanKernel self ^booleans in ^booleans out ^int gid]
-                     (aset out gid (aget in gid))))
-          results (test-kernel kernel [[Boolean/TYPE even?]] Boolean/TYPE)]
-      (is (apply = results)))))
+;; (deftest boolean-copy-test
+;;   (testing "copy elements of a boolean[]"
+;;     (let [kernel (reify BooleanKernel
+;;                    (^void invoke [^BooleanKernel self ^booleans in ^booleans out ^int gid]
+;;                      (aset out gid (aget in gid))))
+;;           results (test-kernel kernel [[Boolean/TYPE even?]] Boolean/TYPE)]
+;;       (is (apply = results)))))
 
-(deftest boolean-if-test
-  (testing "flip elements of a boolean[]"
-    (let [kernel (reify BooleanKernel
-                   (^void invoke [^BooleanKernel self ^booleans in ^booleans out ^int gid]
-                     (aset out gid (if (aget in gid) false true))))
-          results (test-kernel kernel [[Boolean/TYPE even?]] Boolean/TYPE)]
-      (is (apply = results)))))
-
-;;------------------------------------------------------------------------------
-
-(definterface ByteKernel (^void invoke [^bytes in ^bytes out ^int gid]))
-
-(deftest byte-copy-test
-  (testing "copy elements of a byte[]"
-    (let [kernel (reify ByteKernel
-                   (^void invoke [^ByteKernel self ^bytes in ^bytes out ^int gid]
-                     (aset out gid (aget in gid))))
-          results (test-kernel kernel [[Byte/TYPE identity]] Byte/TYPE)]
-      (is (apply = results)))))
-
-(deftest byte-inc-test
-  (testing "increment elements of a byte[] via application of a java static method"
-    (let [kernel (reify ByteKernel
-                   (^void invoke [^ByteKernel self ^bytes in ^bytes out ^int gid]
-                     (aset out gid (byte (inc (aget in gid))))))
-          results (test-kernel kernel [[Byte/TYPE identity]] Byte/TYPE)]
-      (is (apply = results)))))
-
-;;------------------------------------------------------------------------------
-
-(definterface CharKernel (^void invoke [^chars in ^chars out ^int gid]))
-
-(deftest char-copy-test
-  (testing "copy elements of a char[]"
-    (let [kernel (reify CharKernel
-                   (^void invoke [^CharKernel self ^chars in ^chars out ^int gid]
-                     (aset out gid (aget in gid))))
-          results (test-kernel kernel [[Character/TYPE (fn [n] (+ 65 (mod n 26)))]] Character/TYPE)]
-      (is (apply = results)))))
-
-(deftest char-toLowercase-test
-  (testing "downcase elements of an char[] via application of a java static method"
-    (let [kernel (reify CharKernel
-                   (^void invoke [^CharKernel self ^chars in ^chars out ^int gid]
-                     (aset out gid (java.lang.Character/toLowerCase (aget in gid)))))
-          results (test-kernel kernel [[Character/TYPE (fn [n] (+ 65 (mod n 26)))]] Character/TYPE)]
-      (is (apply = results)))))
+;; (deftest boolean-if-test
+;;   (testing "flip elements of a boolean[]"
+;;     (let [kernel (reify BooleanKernel
+;;                    (^void invoke [^BooleanKernel self ^booleans in ^booleans out ^int gid]
+;;                      (aset out gid (if (aget in gid) false true))))
+;;           results (test-kernel kernel [[Boolean/TYPE even?]] Boolean/TYPE)]
+;;       (is (apply = results)))))
 
 ;; ;;------------------------------------------------------------------------------
 
-(definterface ShortKernel (^void invoke [^shorts in ^shorts out ^int gid]))
+;; (definterface ByteKernel (^void invoke [^bytes in ^bytes out ^int gid]))
 
-(deftest short-copy-test
-  (testing "copy elements of a short[]"
-    (let [kernel (reify ShortKernel
-                   (^void invoke [^ShortKernel self ^shorts in ^shorts out ^int gid]
-                     (aset out gid (aget in gid))))
-          results (test-kernel kernel [[Short/TYPE identity]] Short/TYPE)]
-      (is (apply = results)))))
+;; (deftest byte-copy-test
+;;   (testing "copy elements of a byte[]"
+;;     (let [kernel (reify ByteKernel
+;;                    (^void invoke [^ByteKernel self ^bytes in ^bytes out ^int gid]
+;;                      (aset out gid (aget in gid))))
+;;           results (test-kernel kernel [[Byte/TYPE identity]] Byte/TYPE)]
+;;       (is (apply = results)))))
 
-(deftest short-inc-test
-  (testing "increment elements of a short[] via application of a java static method"
-    (let [kernel (reify ShortKernel
-                   (^void invoke [^ShortKernel self ^shorts in ^shorts out ^int gid]
-                     (aset out gid (short (inc (aget in gid))))))
-          results (test-kernel kernel [[Short/TYPE identity]] Short/TYPE)]
-      (is (apply = results)))))
+;; (deftest byte-inc-test
+;;   (testing "increment elements of a byte[] via application of a java static method"
+;;     (let [kernel (reify ByteKernel
+;;                    (^void invoke [^ByteKernel self ^bytes in ^bytes out ^int gid]
+;;                      (aset out gid (byte (inc (aget in gid))))))
+;;           results (test-kernel kernel [[Byte/TYPE identity]] Byte/TYPE)]
+;;       (is (apply = results)))))
 
-;;------------------------------------------------------------------------------
+;; ;;------------------------------------------------------------------------------
 
-(definterface IntKernel (^void invoke [^ints in ^ints out ^int gid]))
+;; (definterface CharKernel (^void invoke [^chars in ^chars out ^int gid]))
 
-(deftest int-copy-test
-  (testing "copy elements of an int[]"
-    (let [kernel (reify IntKernel
-                   (^void invoke [^IntKernel self ^ints in ^ints out ^int gid]
-                     (aset out gid (aget in gid))))
-          results (test-kernel kernel [[Integer/TYPE identity]] Integer/TYPE)]
-      (is (apply = results)))))
+;; (deftest char-copy-test
+;;   (testing "copy elements of a char[]"
+;;     (let [kernel (reify CharKernel
+;;                    (^void invoke [^CharKernel self ^chars in ^chars out ^int gid]
+;;                      (aset out gid (aget in gid))))
+;;           results (test-kernel kernel [[Character/TYPE (fn [n] (+ 65 (mod n 26)))]] Character/TYPE)]
+;;       (is (apply = results)))))
 
-;;------------------------------------------------------------------------------
+;; (deftest char-toLowercase-test
+;;   (testing "downcase elements of an char[] via application of a java static method"
+;;     (let [kernel (reify CharKernel
+;;                    (^void invoke [^CharKernel self ^chars in ^chars out ^int gid]
+;;                      (aset out gid (java.lang.Character/toLowerCase (aget in gid)))))
+;;           results (test-kernel kernel [[Character/TYPE (fn [n] (+ 65 (mod n 26)))]] Character/TYPE)]
+;;       (is (apply = results)))))
+
+;; ;; ;;------------------------------------------------------------------------------
+
+;; (definterface ShortKernel (^void invoke [^shorts in ^shorts out ^int gid]))
+
+;; (deftest short-copy-test
+;;   (testing "copy elements of a short[]"
+;;     (let [kernel (reify ShortKernel
+;;                    (^void invoke [^ShortKernel self ^shorts in ^shorts out ^int gid]
+;;                      (aset out gid (aget in gid))))
+;;           results (test-kernel kernel [[Short/TYPE identity]] Short/TYPE)]
+;;       (is (apply = results)))))
+
+;; (deftest short-inc-test
+;;   (testing "increment elements of a short[] via application of a java static method"
+;;     (let [kernel (reify ShortKernel
+;;                    (^void invoke [^ShortKernel self ^shorts in ^shorts out ^int gid]
+;;                      (aset out gid (short (inc (aget in gid))))))
+;;           results (test-kernel kernel [[Short/TYPE identity]] Short/TYPE)]
+;;       (is (apply = results)))))
+
+;; ;;------------------------------------------------------------------------------
+
+;; (definterface IntKernel (^void invoke [^ints in ^ints out ^int gid]))
+
+;; (deftest int-copy-test
+;;   (testing "copy elements of an int[]"
+;;     (let [kernel (reify IntKernel
+;;                    (^void invoke [^IntKernel self ^ints in ^ints out ^int gid]
+;;                      (aset out gid (aget in gid))))
+;;           results (test-kernel kernel [[Integer/TYPE identity]] Integer/TYPE)]
+;;       (is (apply = results)))))
+
+;; ;;------------------------------------------------------------------------------
 
 
 
-(deftest long-copy-test
-  (testing "copy elements of a long[]"
-    (let [kernel (reify LongKernel
-                   (^void invoke [^LongKernel self ^longs in ^longs out ^int gid]
-                     (aset out gid (aget in gid))))
-          results (test-kernel kernel [[Long/TYPE identity]] Long/TYPE)]
-      (is (apply = results)))))
+;; (deftest long-copy-test
+;;   (testing "copy elements of a long[]"
+;;     (let [kernel (reify LongKernel
+;;                    (^void invoke [^LongKernel self ^longs in ^longs out ^int gid]
+;;                      (aset out gid (aget in gid))))
+;;           results (test-kernel kernel [[Long/TYPE identity]] Long/TYPE)]
+;;       (is (apply = results)))))
 
-(deftest long-unchecked-inc-test
-  (testing "increment elements of a long[] via the application of a java static method"
-    (let [kernel (reify LongKernel
-                   (^void invoke [^LongKernel self ^longs in ^longs out ^int gid]
-                     (aset out gid (clojure.lang.Numbers/unchecked-inc (aget in gid)))))
-          results (test-kernel kernel [[Long/TYPE identity]] Long/TYPE)]
-      (is (apply = results)))))
-
-;; (deftest long-unchecked-inc-test2
+;; (deftest long-unchecked-inc-test
 ;;   (testing "increment elements of a long[] via the application of a java static method"
-;;     (let [[kernel method] 
-;;           (make-kernel
-;;            (.getDeclaredMethod clojure.lang.Numbers "unchecked_inc" (into-array Class [Long/TYPE])))
-;;           ;;results (test-kernel kernel [[Long/TYPE identity]] Long/TYPE)
-;;           ]
-;;       )))
+;;     (let [kernel (reify LongKernel
+;;                    (^void invoke [^LongKernel self ^longs in ^longs out ^int gid]
+;;                      (aset out gid (clojure.lang.Numbers/unchecked-inc (aget in gid)))))
+;;           results (test-kernel kernel [[Long/TYPE identity]] Long/TYPE)]
+;;       (is (apply = results)))))
 
-(deftest long-inc-test
-  (testing "increment elements of a long[] via the application of a builtin function"
-    (let [kernel (reify LongKernel
-                   (^void invoke [^LongKernel self ^longs in ^longs out ^int gid]
-                     (aset out gid (inc (aget in gid)))))
-          results (test-kernel kernel [[Long/TYPE identity]] Long/TYPE)]
-      (is (apply = results)))))
+;; ;; (deftest long-unchecked-inc-test2
+;; ;;   (testing "increment elements of a long[] via the application of a java static method"
+;; ;;     (let [[kernel method] 
+;; ;;           (make-kernel
+;; ;;            (.getDeclaredMethod clojure.lang.Numbers "unchecked_inc" (into-array Class [Long/TYPE])))
+;; ;;           ;;results (test-kernel kernel [[Long/TYPE identity]] Long/TYPE)
+;; ;;           ]
+;; ;;       )))
 
-(defn ^long my-inc [^long l] (inc l))
+;; (deftest long-inc-test
+;;   (testing "increment elements of a long[] via the application of a builtin function"
+;;     (let [kernel (reify LongKernel
+;;                    (^void invoke [^LongKernel self ^longs in ^longs out ^int gid]
+;;                      (aset out gid (inc (aget in gid)))))
+;;           results (test-kernel kernel [[Long/TYPE identity]] Long/TYPE)]
+;;       (is (apply = results)))))
 
-(deftest long-my-inc-test
-  (testing "increment elements of a long[] via the application of a named clojure function"
-    (let [kernel (reify LongKernel
-                   (^void invoke [^LongKernel self ^longs in ^longs out ^int gid]
-                     (aset out gid (long (my-inc (aget in gid))))))
-          results (test-kernel kernel [[Long/TYPE identity]] Long/TYPE)]
-      (is (apply = results)))))
+;; (defn ^long my-inc [^long l] (inc l))
 
-(defn ^:static ^long my-static-inc [^long l] (inc l)) ;I don't think this is static..
+;; (deftest long-my-inc-test
+;;   (testing "increment elements of a long[] via the application of a named clojure function"
+;;     (let [kernel (reify LongKernel
+;;                    (^void invoke [^LongKernel self ^longs in ^longs out ^int gid]
+;;                      (aset out gid (long (my-inc (aget in gid))))))
+;;           results (test-kernel kernel [[Long/TYPE identity]] Long/TYPE)]
+;;       (is (apply = results)))))
 
-(deftest long-my-static-inc-test
-  (testing "increment elements of a long[] via the application of a named static clojure function"
-    (let [kernel (reify LongKernel
-                   (^void invoke [^LongKernel self ^longs in ^longs out ^int gid]
-                     (aset out gid (long (my-static-inc (aget in gid))))))
-          results (test-kernel kernel [[Long/TYPE identity]] Long/TYPE)]
-      (is (apply = results)))))
+;; (defn ^:static ^long my-static-inc [^long l] (inc l)) ;I don't think this is static..
 
-(deftest long-anonymous-inc-test
-  (testing "increment elements of a long[] via the application of an anonymous clojure function"
-    (let [my-inc (fn [^long l] (inc l))
-          kernel (reify LongKernel
-                   (^void invoke [^LongKernel self ^longs in ^longs out ^int gid]
-                     (aset out gid (long (my-inc (aget in gid))))))
-          results (test-kernel kernel [[Long/TYPE identity]] Long/TYPE)]
-      (is (apply = results)))))
+;; (deftest long-my-static-inc-test
+;;   (testing "increment elements of a long[] via the application of a named static clojure function"
+;;     (let [kernel (reify LongKernel
+;;                    (^void invoke [^LongKernel self ^longs in ^longs out ^int gid]
+;;                      (aset out gid (long (my-static-inc (aget in gid))))))
+;;           results (test-kernel kernel [[Long/TYPE identity]] Long/TYPE)]
+;;       (is (apply = results)))))
 
-;;------------------------------------------------------------------------------
+;; (deftest long-anonymous-inc-test
+;;   (testing "increment elements of a long[] via the application of an anonymous clojure function"
+;;     (let [my-inc (fn [^long l] (inc l))
+;;           kernel (reify LongKernel
+;;                    (^void invoke [^LongKernel self ^longs in ^longs out ^int gid]
+;;                      (aset out gid (long (my-inc (aget in gid))))))
+;;           results (test-kernel kernel [[Long/TYPE identity]] Long/TYPE)]
+;;       (is (apply = results)))))
 
-(definterface FloatKernel (^void invoke [^floats in ^floats out ^int gid]))
+;; ;;------------------------------------------------------------------------------
 
-(deftest float-copy-test
-  (testing "copy elements of a float[]"
-    (let [kernel (reify FloatKernel
-                   (^void invoke [^FloatKernel self ^floats in ^floats out ^int gid]
-                     (aset out gid (aget in gid))))
-          results (test-kernel kernel [[Float/TYPE identity]] Float/TYPE)]
-      (is (apply = results)))))
+;; (definterface FloatKernel (^void invoke [^floats in ^floats out ^int gid]))
 
-(deftest float-inc-test
-  (testing "increment elements of a float[] via application of a java static method"
-    (let [kernel (reify FloatKernel
-                   (^void invoke [^FloatKernel self ^floats in ^floats out ^int gid]
-                     (aset out gid (float (inc (aget in gid))))))
-          results (test-kernel kernel [[Float/TYPE identity]] Float/TYPE)]
-      (is (apply = results)))))
+;; (deftest float-copy-test
+;;   (testing "copy elements of a float[]"
+;;     (let [kernel (reify FloatKernel
+;;                    (^void invoke [^FloatKernel self ^floats in ^floats out ^int gid]
+;;                      (aset out gid (aget in gid))))
+;;           results (test-kernel kernel [[Float/TYPE identity]] Float/TYPE)]
+;;       (is (apply = results)))))
 
-;;------------------------------------------------------------------------------
+;; (deftest float-inc-test
+;;   (testing "increment elements of a float[] via application of a java static method"
+;;     (let [kernel (reify FloatKernel
+;;                    (^void invoke [^FloatKernel self ^floats in ^floats out ^int gid]
+;;                      (aset out gid (float (inc (aget in gid))))))
+;;           results (test-kernel kernel [[Float/TYPE identity]] Float/TYPE)]
+;;       (is (apply = results)))))
 
-(definterface DoubleKernel (^void invoke [^doubles in ^doubles out ^int gid]))
+;; ;;------------------------------------------------------------------------------
 
-(deftest double-copy-test
-  (testing "copy elements of a double[]"
-    (let [kernel (reify DoubleKernel
-                   (^void invoke [^CharKernel self ^doubles in ^doubles out ^int gid]
-                     (aset out gid (aget in gid))))
-          results (test-kernel kernel [[Double/TYPE identity]] Double/TYPE)]
-      (is (apply = results)))))
+;; (definterface DoubleKernel (^void invoke [^doubles in ^doubles out ^int gid]))
 
-(deftest double-multiplyP-test
-  (testing "double elements of a double[] via application of a java static method"
-    (let [kernel (reify DoubleKernel
-                   (^void invoke [^CharKernel self ^doubles in ^doubles out ^int gid]
-                     (aset out gid (clojure.lang.Numbers/multiplyP (aget in gid) (double 2.0)))))
-          results (test-kernel kernel [[Double/TYPE identity]] Double/TYPE)]
-      (is (apply = results)))))
+;; (deftest double-copy-test
+;;   (testing "copy elements of a double[]"
+;;     (let [kernel (reify DoubleKernel
+;;                    (^void invoke [^CharKernel self ^doubles in ^doubles out ^int gid]
+;;                      (aset out gid (aget in gid))))
+;;           results (test-kernel kernel [[Double/TYPE identity]] Double/TYPE)]
+;;       (is (apply = results)))))
 
-(deftest double-quotient-test
-  (testing "quotient elements of a double[] via application of a java static method"
-    (let [kernel (reify DoubleKernel
-                   (^void invoke [^CharKernel self ^doubles in ^doubles out ^int gid]
-                     (aset out gid (clojure.lang.Numbers/quotient (aget in gid) (double 2.0)))))
-          results (test-kernel kernel [[Double/TYPE identity]] Double/TYPE)]
-      (is (apply = results)))))
+;; (deftest double-multiplyP-test
+;;   (testing "double elements of a double[] via application of a java static method"
+;;     (let [kernel (reify DoubleKernel
+;;                    (^void invoke [^CharKernel self ^doubles in ^doubles out ^int gid]
+;;                      (aset out gid (clojure.lang.Numbers/multiplyP (aget in gid) (double 2.0)))))
+;;           results (test-kernel kernel [[Double/TYPE identity]] Double/TYPE)]
+;;       (is (apply = results)))))
 
-;;------------------------------------------------------------------------------
+;; (deftest double-quotient-test
+;;   (testing "quotient elements of a double[] via application of a java static method"
+;;     (let [kernel (reify DoubleKernel
+;;                    (^void invoke [^CharKernel self ^doubles in ^doubles out ^int gid]
+;;                      (aset out gid (clojure.lang.Numbers/quotient (aget in gid) (double 2.0)))))
+;;           results (test-kernel kernel [[Double/TYPE identity]] Double/TYPE)]
+;;       (is (apply = results)))))
 
-(definterface ObjectKernel (^void invoke [^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out ^int i]))
+;; ;;------------------------------------------------------------------------------
 
-(deftest object-copy-test
-  (testing "copy elements of an object[]"
-    (let [kernel (reify ObjectKernel
-                   (^void invoke [^ObjectKernel self ^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out ^int i]
-                     (aset out i (aget in i))))
-          results (test-kernel kernel [[Object identity]] Object)]
-      (is (apply = results)))))
+;; (definterface ObjectKernel (^void invoke [^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out ^int i]))
 
-(deftest multiplication-test
-  (testing "square ?Long? elements of an Object[]"
-    (let [kernel (reify ObjectKernel
-                   (^void invoke [^ObjectKernel self ^objects in ^objects out ^int gid]
-                     (aset out gid (* (aget in gid) (aget in gid)))))
-          results (test-kernel kernel [[Object identity]] Object)]
-      (is (apply = results)))))
+;; (deftest object-copy-test
+;;   (testing "copy elements of an object[]"
+;;     (let [kernel (reify ObjectKernel
+;;                    (^void invoke [^ObjectKernel self ^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out ^int i]
+;;                      (aset out i (aget in i))))
+;;           results (test-kernel kernel [[Object identity]] Object)]
+;;       (is (apply = results)))))
 
-;;------------------------------------------------------------------------------
+;; (deftest multiplication-test
+;;   (testing "square ?Long? elements of an Object[]"
+;;     (let [kernel (reify ObjectKernel
+;;                    (^void invoke [^ObjectKernel self ^objects in ^objects out ^int gid]
+;;                      (aset out gid (* (aget in gid) (aget in gid)))))
+;;           results (test-kernel kernel [[Object identity]] Object)]
+;;       (is (apply = results)))))
 
-(definterface ObjectBooleanKernel (^void invoke [^"[Ljava.lang.Object;" in ^booleans out ^int gid]))
+;; ;;------------------------------------------------------------------------------
 
-;; possibly breaking Jenkins build...
+;; (definterface ObjectBooleanKernel (^void invoke [^"[Ljava.lang.Object;" in ^booleans out ^int gid]))
 
-;; (deftest isZero-test
+;; ;; possibly breaking Jenkins build...
+
+;; ;; (deftest isZero-test
+;; ;;   (testing "apply static java function to elements of Object[]"
+;; ;;     (let [kernel (reify ObjectBooleanKernel
+;; ;;                    (invoke [self in out gid]
+;; ;;                      (aset out gid (clojure.lang.Numbers/isZero (aget in gid)))))
+;; ;;           results (test-kernel kernel [[Object identity]] Boolean/TYPE)]
+;; ;;       (is (apply = results)))))
+
+;; (deftest isPos-test
 ;;   (testing "apply static java function to elements of Object[]"
 ;;     (let [kernel (reify ObjectBooleanKernel
 ;;                    (invoke [self in out gid]
-;;                      (aset out gid (clojure.lang.Numbers/isZero (aget in gid)))))
-;;           results (test-kernel kernel [[Object identity]] Boolean/TYPE)]
+;;                      (aset out gid (clojure.lang.Numbers/isPos (aget in gid)))))
+;;           results (test-kernel kernel [[Object (fn [n] (- n (/ *wavefront-size* 2)))]] Boolean/TYPE)]
 ;;       (is (apply = results)))))
 
-(deftest isPos-test
-  (testing "apply static java function to elements of Object[]"
-    (let [kernel (reify ObjectBooleanKernel
-                   (invoke [self in out gid]
-                     (aset out gid (clojure.lang.Numbers/isPos (aget in gid)))))
-          results (test-kernel kernel [[Object (fn [n] (- n (/ *wavefront-size* 2)))]] Boolean/TYPE)]
-      (is (apply = results)))))
+;; (deftest isNeg-test
+;;   (testing "apply static java function to elements of Object[]"
+;;     (let [kernel (reify ObjectBooleanKernel
+;;                    (invoke [self in out gid]
+;;                      (aset out gid (clojure.lang.Numbers/isNeg (aget in gid)))))
+;;           results (test-kernel kernel [[Object (fn [n] (- n (/ *wavefront-size* 2)))]] Boolean/TYPE)]
+;;       (is (apply = results)))))
 
-(deftest isNeg-test
-  (testing "apply static java function to elements of Object[]"
-    (let [kernel (reify ObjectBooleanKernel
-                   (invoke [self in out gid]
-                     (aset out gid (clojure.lang.Numbers/isNeg (aget in gid)))))
-          results (test-kernel kernel [[Object (fn [n] (- n (/ *wavefront-size* 2)))]] Boolean/TYPE)]
-      (is (apply = results)))))
+;; ;;------------------------------------------------------------------------------
 
-;;------------------------------------------------------------------------------
+;; (definterface StringIntKernel (^void invoke [^"[Ljava.lang.String;" in ^ints out ^int gid]))
 
-(definterface StringIntKernel (^void invoke [^"[Ljava.lang.String;" in ^ints out ^int gid]))
+;; (deftest string-length-test
+;;   (testing "find lengths of an array of Strings via application of a java virtual method"
+;;     (let [kernel (reify StringIntKernel
+;;                    (^void invoke [^StringIntKernel self ^"[Ljava.lang.String;" in ^ints out ^int gid]
+;;                      (aset out gid (.length ^String (aget in gid)))))
+;;           results (test-kernel kernel [[String (fn [^Long i] (.toString i))]] Integer/TYPE)]
+;;       (is (apply = results)))))
 
-(deftest string-length-test
-  (testing "find lengths of an array of Strings via application of a java virtual method"
-    (let [kernel (reify StringIntKernel
-                   (^void invoke [^StringIntKernel self ^"[Ljava.lang.String;" in ^ints out ^int gid]
-                     (aset out gid (.length ^String (aget in gid)))))
-          results (test-kernel kernel [[String (fn [^Long i] (.toString i))]] Integer/TYPE)]
-      (is (apply = results)))))
-
-;;------------------------------------------------------------------------------
+;; ;;------------------------------------------------------------------------------
 
 (definterface ListLongKernel (^void invoke [^"[Lclojure.lang.PersistentList;" in ^longs out ^int i]))
 
@@ -440,7 +440,7 @@
           results (test-kernel kernel [[clojure.lang.PersistentList list]] Long/TYPE)]
       (is (apply = results)))))
 
-;;------------------------------------------------------------------------------
+;; ;;------------------------------------------------------------------------------
 
 (defn public-static? [^Method m]
   (let [modifiers (.getModifiers m)]
