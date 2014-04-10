@@ -37,9 +37,9 @@
                            (.lookupJavaMethod (.getMetaAccess (.getProviders backend)) method)
                            false))
                          "&run")]
-      (fn [in out]
+      (fn [& args]
         (.setLaunchAttributes okra-kernel n)
-        (.dispatchWithArgs okra-kernel (into-array Object [kernel in out]))
+        (.dispatchWithArgs okra-kernel (into-array Object (conj args kernel)))
         out)))))
 
 ;;------------------------------------------------------------------------------
