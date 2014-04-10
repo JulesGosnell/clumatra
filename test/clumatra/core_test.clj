@@ -145,7 +145,7 @@
 (defn test-kernel [kernel in-types-and-fns out-type]
   (let [method (find-method kernel "invoke")
         out-element (type->default out-type)
-        in-arrays (mapv (fn [[t f]] (into-array t (map f (range *wavefront-size*)))) in-types-and-fns)
+        in-arrays (mapv (fn [[t f]] (into-array t (map f (range 1 (inc *wavefront-size*))))) in-types-and-fns)
         compiled (okra-kernel-compile kernel method *wavefront-size*)] ;compile once
     [(seq (apply compiled (conj in-arrays (into-array out-type (repeat *wavefront-size* out-element)))))              
      (seq (apply compiled (conj in-arrays (into-array out-type (repeat *wavefront-size* out-element))))) ;run twice
@@ -418,18 +418,6 @@
                    (^void invoke [^StringIntKernel self ^"[Ljava.lang.String;" in ^ints out ^int gid]
                      (aset out gid (.length ^String (aget in gid)))))
           results (test-kernel kernel [[String (fn [^Long i] (.toString i))]] Integer/TYPE)]
-      (is (apply = results)))))
-
-;;------------------------------------------------------------------------------
-
-(definterface ListLongKernel (^void invoke [^"[Lclojure.lang.PersistentList;" in ^longs out ^int i]))
-
-(deftest list-peek-test
-  (testing "map 'peek' across an array of lists - call a method on a Clojure list"
-    (let [kernel (reify ListLongKernel
-                   (^void invoke [^ListLongKernel self ^"[Lclojure.lang.PersistentList;" in ^longs out ^int i]
-                     (aset out i (.peek ^clojure.lang.PersistentList (aget in i)))))
-          results (test-kernel kernel [[clojure.lang.PersistentList list]] Long/TYPE)]
       (is (apply = results)))))
 
 ;;------------------------------------------------------------------------------
