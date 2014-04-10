@@ -82,8 +82,6 @@
 (defn make-array-param [n t]
   (make-param n (type->array-type t)))
 
-(definterface LongKernel (^void invoke [^longs in ^longs out ^int gid]))
-
 (def method->input-fns
   {
    (.getDeclaredMethod clojure.lang.Numbers "quotient" (into-array Class [Double/TYPE Double/TYPE])) inc
@@ -113,6 +111,7 @@
     `(do
        (definterface ~Kernel# ~(list invoke# interface-params#))
        (deftest ~(method-symbol method#)
+         (println "Testing:" ~(.toString method#))
          (let [~(with-meta kernel# {:tag Kernel#})
                (reify
                  ~Kernel#
@@ -246,7 +245,7 @@
 
 ;;------------------------------------------------------------------------------
 
-
+(definterface LongKernel (^void invoke [^longs in ^longs out ^int gid]))
 
 (deftest long-copy-test
   (testing "copy elements of a long[]"
@@ -255,23 +254,6 @@
                      (aset out gid (aget in gid))))
           results (test-kernel kernel [[Long/TYPE identity]] Long/TYPE)]
       (is (apply = results)))))
-
-(deftest long-unchecked-inc-test
-  (testing "increment elements of a long[] via the application of a java static method"
-    (let [kernel (reify LongKernel
-                   (^void invoke [^LongKernel self ^longs in ^longs out ^int gid]
-                     (aset out gid (clojure.lang.Numbers/unchecked-inc (aget in gid)))))
-          results (test-kernel kernel [[Long/TYPE identity]] Long/TYPE)]
-      (is (apply = results)))))
-
-;; (deftest long-unchecked-inc-test2
-;;   (testing "increment elements of a long[] via the application of a java static method"
-;;     (let [[kernel method] 
-;;           (make-kernel
-;;            (.getDeclaredMethod clojure.lang.Numbers "unchecked_inc" (into-array Class [Long/TYPE])))
-;;           ;;results (test-kernel kernel [[Long/TYPE identity]] Long/TYPE)
-;;           ]
-;;       )))
 
 (deftest long-inc-test
   (testing "increment elements of a long[] via the application of a builtin function"
@@ -342,22 +324,6 @@
           results (test-kernel kernel [[Double/TYPE identity]] Double/TYPE)]
       (is (apply = results)))))
 
-(deftest double-multiplyP-test
-  (testing "double elements of a double[] via application of a java static method"
-    (let [kernel (reify DoubleKernel
-                   (^void invoke [^CharKernel self ^doubles in ^doubles out ^int gid]
-                     (aset out gid (clojure.lang.Numbers/multiplyP (aget in gid) (double 2.0)))))
-          results (test-kernel kernel [[Double/TYPE identity]] Double/TYPE)]
-      (is (apply = results)))))
-
-(deftest double-quotient-test
-  (testing "quotient elements of a double[] via application of a java static method"
-    (let [kernel (reify DoubleKernel
-                   (^void invoke [^CharKernel self ^doubles in ^doubles out ^int gid]
-                     (aset out gid (clojure.lang.Numbers/quotient (aget in gid) (double 2.0)))))
-          results (test-kernel kernel [[Double/TYPE identity]] Double/TYPE)]
-      (is (apply = results)))))
-
 ;;------------------------------------------------------------------------------
 
 (definterface ObjectKernel (^void invoke [^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out ^int i]))
@@ -376,36 +342,6 @@
                    (^void invoke [^ObjectKernel self ^objects in ^objects out ^int gid]
                      (aset out gid (* (aget in gid) (aget in gid)))))
           results (test-kernel kernel [[Object identity]] Object)]
-      (is (apply = results)))))
-
-;;------------------------------------------------------------------------------
-
-(definterface ObjectBooleanKernel (^void invoke [^"[Ljava.lang.Object;" in ^booleans out ^int gid]))
-
-;; possibly breaking Jenkins build...
-
-;; (deftest isZero-test
-;;   (testing "apply static java function to elements of Object[]"
-;;     (let [kernel (reify ObjectBooleanKernel
-;;                    (invoke [self in out gid]
-;;                      (aset out gid (clojure.lang.Numbers/isZero (aget in gid)))))
-;;           results (test-kernel kernel [[Object identity]] Boolean/TYPE)]
-;;       (is (apply = results)))))
-
-(deftest isPos-test
-  (testing "apply static java function to elements of Object[]"
-    (let [kernel (reify ObjectBooleanKernel
-                   (invoke [self in out gid]
-                     (aset out gid (clojure.lang.Numbers/isPos (aget in gid)))))
-          results (test-kernel kernel [[Object (fn [n] (- n (/ *wavefront-size* 2)))]] Boolean/TYPE)]
-      (is (apply = results)))))
-
-(deftest isNeg-test
-  (testing "apply static java function to elements of Object[]"
-    (let [kernel (reify ObjectBooleanKernel
-                   (invoke [self in out gid]
-                     (aset out gid (clojure.lang.Numbers/isNeg (aget in gid)))))
-          results (test-kernel kernel [[Object (fn [n] (- n (/ *wavefront-size* 2)))]] Boolean/TYPE)]
       (is (apply = results)))))
 
 ;;------------------------------------------------------------------------------
