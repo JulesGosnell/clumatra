@@ -374,22 +374,29 @@
 (defn returns-primitive? [^Method m]
   (primitive? (.getReturnType m)))
 
-(def primitive-number-methods
-  (filter returns-primitive?
-          (filter takes-only-primitives?
-                  (filter public-static?
-                          (.getDeclaredMethods clojure.lang.Numbers)))))
 
 (defmacro deftest-kernels [methods]
   (conj (map (fn [method#] `(deftest-kernel ~method#)) (eval methods)) 'do))
 
-(deftest-kernels primitive-number-methods)
+;;------------------------------------------------------------------------------
 
-(def primitive-runtime-methods
-  (filter returns-primitive?
-          (filter takes-only-primitives?
-                  (filter public-static?
-                          (.getDeclaredMethods clojure.lang.RT)))))
+(def excluded-methods #{
+                       (.getDeclaredMethod clojure.lang.RT "nextID" nil)
+                       })
 
-(deftest-kernels primitive-runtime-methods)
+(defn extract-methods [^Class class]
+  (filter
+   (fn [m] (not (contains? excluded-methods m)))
+   (filter
+    returns-primitive?
+    (filter
+     takes-only-primitives?
+     (filter
+      public-static?
+      (.getDeclaredMethods class))))))
+
+;;------------------------------------------------------------------------------
+
+(deftest-kernels (extract-methods clojure.lang.RT))
+(deftest-kernels (extract-methods clojure.lang.Numbers))
 
