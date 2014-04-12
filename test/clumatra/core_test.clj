@@ -380,8 +380,8 @@
 (def excluded-methods #{
                        (.getDeclaredMethod clojure.lang.RT "nextID" nil)
                        (.getDeclaredMethod clojure.lang.RT "booleanCast" (into-array Class [Boolean/TYPE]))
-                       (.getDeclaredMethod clojure.lang.Number "divide" (into-array Class [java.math.BigInteger,java.math.BigInteger]))
-                       (.getDeclaredMethod clojure.lang.Number "reduceBigInt" (into-array Class [clojure.lang.BigInt]))
+                       (.getDeclaredMethod clojure.lang.Numbers "divide" (into-array Class [java.math.BigInteger,java.math.BigInteger]))
+                       (.getDeclaredMethod clojure.lang.Numbers "reduceBigInt" (into-array Class [clojure.lang.BigInt]))
 
                        })
 
