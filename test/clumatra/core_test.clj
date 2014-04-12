@@ -381,7 +381,7 @@
                           (.getDeclaredMethods clojure.lang.Numbers)))))
 
 (defmacro deftest-kernels [methods]
-  (conj (map (fn [method#] `(deftest-kernel ~method#)) primitive-number-methods) 'do))
+  (conj (map (fn [method#] `(deftest-kernel ~method#)) (eval methods)) 'do))
 
 (deftest-kernels primitive-number-methods)
 
