@@ -384,16 +384,12 @@
                        (.getDeclaredMethod clojure.lang.Numbers "reduceBigInt" (into-array Class [clojure.lang.BigInt]))
 
                        ;; these crash simulated build
-                       (.getDeclaredMethod clojure.lang.Numbers "min" (into-array Class [Long/TYPE Object]))
                        (.getDeclaredMethod clojure.lang.Numbers "min" (into-array Class [Long/TYPE Double/TYPE]))
                        (.getDeclaredMethod clojure.lang.Numbers "min" (into-array Class [Double/TYPE Long/TYPE]))
                        (.getDeclaredMethod clojure.lang.Numbers "max" (into-array Class [Double/TYPE Long/TYPE]))
                        (.getDeclaredMethod clojure.lang.Numbers "max" (into-array Class [Long/TYPE Double/TYPE]))
                        (.getDeclaredMethod clojure.lang.Numbers "num" (into-array Class [Float/TYPE]))
                        (.getDeclaredMethod clojure.lang.Numbers "num" (into-array Class [Double/TYPE]))
-                       (.getDeclaredMethod clojure.lang.Numbers "unsignedShiftRightInt" (into-array Class [Integer/TYPE Integer/TYPE]))
-                       (.getDeclaredMethod clojure.lang.RT "intCast" (into-array Class [Character/TYPE]))
-
                        })
 
 (defn extract-methods [^Class class]
