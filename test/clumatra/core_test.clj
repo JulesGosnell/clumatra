@@ -382,6 +382,7 @@
 
 (def excluded-methods #{
                        (.getDeclaredMethod clojure.lang.RT "nextID" nil)
+                       (.getDeclaredMethod clojure.lang.RT "booleanCast" (into-array Class [Boolean/TYPE]))
                        })
 
 (defn extract-methods [^Class class]
