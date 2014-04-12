@@ -384,3 +384,12 @@
   (conj (map (fn [method#] `(deftest-kernel ~method#)) primitive-number-methods) 'do))
 
 (deftest-kernels primitive-number-methods)
+
+(def primitive-runtime-methods
+  (filter returns-primitive?
+          (filter takes-only-primitives?
+                  (filter public-static?
+                          (.getDeclaredMethods clojure.lang.RT)))))
+
+(deftest-kernels primitive-runtime-methods)
+
