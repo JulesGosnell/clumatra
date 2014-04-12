@@ -61,20 +61,16 @@
    (Integer/TYPE)   (int 0)
    (Long/TYPE)      0
    (Float/TYPE)     (float 0)
-   (Double/TYPE)    (double 0)})
+   (Double/TYPE)    (double 0)
+   
+   Object           1
+   })
 
 ;;------------------------------------------------------------------------------
 ;; another go at macro-ising this all up...
 
-(def type->array-type 
-  {(Boolean/TYPE)   (class (boolean-array 0))
-   (Character/TYPE) (class (char-array 0))
-   (Byte/TYPE)      (class (byte-array 0))
-   (Short/TYPE)     (class (short-array 0))
-   (Integer/TYPE)   (class (int-array 0))
-   (Long/TYPE)      (class (long-array 0))
-   (Float/TYPE)     (class (float-array 0))
-   (Double/TYPE)    (class (double-array 0))})
+(defn type->array-type-2 [^Class t] (class (make-array t 0)))
+(def type->array-type (memoize type->array-type-2))
 
 (defn make-param [n t]
   (with-meta (gensym n) {:tag t}))
@@ -363,7 +359,8 @@
     (and (java.lang.reflect.Modifier/isPublic modifiers)
          (java.lang.reflect.Modifier/isStatic modifiers))))
 
-(def primitive-types (into #{} (keys type->array-type)))
+(def primitive-types
+  #{Boolean/TYPE Character/TYPE Byte/TYPE Short/TYPE Integer/TYPE Long/TYPE Float/TYPE Double/TYPE})
 
 (defn primitive? [^Class t]
   (contains? primitive-types t))
@@ -399,5 +396,4 @@
 ;;------------------------------------------------------------------------------
 
 (deftest-kernels (extract-methods clojure.lang.RT))
-(deftest-kernels (extract-methods clojure.lang.Numbers))
-
+(deftest-kernels (filter public-static? (.getDeclaredMethods clojure.lang.Numbers)))
