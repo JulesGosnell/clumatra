@@ -396,4 +396,7 @@
 ;;------------------------------------------------------------------------------
 
 (deftest-kernels (extract-methods clojure.lang.RT))
-(deftest-kernels (filter public-static? (.getDeclaredMethods clojure.lang.Numbers)))
+(deftest-kernels 
+  (filter
+   (fn [^Method m] (not (.isArray (.getReturnType m))))
+   (filter public-static? (.getDeclaredMethods clojure.lang.Numbers))))
