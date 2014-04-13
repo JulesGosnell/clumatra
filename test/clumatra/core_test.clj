@@ -124,7 +124,7 @@
                       ;;)
                       )
                 ~output-type#)]
-           (is (apply = results#)))))))
+           (is (apply == results#)))))))
 
 ;; handle method invocations as well as static functions
 ;; reuse kernel interfaces where appropriate
@@ -136,6 +136,11 @@
 ;; (eval (macroexpand-1 '(deftest-kernel (first primitive-number-methods))))
 
 ;;------------------------------------------------------------------------------
+
+(defn array? [^Object a] (.isArray (.getClass a)))
+
+(defn == [& args]
+  (apply = (map (fn [e] (if (array? e) [:array (seq e)] e)) args)))
 
 (defn test-kernel [kernel in-types-and-fns out-type]
   (let [method (find-method kernel "invoke")
@@ -410,6 +415,7 @@
   (filter
    (fn [m] (not (contains? excluded-methods m)))
    (filter
-    (fn [^Method m] (not (.isArray (.getReturnType m))))
-    (filter public-static? (.getDeclaredMethods clojure.lang.Numbers)))))
+    public-static?
+    (.getDeclaredMethods clojure.lang.Numbers))))
+
 
