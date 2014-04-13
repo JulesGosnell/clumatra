@@ -89,6 +89,10 @@
 (defn method-symbol [^Method method]
   (symbol (.replace (.toString method) " " "_")))
 
+(def input-fns {
+                (.getDeclaredMethod clojure.lang.RT "box" (into-array Class [Boolean/TYPE])) even?
+                })
+
 (defmacro deftest-kernel [method]
   (let [^Method method# (eval method)
         input-fns# (method->input-fns method#)
@@ -118,7 +122,7 @@
                results#
                (test-kernel
                 ~kernel#
-                [~@(seq input-types#)]
+                ~(mapv (fn [t] [t (or (input-fns method#) identity)]) input-types#)
                 ~output-type#)]
            (is (apply = results#)))))))
 
@@ -138,13 +142,14 @@
 (defn r-seq [a]
   (if (array? a) [:array (map r-seq a)] a))
 
-(defn test-kernel [kernel in-types out-type]
+(defn test-kernel [kernel in-types-and-fns out-type]
   (let [method (find-method kernel "invoke")
         out-element (type->default out-type)
         out-fn (if out-element
                  (fn [] (into-array out-type (repeat *wavefront-size* out-element)))
                  (fn [] (make-array out-type *wavefront-size*)))
-        in-arrays (mapv (fn [t] (into-array t (map identity (range 1 (inc *wavefront-size*))))) in-types)
+        in-arrays (mapv (fn [[t f]] (into-array t (map f (range 1 (inc *wavefront-size*))))) in-types-and-fns)
+        ;;;in-arrays (mapv (fn [t] (into-array t (map identity (range 1 (inc *wavefront-size*))))) in-types)
         compiled (okra-kernel-compile kernel method *wavefront-size*)] ;compile once
     [(r-seq (apply compiled (conj in-arrays (out-fn))))              
      (r-seq (apply compiled (conj in-arrays (out-fn)))) ;run twice
@@ -417,6 +422,8 @@
                        (.getDeclaredMethod clojure.lang.Numbers "max" (into-array Class [Double/TYPE Long/TYPE]))
                        (.getDeclaredMethod clojure.lang.Numbers "max" (into-array Class [Long/TYPE Double/TYPE]))
                        (.getDeclaredMethod clojure.lang.Numbers "num" (into-array Class [Float/TYPE]))
+                       (.getDeclaredMethod clojure.lang.RT "list" (into-array Class []))
+
                        })
 
 (defn extract-methods [^Class class]
