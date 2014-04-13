@@ -430,10 +430,8 @@
 
 (deftest-kernels
   (filter
-    (fn [^Method m] (.isArray (.getReturnType m)))
-    (filter
-     (fn [m] (not (contains? excluded-methods m)))
-     (filter
-      public-static?
-      (.getDeclaredMethods clojure.lang.Numbers)))))
+   (fn [m] (not (contains? excluded-methods m)))
+   (filter
+    public-static?
+    (.getDeclaredMethods clojure.lang.Numbers))))
  
