@@ -382,10 +382,16 @@
 ;;------------------------------------------------------------------------------
 
 (def excluded-methods #{
-                       (.getDeclaredMethod clojure.lang.RT "nextID" nil) ;; impure
                        (.getDeclaredMethod clojure.lang.RT "booleanCast" (into-array Class [Boolean/TYPE]))
                        (.getDeclaredMethod clojure.lang.Numbers "divide" (into-array Class [java.math.BigInteger,java.math.BigInteger]))
                        (.getDeclaredMethod clojure.lang.Numbers "reduceBigInt" (into-array Class [clojure.lang.BigInt]))
+
+                       ;; these are not suitable for testing
+                       (.getDeclaredMethod clojure.lang.RT "nextID" nil) ;; impure
+                       (.getDeclaredMethod clojure.lang.RT "makeClassLoader" nil)
+                       (.getDeclaredMethod clojure.lang.RT "baseLoader" nil)
+                       (.getDeclaredMethod clojure.lang.RT "errPrintWriter" nil)
+                       (.getDeclaredMethod clojure.lang.RT "init" nil)
 
                        ;; these need more work on overriding input types/values
                        (.getDeclaredMethod clojure.lang.Numbers "ints" (into-array Class [Object]))
@@ -416,13 +422,11 @@
 (defn extract-methods [^Class class]
   (filter
    (fn [m] (not (contains? excluded-methods m)))
-   (filter
-    returns-primitive?
     (filter
      takes-only-primitives?
      (filter
       public-static?
-      (.getDeclaredMethods class))))))
+      (.getDeclaredMethods class)))))
 
 ;;------------------------------------------------------------------------------
 
