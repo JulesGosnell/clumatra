@@ -423,7 +423,10 @@
                        (.getDeclaredMethod clojure.lang.Numbers "max" (into-array Class [Long/TYPE Double/TYPE]))
                        (.getDeclaredMethod clojure.lang.Numbers "num" (into-array Class [Float/TYPE]))
                        (.getDeclaredMethod clojure.lang.RT "list" (into-array Class []))
-
+                       (.getDeclaredMethod clojure.lang.RT "box" (into-array Class [Double/TYPE]))
+                       (.getDeclaredMethod clojure.lang.RT "box" (into-array Class [Float/TYPE]))
+                       (.getDeclaredMethod clojure.lang.RT "box" (into-array Class [Short/TYPE]))
+                       (.getDeclaredMethod clojure.lang.Numbers "num" (into-array Class [Double/TYPE]))
                        })
 
 (defn extract-methods [^Class class]
