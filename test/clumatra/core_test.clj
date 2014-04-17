@@ -78,30 +78,32 @@
 (defn make-array-param [n t]
   (make-param n (type->array-type t)))
 
-(def method->input-fns
-  {
-   (.getDeclaredMethod clojure.lang.Numbers "quotient" (into-array Class [Double/TYPE Double/TYPE])) inc
-   (.getDeclaredMethod clojure.lang.Numbers "quotient" (into-array Class [Long/TYPE Long/TYPE])) inc
-   (.getDeclaredMethod clojure.lang.Numbers "quotient" (into-array Class [Long/TYPE Double/TYPE])) inc
-   (.getDeclaredMethod clojure.lang.Numbers "quotient" (into-array Class [Double/TYPE Long/TYPE])) inc
-
-   })
-
 (defn method-symbol [^Method method]
   (symbol (.replace (.toString method) " " "_")))
 
 (def input-fns
   {
-   (.getDeclaredMethod clojure.lang.RT "box" (into-array Class [Boolean/TYPE])) even?
-   (.getDeclaredMethod clojure.lang.RT "aclone" (into-array Class [(type->array-type Boolean/TYPE)])) (fn [i](boolean-array [(even? i)]))
-   (.getDeclaredMethod clojure.lang.RT "aclone" (into-array Class [(type->array-type Byte/TYPE)])) (fn [i](byte-array [i]))
-   (.getDeclaredMethod clojure.lang.RT "aclone" (into-array Class [(type->array-type Character/TYPE)])) (fn [i](char-array [(char (+ 65 i))]))
-   (.getDeclaredMethod clojure.lang.RT "aclone" (into-array Class [(type->array-type Double/TYPE)])) (fn [i](double-array [(double i)]))
-   (.getDeclaredMethod clojure.lang.RT "aclone" (into-array Class [(type->array-type Float/TYPE)])) (fn [i](float-array [(float i)]))
-   (.getDeclaredMethod clojure.lang.RT "aclone" (into-array Class [(type->array-type Integer/TYPE)])) (fn [i](int-array [(int i)]))
-   (.getDeclaredMethod clojure.lang.RT "aclone" (into-array Class [(type->array-type Long/TYPE)])) (fn [i](long-array [i]))
-   (.getDeclaredMethod clojure.lang.RT "aclone" (into-array Class [(type->array-type Object)])) (fn [i](into-array Object [i]))
-   (.getDeclaredMethod clojure.lang.RT "aclone" (into-array Class [(type->array-type Short/TYPE)])) (fn [i](short-array [(short i)]))
+   (.getDeclaredMethod clojure.lang.RT "box" (into-array Class [Boolean/TYPE])) [even?]
+
+   (.getDeclaredMethod clojure.lang.RT "aclone" (into-array Class [(type->array-type Boolean/TYPE)])) [(fn [i](boolean-array [(even? i)]))]
+   (.getDeclaredMethod clojure.lang.RT "aclone" (into-array Class [(type->array-type Byte/TYPE)])) [(fn [i](byte-array [i]))]
+   (.getDeclaredMethod clojure.lang.RT "aclone" (into-array Class [(type->array-type Character/TYPE)])) [(fn [i](char-array [(char (+ 65 i))]))]
+   (.getDeclaredMethod clojure.lang.RT "aclone" (into-array Class [(type->array-type Double/TYPE)])) [(fn [i](double-array [(double i)]))]
+   (.getDeclaredMethod clojure.lang.RT "aclone" (into-array Class [(type->array-type Float/TYPE)])) [(fn [i](float-array [(float i)]))]
+   (.getDeclaredMethod clojure.lang.RT "aclone" (into-array Class [(type->array-type Integer/TYPE)])) [(fn [i](int-array [(int i)]))]
+   (.getDeclaredMethod clojure.lang.RT "aclone" (into-array Class [(type->array-type Long/TYPE)])) [(fn [i](long-array [i]))]
+   (.getDeclaredMethod clojure.lang.RT "aclone" (into-array Class [(type->array-type Object)])) [(fn [i](into-array Object [i]))]
+   (.getDeclaredMethod clojure.lang.RT "aclone" (into-array Class [(type->array-type Short/TYPE)])) [(fn [i](short-array [(short i)]))]
+
+    (.getDeclaredMethod clojure.lang.RT "aget" (into-array Class [(type->array-type Boolean/TYPE) Integer/TYPE])) [(fn [i](boolean-array (inc i)))]
+    (.getDeclaredMethod clojure.lang.RT "aget" (into-array Class [(type->array-type Byte/TYPE) Integer/TYPE])) [(fn [i](byte-array (inc i)))]
+    (.getDeclaredMethod clojure.lang.RT "aget" (into-array Class [(type->array-type Character/TYPE) Integer/TYPE])) [(fn [i](char-array (inc i)))]
+    (.getDeclaredMethod clojure.lang.RT "aget" (into-array Class [(type->array-type Double/TYPE) Integer/TYPE])) [(fn [i](double-array (inc i)))]
+    (.getDeclaredMethod clojure.lang.RT "aget" (into-array Class [(type->array-type Float/TYPE) Integer/TYPE])) [(fn [i](float-array (inc i)))]
+    (.getDeclaredMethod clojure.lang.RT "aget" (into-array Class [(type->array-type Integer/TYPE) Integer/TYPE])) [(fn [i](int-array (inc i)))]
+    (.getDeclaredMethod clojure.lang.RT "aget" (into-array Class [(type->array-type Long/TYPE) Integer/TYPE])) [(fn [i](long-array (inc i)))]
+    (.getDeclaredMethod clojure.lang.RT "aget" (into-array Class [(type->array-type Object) Integer/TYPE])) [(fn [i](into-array Object (range (inc i))))]
+    (.getDeclaredMethod clojure.lang.RT "aget" (into-array Class [(type->array-type Short/TYPE) Integer/TYPE])) [(fn [i](short-array (inc i)))]
    })
 
 (defmacro deftest-kernel [method]
@@ -133,7 +135,7 @@
                results#
                (test-kernel
                 ~kernel#
-                ~(mapv (fn [t] [t (or (input-fns method#) identity)]) input-types#)
+                ~(mapv vector input-types# (concat (input-fns method#) (repeat identity)))
                 ~output-type#)]
            (is (apply = results#)))))))
 
@@ -518,15 +520,6 @@
 
     ;; doesn't crash my stuff, but does fail test...
  
-    (.getDeclaredMethod clojure.lang.RT "aget" (into-array Class [(type->array-type Boolean/TYPE) Integer/TYPE]))
-    (.getDeclaredMethod clojure.lang.RT "aget" (into-array Class [(type->array-type Byte/TYPE) Integer/TYPE]))
-    (.getDeclaredMethod clojure.lang.RT "aget" (into-array Class [(type->array-type Character/TYPE) Integer/TYPE]))
-    (.getDeclaredMethod clojure.lang.RT "aget" (into-array Class [(type->array-type Double/TYPE) Integer/TYPE]))
-    (.getDeclaredMethod clojure.lang.RT "aget" (into-array Class [(type->array-type Float/TYPE) Integer/TYPE]))
-    (.getDeclaredMethod clojure.lang.RT "aget" (into-array Class [(type->array-type Integer/TYPE) Integer/TYPE]))
-    (.getDeclaredMethod clojure.lang.RT "aget" (into-array Class [(type->array-type Long/TYPE) Integer/TYPE]))
-    (.getDeclaredMethod clojure.lang.RT "aget" (into-array Class [(type->array-type Object) Integer/TYPE]))
-    (.getDeclaredMethod clojure.lang.RT "aget" (into-array Class [(type->array-type Short/TYPE) Integer/TYPE]))
     (.getDeclaredMethod clojure.lang.RT "alength" (into-array Class [(type->array-type Boolean/TYPE)]))
     (.getDeclaredMethod clojure.lang.RT "alength" (into-array Class [(type->array-type Byte/TYPE)]))
     (.getDeclaredMethod clojure.lang.RT "alength" (into-array Class [(type->array-type Character/TYPE)]))
