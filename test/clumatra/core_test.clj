@@ -125,6 +125,22 @@
     (.getDeclaredMethod clojure.lang.RT "aset" (into-array Class [(type->array-type Object) Integer/TYPE Object])) [(fn [i](into-array Object (range (inc i)))) identity identity]
     (.getDeclaredMethod clojure.lang.RT "aset" (into-array Class [(type->array-type Short/TYPE) Integer/TYPE Short/TYPE])) [(fn [i](short-array (inc i))) identity short]
 
+    (.getDeclaredMethod clojure.lang.RT "uncheckedDoubleCast" (into-array Class [Object])) [double]
+    (.getDeclaredMethod clojure.lang.RT "uncheckedFloatCast" (into-array Class [Object])) [float]
+    (.getDeclaredMethod clojure.lang.RT "uncheckedLongCast" (into-array Class [Object])) [long]
+    (.getDeclaredMethod clojure.lang.RT "uncheckedIntCast" (into-array Class [Object])) [int]
+    (.getDeclaredMethod clojure.lang.RT "uncheckedCharCast" (into-array Class [Object])) [char]
+    (.getDeclaredMethod clojure.lang.RT "uncheckedShortCast" (into-array Class [Object])) [short]
+    (.getDeclaredMethod clojure.lang.RT "uncheckedByteCast" (into-array Class [Object])) [byte]
+
+    (.getDeclaredMethod clojure.lang.RT "doubleCast" (into-array Class [Object])) [double]
+    (.getDeclaredMethod clojure.lang.RT "floatCast" (into-array Class [Object])) [float]
+    (.getDeclaredMethod clojure.lang.RT "longCast" (into-array Class [Object])) [long]
+    (.getDeclaredMethod clojure.lang.RT "intCast" (into-array Class [Object])) [int]
+    (.getDeclaredMethod clojure.lang.RT "shortCast" (into-array Class [Object])) [short]
+    (.getDeclaredMethod clojure.lang.RT "byteCast" (into-array Class [Object])) [byte]
+    (.getDeclaredMethod clojure.lang.RT "booleanCast" (into-array Class [Object])) [boolean]
+    (.getDeclaredMethod clojure.lang.RT "charCast" (into-array Class [Object])) [char]
    })
 
 (defmacro deftest-kernel [method]
@@ -505,21 +521,6 @@
     (.getDeclaredMethod clojure.lang.RT "subvec" (into-array Class [clojure.lang.IPersistentVector Integer/TYPE Integer/TYPE]))
     (.getDeclaredMethod clojure.lang.RT "vector" (into-array Class [(type->array-type Object)]))
     (.getDeclaredMethod clojure.lang.RT "mapUniqueKeys" (into-array Class [(type->array-type Object)]))
-    (.getDeclaredMethod clojure.lang.RT "uncheckedDoubleCast" (into-array Class [Object]))
-    (.getDeclaredMethod clojure.lang.RT "uncheckedFloatCast" (into-array Class [Object]))
-    (.getDeclaredMethod clojure.lang.RT "uncheckedLongCast" (into-array Class [Object]))
-    (.getDeclaredMethod clojure.lang.RT "uncheckedIntCast" (into-array Class [Object]))
-    (.getDeclaredMethod clojure.lang.RT "uncheckedCharCast" (into-array Class [Object]))
-    (.getDeclaredMethod clojure.lang.RT "uncheckedShortCast" (into-array Class [Object]))
-    (.getDeclaredMethod clojure.lang.RT "uncheckedByteCast" (into-array Class [Object]))
-    (.getDeclaredMethod clojure.lang.RT "doubleCast" (into-array Class [Object]))
-    (.getDeclaredMethod clojure.lang.RT "floatCast" (into-array Class [Object]))
-    (.getDeclaredMethod clojure.lang.RT "longCast" (into-array Class [Object]))
-    (.getDeclaredMethod clojure.lang.RT "intCast" (into-array Class [Object]))
-    (.getDeclaredMethod clojure.lang.RT "shortCast" (into-array Class [Object]))
-    (.getDeclaredMethod clojure.lang.RT "byteCast" (into-array Class [Object]))
-    (.getDeclaredMethod clojure.lang.RT "booleanCast" (into-array Class [Object]))
-    (.getDeclaredMethod clojure.lang.RT "charCast" (into-array Class [Object]))
     (.getDeclaredMethod clojure.lang.RT "assocN" (into-array Class [Integer/TYPE Object Object]))
     (.getDeclaredMethod clojure.lang.RT "nth" (into-array Class [Object Integer/TYPE]))
     (.getDeclaredMethod clojure.lang.RT "nth" (into-array Class [Object Integer/TYPE Object]))
