@@ -143,7 +143,18 @@
     (.getDeclaredMethod clojure.lang.RT "booleanCast" (into-array Class [Object])) [boolean]
     (.getDeclaredMethod clojure.lang.RT "charCast" (into-array Class [Object])) [char]
 
+    (.getDeclaredMethod clojure.lang.Numbers "boolean_array" (into-array Class [Integer/TYPE Object]))[identity even?]
+    (.getDeclaredMethod clojure.lang.Numbers "byte_array" (into-array Class [Integer/TYPE Object]))[identity byte]
+    (.getDeclaredMethod clojure.lang.Numbers "char_array" (into-array Class [Integer/TYPE Object]))[identity (fn [i] (char (+ i 65)))]
+    (.getDeclaredMethod clojure.lang.Numbers "short_array" (into-array Class [Integer/TYPE Object]))[identity short]
+
+    (.getDeclaredMethod clojure.lang.Numbers "char_array" (into-array Class [Object]))[(fn [i] (list (char (+ i 65))))]
+    (.getDeclaredMethod clojure.lang.Numbers "double_array" (into-array Class [Object]))[(fn [i] (list (double i)))]
+    (.getDeclaredMethod clojure.lang.Numbers "float_array" (into-array Class [Object]))[(fn [i] (list (float i)))]
+
     (.getDeclaredMethod clojure.lang.RT "keyword" (into-array Class [String String])) [str str]
+    (.getDeclaredMethod clojure.lang.RT "count" (into-array Class [Object])) [(fn [i] (list i))]
+    (.getDeclaredMethod clojure.lang.RT "toArray" (into-array Class [Object]))  [(fn [i] (list i))]
 
    })
 
@@ -152,6 +163,14 @@
     (.getDeclaredMethod clojure.lang.RT "booleanCast" (into-array Class [Boolean/TYPE]))
     (.getDeclaredMethod clojure.lang.Numbers "divide" (into-array Class [java.math.BigInteger,java.math.BigInteger]))
     (.getDeclaredMethod clojure.lang.Numbers "reduceBigInt" (into-array Class [clojure.lang.BigInt]))
+    (.getDeclaredMethod clojure.lang.Numbers "booleans" (into-array Class [Object]))
+    (.getDeclaredMethod clojure.lang.Numbers "bytes" (into-array Class [Object]))
+    (.getDeclaredMethod clojure.lang.Numbers "chars" (into-array Class [Object]))
+    (.getDeclaredMethod clojure.lang.Numbers "doubles" (into-array Class [Object]))
+    (.getDeclaredMethod clojure.lang.Numbers "floats" (into-array Class [Object]))
+    (.getDeclaredMethod clojure.lang.Numbers "ints" (into-array Class [Object]))
+    (.getDeclaredMethod clojure.lang.Numbers "longs" (into-array Class [Object]))
+    (.getDeclaredMethod clojure.lang.Numbers "shorts" (into-array Class [Object]))
 
     ;; these are not suitable for testing
     (.getDeclaredMethod clojure.lang.RT "nextID" nil) ;; impure
@@ -161,22 +180,6 @@
     (.getDeclaredMethod clojure.lang.RT "init" nil)
 
     ;; these need more work on overriding input types/values
-    (.getDeclaredMethod clojure.lang.Numbers "ints" (into-array Class [Object]))
-    (.getDeclaredMethod clojure.lang.Numbers "booleans" (into-array Class [Object]))
-    (.getDeclaredMethod clojure.lang.Numbers "bytes" (into-array Class [Object]))
-    (.getDeclaredMethod clojure.lang.Numbers "shorts" (into-array Class [Object]))
-    (.getDeclaredMethod clojure.lang.Numbers "doubles" (into-array Class [Object]))
-    (.getDeclaredMethod clojure.lang.Numbers "chars" (into-array Class [Object]))
-    (.getDeclaredMethod clojure.lang.Numbers "floats" (into-array Class [Object]))
-    (.getDeclaredMethod clojure.lang.Numbers "longs" (into-array Class [Object]))
-    (.getDeclaredMethod clojure.lang.Numbers "char_array" (into-array Class [Object]))
-    (.getDeclaredMethod clojure.lang.Numbers "double_array" (into-array Class [Object]))
-    (.getDeclaredMethod clojure.lang.Numbers "float_array" (into-array Class [Object]))
-
-    (.getDeclaredMethod clojure.lang.Numbers "boolean_array" (into-array Class [Integer/TYPE Object]))
-    (.getDeclaredMethod clojure.lang.Numbers "char_array" (into-array Class [Integer/TYPE Object]))
-    (.getDeclaredMethod clojure.lang.Numbers "byte_array" (into-array Class [Integer/TYPE Object]))
-    (.getDeclaredMethod clojure.lang.Numbers "short_array" (into-array Class [Integer/TYPE Object]))
 
     ;; these crash simulated build
     (.getDeclaredMethod clojure.lang.Numbers "min" (into-array Class [Long/TYPE Double/TYPE]))
@@ -255,7 +258,6 @@
     (.getDeclaredMethod clojure.lang.RT "boundedLength" (into-array Class [clojure.lang.ISeq Integer/TYPE]))
     (.getDeclaredMethod clojure.lang.RT "cons" (into-array Class [Object Object]))
     (.getDeclaredMethod clojure.lang.RT "contains" (into-array Class [Object Object]))
-    (.getDeclaredMethod clojure.lang.RT "count" (into-array Class [Object]))
     (.getDeclaredMethod clojure.lang.RT "doFormat" (into-array Class [java.io.Writer String clojure.lang.ISeq]))
     (.getDeclaredMethod clojure.lang.RT "find" (into-array Class [Object Object]))
     (.getDeclaredMethod clojure.lang.RT "first" (into-array Class [Object]))
@@ -268,7 +270,6 @@
     (.getDeclaredMethod clojure.lang.RT "seqToArray" (into-array Class [clojure.lang.ISeq]))
     (.getDeclaredMethod clojure.lang.RT "set" (into-array Class [(type->array-type Object)]))
     (.getDeclaredMethod clojure.lang.RT "setValues" (into-array Class [(type->array-type Object)]))
-    (.getDeclaredMethod clojure.lang.RT "toArray" (into-array Class [Object]))
     })
 
 
