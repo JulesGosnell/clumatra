@@ -89,7 +89,7 @@
 	</property>
       </activation>
       <properties>
-	<clojure.vmargs>-Xms1g -Xmx2g -server -XX:-UseHSAILDeoptimization -G:Log=CodeGen -XX:+GPUOffload -XX:+TraceGPUInteraction</clojure.vmargs>
+	<clojure.vmargs>-Xms1g -Xmx4g -server -XX:-UseHSAILDeoptimization -G:Log=CodeGen -XX:+GPUOffload -XX:+TraceGPUInteraction</clojure.vmargs>
 	<clojure.excluded.namespaces>NONE</clojure.excluded.namespaces>
 	<okra.groupId>com.amd</okra.groupId>
 	<okra.artifactId>okra-with-sim</okra.artifactId>
@@ -105,7 +105,7 @@
 	</property>
       </activation>
       <properties>
-	<clojure.vmargs>-Xms1g -Xmx2g -server -XX:-UseHSAILDeoptimization -G:Log=CodeGen -XX:+GPUOffload -XX:+TraceGPUInteraction</clojure.vmargs>
+	<clojure.vmargs>-Xms1g -Xmx4g -server -XX:-UseHSAILDeoptimization -G:Log=CodeGen -XX:+GPUOffload -XX:+TraceGPUInteraction</clojure.vmargs>
 	<clojure.excluded.namespaces>NONE</clojure.excluded.namespaces>
 	<okra.groupId>com.amd</okra.groupId>
 	<okra.artifactId>okra</okra.artifactId>
