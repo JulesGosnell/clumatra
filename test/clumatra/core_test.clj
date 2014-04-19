@@ -134,6 +134,7 @@
     (.getDeclaredMethod clojure.lang.RT "uncheckedShortCast" (into-array Class [Object])) [short]
     (.getDeclaredMethod clojure.lang.RT "uncheckedByteCast" (into-array Class [Object])) [byte]
 
+    (.getDeclaredMethod clojure.lang.RT "booleanCast" (into-array Class [Boolean/TYPE])) [even?]
     (.getDeclaredMethod clojure.lang.RT "doubleCast" (into-array Class [Object])) [double]
     (.getDeclaredMethod clojure.lang.RT "floatCast" (into-array Class [Object])) [float]
     (.getDeclaredMethod clojure.lang.RT "longCast" (into-array Class [Object])) [long]
@@ -156,56 +157,44 @@
     (.getDeclaredMethod clojure.lang.RT "count" (into-array Class [Object])) [(fn [i] (list i))]
     (.getDeclaredMethod clojure.lang.RT "length" (into-array Class [clojure.lang.ISeq])) [(fn [i] (list i))]
     (.getDeclaredMethod clojure.lang.RT "toArray" (into-array Class [Object]))  [(fn [i] (list i))]
+    (.getDeclaredMethod clojure.lang.RT "keys" (into-array Class [Object])) [(fn [i] {i (str i)})]
+    (.getDeclaredMethod clojure.lang.RT "assoc" (into-array Class [Object Object Object])) [(fn [i]{i (str i)})]
+    (.getDeclaredMethod clojure.lang.RT "dissoc" (into-array Class [Object Object])) [(fn [i]{i (str i)})]
 
    })
 
 (def excluded-methods
   #{
     ;; these are not suitable for testing
-    (.getDeclaredMethod clojure.lang.RT "nextID" nil) ;; impure
-    (.getDeclaredMethod clojure.lang.RT "makeClassLoader" nil)
+    (.getDeclaredMethod clojure.lang.RT "addURL" (into-array Class [java.lang.Object]))
     (.getDeclaredMethod clojure.lang.RT "baseLoader" nil)
+    (.getDeclaredMethod clojure.lang.RT "classForName" (into-array Class [String]))
     (.getDeclaredMethod clojure.lang.RT "errPrintWriter" nil)
+    (.getDeclaredMethod clojure.lang.RT "getColumnNumber" (into-array Class [java.io.Reader]))
+    (.getDeclaredMethod clojure.lang.RT "getLineNumber" (into-array Class [java.io.Reader]))
+    (.getDeclaredMethod clojure.lang.RT "getLineNumberingReader" (into-array Class [java.io.Reader]))
+    (.getDeclaredMethod clojure.lang.RT "getResource" (into-array Class [ClassLoader String]))
     (.getDeclaredMethod clojure.lang.RT "init" nil)
+    (.getDeclaredMethod clojure.lang.RT "isLineNumberingReader" (into-array Class [java.io.Reader]))
+    (.getDeclaredMethod clojure.lang.RT "lastModified" (into-array Class [java.net.URL String]))
+    (.getDeclaredMethod clojure.lang.RT "load" (into-array Class [String Boolean/TYPE]))
+    (.getDeclaredMethod clojure.lang.RT "load" (into-array Class [String]))
+    (.getDeclaredMethod clojure.lang.RT "loadClassForName" (into-array Class [String]))
+    (.getDeclaredMethod clojure.lang.RT "loadLibrary" (into-array Class [String]))
+    (.getDeclaredMethod clojure.lang.RT "loadResourceScript" (into-array Class [Class String Boolean/TYPE]))
     (.getDeclaredMethod clojure.lang.RT "loadResourceScript" (into-array Class [Class String]))
     (.getDeclaredMethod clojure.lang.RT "loadResourceScript" (into-array Class [String Boolean/TYPE]))
-    (.getDeclaredMethod clojure.lang.RT "loadResourceScript" (into-array Class [Class String Boolean/TYPE]))
     (.getDeclaredMethod clojure.lang.RT "loadResourceScript" (into-array Class [String]))
+    (.getDeclaredMethod clojure.lang.RT "makeClassLoader" nil)
     (.getDeclaredMethod clojure.lang.RT "maybeLoadResourceScript" (into-array Class [String]))
-    (.getDeclaredMethod clojure.lang.RT "classForName" (into-array Class [String]))
-    (.getDeclaredMethod clojure.lang.RT "loadClassForName" (into-array Class [String]))
-    (.getDeclaredMethod clojure.lang.RT "resourceAsStream" (into-array Class [ClassLoader String]))
-    (.getDeclaredMethod clojure.lang.RT "getResource" (into-array Class [ClassLoader String]))
-    (.getDeclaredMethod clojure.lang.RT "load" (into-array Class [String]))
-    (.getDeclaredMethod clojure.lang.RT "load" (into-array Class [String Boolean/TYPE]))
-    (.getDeclaredMethod clojure.lang.RT "loadLibrary" (into-array Class [String]))
-    (.getDeclaredMethod clojure.lang.RT "getColumnNumber" (into-array Class [java.io.Reader]))
-    (.getDeclaredMethod clojure.lang.RT "getLineNumberingReader" (into-array Class [java.io.Reader]))
-    (.getDeclaredMethod clojure.lang.RT "isLineNumberingReader" (into-array Class [java.io.Reader]))
-    (.getDeclaredMethod clojure.lang.RT "resolveClassNameInContext" (into-array Class [java.lang.String]))
-    (.getDeclaredMethod clojure.lang.RT "printString" (into-array Class [Object]))
-    (.getDeclaredMethod clojure.lang.RT "readString" (into-array Class [String]))
-    (.getDeclaredMethod clojure.lang.RT "lastModified" (into-array Class [java.net.URL String]))
-    (.getDeclaredMethod clojure.lang.RT "readChar" (into-array Class [java.io.Reader]))
+    (.getDeclaredMethod clojure.lang.RT "nextID" nil) ;; impure
     (.getDeclaredMethod clojure.lang.RT "peekChar" (into-array Class [java.io.Reader]))
-    (.getDeclaredMethod clojure.lang.RT "addURL" (into-array Class [java.lang.Object]))
-    (.getDeclaredMethod clojure.lang.RT "getLineNumber" (into-array Class [java.io.Reader]))
+    (.getDeclaredMethod clojure.lang.RT "printString" (into-array Class [Object]))
     (.getDeclaredMethod clojure.lang.RT "processCommandLine" (into-array Class [(type->array-type String)]))
-
-
-    (.getDeclaredMethod clojure.lang.RT "booleanCast" (into-array Class [Boolean/TYPE]))
-    (.getDeclaredMethod clojure.lang.Numbers "divide" (into-array Class [java.math.BigInteger,java.math.BigInteger]))
-    (.getDeclaredMethod clojure.lang.Numbers "reduceBigInt" (into-array Class [clojure.lang.BigInt]))
-    (.getDeclaredMethod clojure.lang.Numbers "booleans" (into-array Class [Object]))
-    (.getDeclaredMethod clojure.lang.Numbers "bytes" (into-array Class [Object]))
-    (.getDeclaredMethod clojure.lang.Numbers "chars" (into-array Class [Object]))
-    (.getDeclaredMethod clojure.lang.Numbers "doubles" (into-array Class [Object]))
-    (.getDeclaredMethod clojure.lang.Numbers "floats" (into-array Class [Object]))
-    (.getDeclaredMethod clojure.lang.Numbers "ints" (into-array Class [Object]))
-    (.getDeclaredMethod clojure.lang.Numbers "longs" (into-array Class [Object]))
-    (.getDeclaredMethod clojure.lang.Numbers "shorts" (into-array Class [Object]))
-
-    ;; these need more work on overriding input types/values
+    (.getDeclaredMethod clojure.lang.RT "readChar" (into-array Class [java.io.Reader]))
+    (.getDeclaredMethod clojure.lang.RT "readString" (into-array Class [String]))
+    (.getDeclaredMethod clojure.lang.RT "resolveClassNameInContext" (into-array Class [java.lang.String]))
+    (.getDeclaredMethod clojure.lang.RT "resourceAsStream" (into-array Class [ClassLoader String]))
 
     ;; these crash simulated build
     (.getDeclaredMethod clojure.lang.Numbers "min" (into-array Class [Long/TYPE Double/TYPE]))
@@ -219,63 +208,66 @@
     (.getDeclaredMethod clojure.lang.RT "box" (into-array Class [Double/TYPE]))
     (.getDeclaredMethod clojure.lang.RT "box" (into-array Class [Float/TYPE]))
     (.getDeclaredMethod clojure.lang.RT "box" (into-array Class [Short/TYPE]))
-
-    ;; failing 
-    (.getDeclaredMethod clojure.lang.RT "var" (into-array Class [String String]))
-    (.getDeclaredMethod clojure.lang.RT "var" (into-array Class [String String Object]))
-    (.getDeclaredMethod clojure.lang.RT "seq" (into-array Class [Object]))
-    (.getDeclaredMethod clojure.lang.RT "meta" (into-array Class [Object]))
-
-
-    (.getDeclaredMethod clojure.lang.RT "isReduced" (into-array Class [Object]))
-    (.getDeclaredMethod clojure.lang.RT "seqToTypedArray" (into-array Class [Class clojure.lang.ISeq]))
-    (.getDeclaredMethod clojure.lang.RT "seqToTypedArray" (into-array Class [clojure.lang.ISeq]))
-    (.getDeclaredMethod clojure.lang.RT "seqToPassedArray" (into-array Class [clojure.lang.ISeq (type->array-type Object)]))
-    (.getDeclaredMethod clojure.lang.RT "object_array" (into-array Class [Object]))
-    (.getDeclaredMethod clojure.lang.RT "arrayToList" (into-array Class [(type->array-type Object)]))
+    (.getDeclaredMethod clojure.lang.RT "listStar" (into-array Class [Object clojure.lang.ISeq]))
     (.getDeclaredMethod clojure.lang.RT "listStar" (into-array Class [Object Object clojure.lang.ISeq]))
-    (.getDeclaredMethod clojure.lang.RT "listStar" (into-array Class [Object Object Object Object Object clojure.lang.ISeq]))
     (.getDeclaredMethod clojure.lang.RT "listStar" (into-array Class [Object Object Object clojure.lang.ISeq]))
     (.getDeclaredMethod clojure.lang.RT "listStar" (into-array Class [Object Object Object Object clojure.lang.ISeq]))
-    (.getDeclaredMethod clojure.lang.RT "listStar" (into-array Class [Object clojure.lang.ISeq]))
-    (.getDeclaredMethod clojure.lang.RT "subvec" (into-array Class [clojure.lang.IPersistentVector Integer/TYPE Integer/TYPE]))
-    (.getDeclaredMethod clojure.lang.RT "vector" (into-array Class [(type->array-type Object)]))
-    (.getDeclaredMethod clojure.lang.RT "mapUniqueKeys" (into-array Class [(type->array-type Object)]))
-    (.getDeclaredMethod clojure.lang.RT "assocN" (into-array Class [Integer/TYPE Object Object]))
-    (.getDeclaredMethod clojure.lang.RT "nth" (into-array Class [Object Integer/TYPE]))
-    (.getDeclaredMethod clojure.lang.RT "nth" (into-array Class [Object Integer/TYPE Object]))
-    (.getDeclaredMethod clojure.lang.RT "dissoc" (into-array Class [Object Object]))
-    (.getDeclaredMethod clojure.lang.RT "findKey" (into-array Class [clojure.lang.Keyword clojure.lang.ISeq]))
-    (.getDeclaredMethod clojure.lang.RT "assoc" (into-array Class [Object Object Object]))
-    (.getDeclaredMethod clojure.lang.RT "more" (into-array Class [Object]))
-    (.getDeclaredMethod clojure.lang.RT "fourth" (into-array Class [Object]))
-    (.getDeclaredMethod clojure.lang.RT "third" (into-array Class [Object]))
-    (.getDeclaredMethod clojure.lang.RT "second" (into-array Class [Object]))
-    (.getDeclaredMethod clojure.lang.RT "conj" (into-array Class [clojure.lang.IPersistentCollection Object]) )
-    (.getDeclaredMethod clojure.lang.RT "vals" (into-array Class [Object]))
-    (.getDeclaredMethod clojure.lang.RT "seqOrElse" (into-array Class [Object]))
-    (.getDeclaredMethod clojure.lang.RT "map" (into-array Class [(type->array-type Object)]))
-    (.getDeclaredMethod clojure.lang.RT "peek" (into-array Class [Object]))
-    (.getDeclaredMethod clojure.lang.RT "formatAesthetic" (into-array Class [java.io.Writer Object]))
-    (.getDeclaredMethod clojure.lang.RT "formatStandard" (into-array Class [java.io.Writer Object]))
-    (.getDeclaredMethod clojure.lang.RT "print" (into-array Class [Object java.io.Writer]))
+    (.getDeclaredMethod clojure.lang.RT "listStar" (into-array Class [Object Object Object Object Object clojure.lang.ISeq]))
 
-    ;; doesn't crash my stuff, but does fail test...
- 
+    ;; these need more work on overriding input types/values
+    (.getDeclaredMethod clojure.lang.Numbers "booleans" (into-array Class [Object]))
+    (.getDeclaredMethod clojure.lang.Numbers "bytes" (into-array Class [Object]))
+    (.getDeclaredMethod clojure.lang.Numbers "chars" (into-array Class [Object]))
+    (.getDeclaredMethod clojure.lang.Numbers "doubles" (into-array Class [Object]))
+    (.getDeclaredMethod clojure.lang.Numbers "floats" (into-array Class [Object]))
+    (.getDeclaredMethod clojure.lang.Numbers "ints" (into-array Class [Object]))
+    (.getDeclaredMethod clojure.lang.Numbers "longs" (into-array Class [Object]))
+    (.getDeclaredMethod clojure.lang.Numbers "shorts" (into-array Class [Object]))
+
+    (.getDeclaredMethod clojure.lang.Numbers "divide" (into-array Class [java.math.BigInteger,java.math.BigInteger]))
+    (.getDeclaredMethod clojure.lang.Numbers "reduceBigInt" (into-array Class [clojure.lang.BigInt]))
+    (.getDeclaredMethod clojure.lang.RT "arrayToList" (into-array Class [(type->array-type Object)]))
+    (.getDeclaredMethod clojure.lang.RT "assocN" (into-array Class [Integer/TYPE Object Object]))
     (.getDeclaredMethod clojure.lang.RT "boundedLength" (into-array Class [clojure.lang.ISeq Integer/TYPE]))
+    (.getDeclaredMethod clojure.lang.RT "conj" (into-array Class [clojure.lang.IPersistentCollection Object]) )
     (.getDeclaredMethod clojure.lang.RT "cons" (into-array Class [Object Object]))
     (.getDeclaredMethod clojure.lang.RT "contains" (into-array Class [Object Object]))
     (.getDeclaredMethod clojure.lang.RT "doFormat" (into-array Class [java.io.Writer String clojure.lang.ISeq]))
     (.getDeclaredMethod clojure.lang.RT "find" (into-array Class [Object Object]))
+    (.getDeclaredMethod clojure.lang.RT "findKey" (into-array Class [clojure.lang.Keyword clojure.lang.ISeq]))
     (.getDeclaredMethod clojure.lang.RT "first" (into-array Class [Object]))
     (.getDeclaredMethod clojure.lang.RT "format" (into-array Class [Object String (type->array-type Object)]))
+    (.getDeclaredMethod clojure.lang.RT "formatAesthetic" (into-array Class [java.io.Writer Object]))
+    (.getDeclaredMethod clojure.lang.RT "formatStandard" (into-array Class [java.io.Writer Object]))
+    (.getDeclaredMethod clojure.lang.RT "fourth" (into-array Class [Object]))
     (.getDeclaredMethod clojure.lang.RT "get" (into-array Class [Object Object]))
-    (.getDeclaredMethod clojure.lang.RT "keys" (into-array Class [Object]))
+    (.getDeclaredMethod clojure.lang.RT "isReduced" (into-array Class [Object]))
+    (.getDeclaredMethod clojure.lang.RT "map" (into-array Class [(type->array-type Object)]))
+    (.getDeclaredMethod clojure.lang.RT "mapUniqueKeys" (into-array Class [(type->array-type Object)]))
+    (.getDeclaredMethod clojure.lang.RT "meta" (into-array Class [Object]))
+    (.getDeclaredMethod clojure.lang.RT "more" (into-array Class [Object]))
     (.getDeclaredMethod clojure.lang.RT "next" (into-array Class [Object]))
+    (.getDeclaredMethod clojure.lang.RT "nth" (into-array Class [Object Integer/TYPE Object]))
+    (.getDeclaredMethod clojure.lang.RT "nth" (into-array Class [Object Integer/TYPE]))
+    (.getDeclaredMethod clojure.lang.RT "object_array" (into-array Class [Object]))
+    (.getDeclaredMethod clojure.lang.RT "peek" (into-array Class [Object]))
     (.getDeclaredMethod clojure.lang.RT "pop" (into-array Class [Object]))
+    (.getDeclaredMethod clojure.lang.RT "print" (into-array Class [Object java.io.Writer]))
+    (.getDeclaredMethod clojure.lang.RT "second" (into-array Class [Object]))
+    (.getDeclaredMethod clojure.lang.RT "seq" (into-array Class [Object]))
+    (.getDeclaredMethod clojure.lang.RT "seqOrElse" (into-array Class [Object]))
     (.getDeclaredMethod clojure.lang.RT "seqToArray" (into-array Class [clojure.lang.ISeq]))
+    (.getDeclaredMethod clojure.lang.RT "seqToPassedArray" (into-array Class [clojure.lang.ISeq (type->array-type Object)]))
+    (.getDeclaredMethod clojure.lang.RT "seqToTypedArray" (into-array Class [Class clojure.lang.ISeq]))
+    (.getDeclaredMethod clojure.lang.RT "seqToTypedArray" (into-array Class [clojure.lang.ISeq]))
     (.getDeclaredMethod clojure.lang.RT "set" (into-array Class [(type->array-type Object)]))
     (.getDeclaredMethod clojure.lang.RT "setValues" (into-array Class [(type->array-type Object)]))
+    (.getDeclaredMethod clojure.lang.RT "subvec" (into-array Class [clojure.lang.IPersistentVector Integer/TYPE Integer/TYPE]))
+    (.getDeclaredMethod clojure.lang.RT "third" (into-array Class [Object]))
+    (.getDeclaredMethod clojure.lang.RT "vals" (into-array Class [Object]))
+    (.getDeclaredMethod clojure.lang.RT "var" (into-array Class [String String Object]))
+    (.getDeclaredMethod clojure.lang.RT "var" (into-array Class [String String]))
+    (.getDeclaredMethod clojure.lang.RT "vector" (into-array Class [(type->array-type Object)]))
     })
 
 
