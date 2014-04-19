@@ -235,7 +235,6 @@
     (.getDeclaredMethod clojure.lang.Numbers "reduceBigInt" (into-array Class [clojure.lang.BigInt]))
     (.getDeclaredMethod clojure.lang.RT "boundedLength" (into-array Class [clojure.lang.ISeq Integer/TYPE]))
     (.getDeclaredMethod clojure.lang.RT "conj" (into-array Class [clojure.lang.IPersistentCollection Object]) )
-    (.getDeclaredMethod clojure.lang.RT "cons" (into-array Class [Object Object]))
     (.getDeclaredMethod clojure.lang.RT "doFormat" (into-array Class [java.io.Writer String clojure.lang.ISeq]))
     (.getDeclaredMethod clojure.lang.RT "find" (into-array Class [Object Object]))
     (.getDeclaredMethod clojure.lang.RT "findKey" (into-array Class [clojure.lang.Keyword clojure.lang.ISeq]))
