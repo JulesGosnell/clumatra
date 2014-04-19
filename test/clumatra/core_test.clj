@@ -160,6 +160,8 @@
     (.getDeclaredMethod clojure.lang.RT "keys" (into-array Class [Object])) [(fn [i] {i (str i)})]
     (.getDeclaredMethod clojure.lang.RT "assoc" (into-array Class [Object Object Object])) [(fn [i]{i (str i)})]
     (.getDeclaredMethod clojure.lang.RT "dissoc" (into-array Class [Object Object])) [(fn [i]{i (str i)})]
+    (.getDeclaredMethod clojure.lang.RT "assocN" (into-array Class [Integer/TYPE Object Object])) [identity (fn [i] (into [] (range (inc i))))]
+    (.getDeclaredMethod clojure.lang.RT "contains" (into-array Class [Object Object])) [(fn [i] #{i})]
 
    })
 
@@ -213,6 +215,7 @@
     (.getDeclaredMethod clojure.lang.RT "listStar" (into-array Class [Object Object Object clojure.lang.ISeq]))
     (.getDeclaredMethod clojure.lang.RT "listStar" (into-array Class [Object Object Object Object clojure.lang.ISeq]))
     (.getDeclaredMethod clojure.lang.RT "listStar" (into-array Class [Object Object Object Object Object clojure.lang.ISeq]))
+    (.getDeclaredMethod clojure.lang.RT "arrayToList" (into-array Class [(type->array-type Object)]))
 
     ;; these need more work on overriding input types/values
     (.getDeclaredMethod clojure.lang.Numbers "booleans" (into-array Class [Object]))
@@ -226,12 +229,9 @@
 
     (.getDeclaredMethod clojure.lang.Numbers "divide" (into-array Class [java.math.BigInteger,java.math.BigInteger]))
     (.getDeclaredMethod clojure.lang.Numbers "reduceBigInt" (into-array Class [clojure.lang.BigInt]))
-    (.getDeclaredMethod clojure.lang.RT "arrayToList" (into-array Class [(type->array-type Object)]))
-    (.getDeclaredMethod clojure.lang.RT "assocN" (into-array Class [Integer/TYPE Object Object]))
     (.getDeclaredMethod clojure.lang.RT "boundedLength" (into-array Class [clojure.lang.ISeq Integer/TYPE]))
     (.getDeclaredMethod clojure.lang.RT "conj" (into-array Class [clojure.lang.IPersistentCollection Object]) )
     (.getDeclaredMethod clojure.lang.RT "cons" (into-array Class [Object Object]))
-    (.getDeclaredMethod clojure.lang.RT "contains" (into-array Class [Object Object]))
     (.getDeclaredMethod clojure.lang.RT "doFormat" (into-array Class [java.io.Writer String clojure.lang.ISeq]))
     (.getDeclaredMethod clojure.lang.RT "find" (into-array Class [Object Object]))
     (.getDeclaredMethod clojure.lang.RT "findKey" (into-array Class [clojure.lang.Keyword clojure.lang.ISeq]))
