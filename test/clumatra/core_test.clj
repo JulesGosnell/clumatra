@@ -166,6 +166,7 @@
 
    ;; misc
    (.getDeclaredMethod clojure.lang.RT "keyword" (into-array Class [String String])) [str str]
+   (.getDeclaredMethod clojure.lang.RT "setValues" (into-array Class [(type->array-type Object)])) [(fn [i](into-array (range i)))]
 
    ;; seqs
    (.getDeclaredMethod clojure.lang.RT "count" (into-array Class [Object])) [(fn [i] (list i))]
@@ -273,8 +274,6 @@
     (.getDeclaredMethod clojure.lang.RT "seqToPassedArray" (into-array Class [clojure.lang.ISeq (type->array-type Object)]))
     (.getDeclaredMethod clojure.lang.RT "seqToTypedArray" (into-array Class [Class clojure.lang.ISeq]))
     (.getDeclaredMethod clojure.lang.RT "seqToTypedArray" (into-array Class [clojure.lang.ISeq]))
-    (.getDeclaredMethod clojure.lang.RT "set" (into-array Class [(type->array-type Object)]))
-    (.getDeclaredMethod clojure.lang.RT "setValues" (into-array Class [(type->array-type Object)]))
     (.getDeclaredMethod clojure.lang.RT "var" (into-array Class [String String Object]))
     (.getDeclaredMethod clojure.lang.RT "var" (into-array Class [String String]))
     })
