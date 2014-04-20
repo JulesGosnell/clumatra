@@ -94,6 +94,7 @@
    (.getDeclaredMethod clojure.lang.Numbers "double_array" (into-array Class [Object]))[(fn [i] (list (double i)))]
    (.getDeclaredMethod clojure.lang.Numbers "float_array" (into-array Class [Object]))[(fn [i] (list (float i)))]
    (.getDeclaredMethod clojure.lang.Numbers "short_array" (into-array Class [Integer/TYPE Object]))[identity short]
+   (.getDeclaredMethod clojure.lang.RT "object_array" (into-array Class [Object])) [(fn [i] (into [] (range i)))]
 
    (.getDeclaredMethod clojure.lang.RT "aclone" (into-array Class [(type->array-type Boolean/TYPE)])) [(fn [i](boolean-array [(even? i)]))]
    (.getDeclaredMethod clojure.lang.RT "aclone" (into-array Class [(type->array-type Byte/TYPE)])) [(fn [i](byte-array [i]))]
@@ -261,7 +262,6 @@
     (.getDeclaredMethod clojure.lang.RT "meta" (into-array Class [Object]))
     (.getDeclaredMethod clojure.lang.RT "more" (into-array Class [Object]))
     (.getDeclaredMethod clojure.lang.RT "next" (into-array Class [Object]))
-    (.getDeclaredMethod clojure.lang.RT "object_array" (into-array Class [Object]))
     (.getDeclaredMethod clojure.lang.RT "peek" (into-array Class [Object]))
     (.getDeclaredMethod clojure.lang.RT "pop" (into-array Class [Object]))
     (.getDeclaredMethod clojure.lang.RT "print" (into-array Class [Object java.io.Writer]))
