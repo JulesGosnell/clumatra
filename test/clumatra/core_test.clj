@@ -158,14 +158,21 @@
     (.getDeclaredMethod clojure.lang.RT "length" (into-array Class [clojure.lang.ISeq])) [(fn [i] (list i))]
     (.getDeclaredMethod clojure.lang.RT "toArray" (into-array Class [Object]))  [(fn [i] (list i))]
     (.getDeclaredMethod clojure.lang.RT "keys" (into-array Class [Object])) [(fn [i] {i (str i)})]
+    (.getDeclaredMethod clojure.lang.RT "vals" (into-array Class [Object])) [(fn [i] {i (str i)})]
+    (.getDeclaredMethod clojure.lang.RT "get" (into-array Class [Object Object])) [(fn [i]{i (str i)})]
     (.getDeclaredMethod clojure.lang.RT "assoc" (into-array Class [Object Object Object])) [(fn [i]{i (str i)})]
     (.getDeclaredMethod clojure.lang.RT "dissoc" (into-array Class [Object Object])) [(fn [i]{i (str i)})]
-    (.getDeclaredMethod clojure.lang.RT "assocN" (into-array Class [Integer/TYPE Object Object])) [identity (fn [i] (into [] (range (inc i))))]
+    (.getDeclaredMethod clojure.lang.RT "assocN" (into-array Class [Integer/TYPE Object Object])) [identity identity (fn [i] (into [] (range (inc i))))]
+    (.getDeclaredMethod clojure.lang.RT "nth" (into-array Class [Object Integer/TYPE])) [(fn [i] (into [] (range (inc i))))]
+    (.getDeclaredMethod clojure.lang.RT "nth" (into-array Class [Object Integer/TYPE Object])) [(fn [i] (into [] (range (inc i))))]
+    (.getDeclaredMethod clojure.lang.RT "subvec" (into-array Class [clojure.lang.IPersistentVector Integer/TYPE Integer/TYPE])) [(fn [i] (into [] (range (inc i))))]
     (.getDeclaredMethod clojure.lang.RT "contains" (into-array Class [Object Object])) [(fn [i] #{i})]
     (.getDeclaredMethod clojure.lang.RT "first" (into-array Class [Object])) [(fn [i] (into [] (repeat 2 i)))]
     (.getDeclaredMethod clojure.lang.RT "second" (into-array Class [Object])) [(fn [i] (into [] (repeat 3 i)))]
     (.getDeclaredMethod clojure.lang.RT "third" (into-array Class [Object])) [(fn [i] (into [] (repeat 4 i)))]
     (.getDeclaredMethod clojure.lang.RT "fourth" (into-array Class [Object])) [(fn [i] (into [] (repeat 5 i)))]
+
+    (.getDeclaredMethod clojure.lang.RT "cons" (into-array Class [Object Object])) [identity (fn [i] (list i))]
 
    })
 
@@ -241,15 +248,12 @@
     (.getDeclaredMethod clojure.lang.RT "format" (into-array Class [Object String (type->array-type Object)]))
     (.getDeclaredMethod clojure.lang.RT "formatAesthetic" (into-array Class [java.io.Writer Object]))
     (.getDeclaredMethod clojure.lang.RT "formatStandard" (into-array Class [java.io.Writer Object]))
-    (.getDeclaredMethod clojure.lang.RT "get" (into-array Class [Object Object]))
     (.getDeclaredMethod clojure.lang.RT "isReduced" (into-array Class [Object]))
     (.getDeclaredMethod clojure.lang.RT "map" (into-array Class [(type->array-type Object)]))
     (.getDeclaredMethod clojure.lang.RT "mapUniqueKeys" (into-array Class [(type->array-type Object)]))
     (.getDeclaredMethod clojure.lang.RT "meta" (into-array Class [Object]))
     (.getDeclaredMethod clojure.lang.RT "more" (into-array Class [Object]))
     (.getDeclaredMethod clojure.lang.RT "next" (into-array Class [Object]))
-    (.getDeclaredMethod clojure.lang.RT "nth" (into-array Class [Object Integer/TYPE Object]))
-    (.getDeclaredMethod clojure.lang.RT "nth" (into-array Class [Object Integer/TYPE]))
     (.getDeclaredMethod clojure.lang.RT "object_array" (into-array Class [Object]))
     (.getDeclaredMethod clojure.lang.RT "peek" (into-array Class [Object]))
     (.getDeclaredMethod clojure.lang.RT "pop" (into-array Class [Object]))
@@ -262,8 +266,6 @@
     (.getDeclaredMethod clojure.lang.RT "seqToTypedArray" (into-array Class [clojure.lang.ISeq]))
     (.getDeclaredMethod clojure.lang.RT "set" (into-array Class [(type->array-type Object)]))
     (.getDeclaredMethod clojure.lang.RT "setValues" (into-array Class [(type->array-type Object)]))
-    (.getDeclaredMethod clojure.lang.RT "subvec" (into-array Class [clojure.lang.IPersistentVector Integer/TYPE Integer/TYPE]))
-    (.getDeclaredMethod clojure.lang.RT "vals" (into-array Class [Object]))
     (.getDeclaredMethod clojure.lang.RT "var" (into-array Class [String String Object]))
     (.getDeclaredMethod clojure.lang.RT "var" (into-array Class [String String]))
     (.getDeclaredMethod clojure.lang.RT "vector" (into-array Class [(type->array-type Object)]))
