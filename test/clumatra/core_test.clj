@@ -200,11 +200,6 @@
    ;; lists
    (.getDeclaredMethod clojure.lang.RT "cons" (into-array Class [Object Object])) [identity (fn [i] (list i))]
    (.getDeclaredMethod clojure.lang.RT "boundedLength" (into-array Class [clojure.lang.ISeq Integer/TYPE])) [(fn [i] (into '() (range (inc i))))]
-   (.getDeclaredMethod clojure.lang.RT "listStar" (into-array Class [Object clojure.lang.ISeq])) [identity (fn [i] (seq [i]))]
-   (.getDeclaredMethod clojure.lang.RT "listStar" (into-array Class [Object Object clojure.lang.ISeq])) [identity identity (fn [i] (seq [i]))]
-   (.getDeclaredMethod clojure.lang.RT "listStar" (into-array Class [Object Object Object clojure.lang.ISeq])) [identity identity identity (fn [i] (seq [i]))]
-   (.getDeclaredMethod clojure.lang.RT "listStar" (into-array Class [Object Object Object Object clojure.lang.ISeq])) [identity identity identity identity (fn [i] (seq [i]))]
-   (.getDeclaredMethod clojure.lang.RT "listStar" (into-array Class [Object Object Object Object Object clojure.lang.ISeq])) [identity identity identity identity identity (fn [i] (seq [i]))]
    ;; vectors
    (.getDeclaredMethod clojure.lang.RT "vector" (into-array Class [(type->array-type Object)])) [(fn [i](into-array (range i)))]
    (.getDeclaredMethod clojure.lang.RT "assocN" (into-array Class [Integer/TYPE Object Object])) [identity identity (fn [i] (into [] (range (inc i))))]
@@ -263,6 +258,11 @@
     (.getDeclaredMethod clojure.lang.Numbers "num" (into-array Class [Double/TYPE]))
     (.getDeclaredMethod clojure.lang.RT "list" (into-array Class []))
     (.getDeclaredMethod clojure.lang.RT "list" (into-array Class [Object]))
+    (.getDeclaredMethod clojure.lang.RT "listStar" (into-array Class [Object clojure.lang.ISeq])) [identity (fn [i] (seq [i]))]
+    (.getDeclaredMethod clojure.lang.RT "listStar" (into-array Class [Object Object clojure.lang.ISeq])) [identity identity (fn [i] (seq [i]))]
+    (.getDeclaredMethod clojure.lang.RT "listStar" (into-array Class [Object Object Object clojure.lang.ISeq])) [identity identity identity (fn [i] (seq [i]))]
+    (.getDeclaredMethod clojure.lang.RT "listStar" (into-array Class [Object Object Object Object clojure.lang.ISeq])) [identity identity identity identity (fn [i] (seq [i]))]
+    (.getDeclaredMethod clojure.lang.RT "listStar" (into-array Class [Object Object Object Object Object clojure.lang.ISeq])) [identity identity identity identity identity (fn [i] (seq [i]))]
     (.getDeclaredMethod clojure.lang.RT "box" (into-array Class [Double/TYPE]))
     (.getDeclaredMethod clojure.lang.RT "box" (into-array Class [Float/TYPE]))
     (.getDeclaredMethod clojure.lang.RT "box" (into-array Class [Short/TYPE]))
@@ -580,7 +580,7 @@
 ;;------------------------------------------------------------------------------
 
 (deftest-kernels (extract-methods clojure.lang.RT))
-(deftest-kernels (extract-methods clojure.lang.Numbers))
+;;(deftest-kernels (extract-methods clojure.lang.Numbers))
 
 ;;------------------------------------------------------------------------------
 
