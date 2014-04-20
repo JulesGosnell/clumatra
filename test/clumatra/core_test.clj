@@ -152,6 +152,16 @@
    (.getDeclaredMethod clojure.lang.RT "uncheckedIntCast" (into-array Class [Object])) [int]
    (.getDeclaredMethod clojure.lang.RT "uncheckedLongCast" (into-array Class [Object])) [long]
    (.getDeclaredMethod clojure.lang.RT "uncheckedShortCast" (into-array Class [Object])) [short]
+   
+   ;; cast array
+   (.getDeclaredMethod clojure.lang.Numbers "booleans" (into-array Class [Object])) [(fn [i] (boolean-array (map even? (range i))))]
+   (.getDeclaredMethod clojure.lang.Numbers "bytes" (into-array Class [Object])) [(fn [i] (byte-array (map byte (range i))))]
+   (.getDeclaredMethod clojure.lang.Numbers "chars" (into-array Class [Object])) [(fn [i] (char-array (map (fn [i2] (char (+ 65 i2))) (range i))))]
+   (.getDeclaredMethod clojure.lang.Numbers "doubles" (into-array Class [Object])) [(fn [i] (double-array (map double (range i))))]
+   (.getDeclaredMethod clojure.lang.Numbers "floats" (into-array Class [Object])) [(fn [i] (float-array (map float (range i))))]
+   (.getDeclaredMethod clojure.lang.Numbers "ints" (into-array Class [Object])) [(fn [i] (int-array (map int (range i))))]
+   (.getDeclaredMethod clojure.lang.Numbers "longs" (into-array Class [Object])) [(fn [i] (long-array (range i)))]
+   (.getDeclaredMethod clojure.lang.Numbers "shorts" (into-array Class [Object])) [(fn [i] (short-array (map short (range i))))]
 
    ;; misc
    (.getDeclaredMethod clojure.lang.RT "keyword" (into-array Class [String String])) [str str]
@@ -235,15 +245,6 @@
     (.getDeclaredMethod clojure.lang.RT "arrayToList" (into-array Class [(type->array-type Object)]))
 
     ;; these need more work on overriding input types/values
-    (.getDeclaredMethod clojure.lang.Numbers "booleans" (into-array Class [Object]))
-    (.getDeclaredMethod clojure.lang.Numbers "bytes" (into-array Class [Object]))
-    (.getDeclaredMethod clojure.lang.Numbers "chars" (into-array Class [Object]))
-    (.getDeclaredMethod clojure.lang.Numbers "doubles" (into-array Class [Object]))
-    (.getDeclaredMethod clojure.lang.Numbers "floats" (into-array Class [Object]))
-    (.getDeclaredMethod clojure.lang.Numbers "ints" (into-array Class [Object]))
-    (.getDeclaredMethod clojure.lang.Numbers "longs" (into-array Class [Object]))
-    (.getDeclaredMethod clojure.lang.Numbers "shorts" (into-array Class [Object]))
-
     (.getDeclaredMethod clojure.lang.Numbers "divide" (into-array Class [java.math.BigInteger,java.math.BigInteger]))
     (.getDeclaredMethod clojure.lang.Numbers "reduceBigInt" (into-array Class [clojure.lang.BigInt]))
     (.getDeclaredMethod clojure.lang.RT "boundedLength" (into-array Class [clojure.lang.ISeq Integer/TYPE]))
