@@ -274,8 +274,8 @@
     (.getDeclaredMethod clojure.lang.RT "next" (into-array Class [Object]))
     (.getDeclaredMethod clojure.lang.RT "peek" (into-array Class [Object]))
     (.getDeclaredMethod clojure.lang.RT "pop" (into-array Class [Object]))
-    (.getDeclaredMethod clojure.lang.RT "seqToTypedArray" (into-array Class [Class clojure.lang.ISeq]))
-    (.getDeclaredMethod clojure.lang.RT "seqToTypedArray" (into-array Class [clojure.lang.ISeq]))
+    (.getDeclaredMethod clojure.lang.RT "seqToTypedArray" (into-array Class [Class clojure.lang.ISeq])) [type (fn [i] (seq [i]))]
+    (.getDeclaredMethod clojure.lang.RT "seqToTypedArray" (into-array Class [clojure.lang.ISeq])) [(fn [i] (seq [i]))]
     })
 
 
