@@ -190,6 +190,7 @@
    (.getDeclaredMethod clojure.lang.RT "find" (into-array Class [Object Object])) [(fn [i] {i (str i)})]
    (.getDeclaredMethod clojure.lang.RT "assoc" (into-array Class [Object Object Object])) [(fn [i]{i (str i)})]
    (.getDeclaredMethod clojure.lang.RT "dissoc" (into-array Class [Object Object])) [(fn [i]{i (str i)})]
+   (.getDeclaredMethod clojure.lang.RT "mapUniqueKeys" (into-array Class [(type->array-type Object)])) [(fn [i] (into-array Object [i (str i)]))]
    ;; lists
    (.getDeclaredMethod clojure.lang.RT "cons" (into-array Class [Object Object])) [identity (fn [i] (list i))]
    (.getDeclaredMethod clojure.lang.RT "boundedLength" (into-array Class [clojure.lang.ISeq Integer/TYPE])) [(fn [i] (into '() (range (inc i))))]
@@ -264,7 +265,6 @@
     ;; these need more work on overriding input types/values
     (.getDeclaredMethod clojure.lang.RT "format" (into-array Class [Object String (type->array-type Object)]))
     (.getDeclaredMethod clojure.lang.RT "map" (into-array Class [(type->array-type Object)]))
-    (.getDeclaredMethod clojure.lang.RT "mapUniqueKeys" (into-array Class [(type->array-type Object)]))
     (.getDeclaredMethod clojure.lang.RT "meta" (into-array Class [Object]))
     (.getDeclaredMethod clojure.lang.RT "more" (into-array Class [Object]))
     (.getDeclaredMethod clojure.lang.RT "next" (into-array Class [Object]))
