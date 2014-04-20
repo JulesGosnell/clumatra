@@ -167,6 +167,7 @@
    ;; misc
    (.getDeclaredMethod clojure.lang.RT "keyword" (into-array Class [String String])) [str str]
    (.getDeclaredMethod clojure.lang.RT "setValues" (into-array Class [(type->array-type Object)])) [(fn [i](into-array (range i)))]
+   (.getDeclaredMethod clojure.lang.Numbers "divide" (into-array Class [java.math.BigInteger,java.math.BigInteger])) [(fn [i](java.math.BigInteger. (str i)))(fn [i](java.math.BigInteger. (str i)))]
 
    ;; seqs
    (.getDeclaredMethod clojure.lang.RT "count" (into-array Class [Object])) [(fn [i] (list i))]
@@ -254,7 +255,6 @@
     (.getDeclaredMethod clojure.lang.RT "arrayToList" (into-array Class [(type->array-type Object)]))
 
     ;; these need more work on overriding input types/values
-    (.getDeclaredMethod clojure.lang.Numbers "divide" (into-array Class [java.math.BigInteger,java.math.BigInteger]))
     (.getDeclaredMethod clojure.lang.Numbers "reduceBigInt" (into-array Class [clojure.lang.BigInt]))
     (.getDeclaredMethod clojure.lang.RT "doFormat" (into-array Class [java.io.Writer String clojure.lang.ISeq]))
     (.getDeclaredMethod clojure.lang.RT "format" (into-array Class [Object String (type->array-type Object)]))
