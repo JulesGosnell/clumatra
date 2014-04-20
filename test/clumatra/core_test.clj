@@ -189,9 +189,11 @@
    (.getDeclaredMethod clojure.lang.RT "cons" (into-array Class [Object Object])) [identity (fn [i] (list i))]
    (.getDeclaredMethod clojure.lang.RT "boundedLength" (into-array Class [clojure.lang.ISeq Integer/TYPE])) [(fn [i] (into '() (range (inc i))))]
    ;; vectors
+   (.getDeclaredMethod clojure.lang.RT "vector" (into-array Class [(type->array-type Object)])) [(fn [i](into-array (range i)))]
    (.getDeclaredMethod clojure.lang.RT "assocN" (into-array Class [Integer/TYPE Object Object])) [identity identity (fn [i] (into [] (range (inc i))))]
    (.getDeclaredMethod clojure.lang.RT "subvec" (into-array Class [clojure.lang.IPersistentVector Integer/TYPE Integer/TYPE])) [(fn [i] (into [] (range (inc i))))]
    ;; sets
+   (.getDeclaredMethod clojure.lang.RT "set" (into-array Class [(type->array-type Object)])) [(fn [i](into-array (range i)))]
    (.getDeclaredMethod clojure.lang.RT "contains" (into-array Class [Object Object])) [(fn [i] #{i})]
 
    })
@@ -275,7 +277,6 @@
     (.getDeclaredMethod clojure.lang.RT "setValues" (into-array Class [(type->array-type Object)]))
     (.getDeclaredMethod clojure.lang.RT "var" (into-array Class [String String Object]))
     (.getDeclaredMethod clojure.lang.RT "var" (into-array Class [String String]))
-    (.getDeclaredMethod clojure.lang.RT "vector" (into-array Class [(type->array-type Object)]))
     })
 
 
