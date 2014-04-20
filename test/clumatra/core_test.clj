@@ -234,6 +234,12 @@
     (.getDeclaredMethod clojure.lang.RT "readString" (into-array Class [String]))
     (.getDeclaredMethod clojure.lang.RT "resolveClassNameInContext" (into-array Class [java.lang.String]))
     (.getDeclaredMethod clojure.lang.RT "resourceAsStream" (into-array Class [ClassLoader String]))
+    (.getDeclaredMethod clojure.lang.RT "formatAesthetic" (into-array Class [java.io.Writer Object]))
+    (.getDeclaredMethod clojure.lang.RT "formatStandard" (into-array Class [java.io.Writer Object]))
+    (.getDeclaredMethod clojure.lang.RT "doFormat" (into-array Class [java.io.Writer String clojure.lang.ISeq]))
+    (.getDeclaredMethod clojure.lang.RT "var" (into-array Class [String String Object]))
+    (.getDeclaredMethod clojure.lang.RT "var" (into-array Class [String String]))
+    (.getDeclaredMethod clojure.lang.RT "print" (into-array Class [Object java.io.Writer]))
 
     ;; these crash simulated build
     (.getDeclaredMethod clojure.lang.Numbers "min" (into-array Class [Long/TYPE Double/TYPE]))
@@ -256,10 +262,7 @@
 
     ;; these need more work on overriding input types/values
     (.getDeclaredMethod clojure.lang.Numbers "reduceBigInt" (into-array Class [clojure.lang.BigInt]))
-    (.getDeclaredMethod clojure.lang.RT "doFormat" (into-array Class [java.io.Writer String clojure.lang.ISeq]))
     (.getDeclaredMethod clojure.lang.RT "format" (into-array Class [Object String (type->array-type Object)]))
-    (.getDeclaredMethod clojure.lang.RT "formatAesthetic" (into-array Class [java.io.Writer Object]))
-    (.getDeclaredMethod clojure.lang.RT "formatStandard" (into-array Class [java.io.Writer Object]))
     (.getDeclaredMethod clojure.lang.RT "isReduced" (into-array Class [Object]))
     (.getDeclaredMethod clojure.lang.RT "map" (into-array Class [(type->array-type Object)]))
     (.getDeclaredMethod clojure.lang.RT "mapUniqueKeys" (into-array Class [(type->array-type Object)]))
@@ -268,14 +271,11 @@
     (.getDeclaredMethod clojure.lang.RT "next" (into-array Class [Object]))
     (.getDeclaredMethod clojure.lang.RT "peek" (into-array Class [Object]))
     (.getDeclaredMethod clojure.lang.RT "pop" (into-array Class [Object]))
-    (.getDeclaredMethod clojure.lang.RT "print" (into-array Class [Object java.io.Writer]))
     (.getDeclaredMethod clojure.lang.RT "seqOrElse" (into-array Class [Object]))
     (.getDeclaredMethod clojure.lang.RT "seqToArray" (into-array Class [clojure.lang.ISeq]))
     (.getDeclaredMethod clojure.lang.RT "seqToPassedArray" (into-array Class [clojure.lang.ISeq (type->array-type Object)]))
     (.getDeclaredMethod clojure.lang.RT "seqToTypedArray" (into-array Class [Class clojure.lang.ISeq]))
     (.getDeclaredMethod clojure.lang.RT "seqToTypedArray" (into-array Class [clojure.lang.ISeq]))
-    (.getDeclaredMethod clojure.lang.RT "var" (into-array Class [String String Object]))
-    (.getDeclaredMethod clojure.lang.RT "var" (into-array Class [String String]))
     })
 
 
