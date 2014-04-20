@@ -184,6 +184,7 @@
    (.getDeclaredMethod clojure.lang.RT "dissoc" (into-array Class [Object Object])) [(fn [i]{i (str i)})]
    ;; lists
    (.getDeclaredMethod clojure.lang.RT "cons" (into-array Class [Object Object])) [identity (fn [i] (list i))]
+   (.getDeclaredMethod clojure.lang.RT "boundedLength" (into-array Class [clojure.lang.ISeq Integer/TYPE])) [(fn [i] (into '() (range (inc i))))]
    ;; vectors
    (.getDeclaredMethod clojure.lang.RT "assocN" (into-array Class [Integer/TYPE Object Object])) [identity identity (fn [i] (into [] (range (inc i))))]
    (.getDeclaredMethod clojure.lang.RT "subvec" (into-array Class [clojure.lang.IPersistentVector Integer/TYPE Integer/TYPE])) [(fn [i] (into [] (range (inc i))))]
@@ -247,7 +248,6 @@
     ;; these need more work on overriding input types/values
     (.getDeclaredMethod clojure.lang.Numbers "divide" (into-array Class [java.math.BigInteger,java.math.BigInteger]))
     (.getDeclaredMethod clojure.lang.Numbers "reduceBigInt" (into-array Class [clojure.lang.BigInt]))
-    (.getDeclaredMethod clojure.lang.RT "boundedLength" (into-array Class [clojure.lang.ISeq Integer/TYPE]))
     (.getDeclaredMethod clojure.lang.RT "conj" (into-array Class [clojure.lang.IPersistentCollection Object]) )
     (.getDeclaredMethod clojure.lang.RT "doFormat" (into-array Class [java.io.Writer String clojure.lang.ISeq]))
     (.getDeclaredMethod clojure.lang.RT "find" (into-array Class [Object Object]))
@@ -566,7 +566,6 @@
 (defn returns-primitive? [^Method m]
   (primitive? (.getReturnType m)))
 
-
 (defmacro deftest-kernels [methods]
   (conj (map (fn [method#] `(deftest-kernel ~method#)) (eval methods)) 'do))
 
@@ -582,5 +581,11 @@
 ;;------------------------------------------------------------------------------
 
 (deftest-kernels (extract-methods clojure.lang.RT))
-(deftest-kernels(extract-methods clojure.lang.Numbers))
+(deftest-kernels (extract-methods clojure.lang.Numbers))
 
+;;------------------------------------------------------------------------------
+
+;; N.B.
+
+;; I think that we are going to have trouble dealing with lazy
+;; sequences gpu-side. Easiest thing to do is to disallow them.
