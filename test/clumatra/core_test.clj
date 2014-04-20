@@ -176,10 +176,12 @@
    (.getDeclaredMethod clojure.lang.RT "fourth" (into-array Class [Object])) [(fn [i] (into [] (repeat 5 i)))]
    (.getDeclaredMethod clojure.lang.RT "nth" (into-array Class [Object Integer/TYPE])) [(fn [i] (into [] (range (inc i))))]
    (.getDeclaredMethod clojure.lang.RT "nth" (into-array Class [Object Integer/TYPE Object])) [(fn [i] (into [] (range (inc i))))]
+   (.getDeclaredMethod clojure.lang.RT "findKey" (into-array Class [clojure.lang.Keyword clojure.lang.ISeq])) [(fn [i] (keyword (str i)))(fn [i] (list (keyword (str i)) i))]
    ;; maps
    (.getDeclaredMethod clojure.lang.RT "keys" (into-array Class [Object])) [(fn [i] {i (str i)})]
    (.getDeclaredMethod clojure.lang.RT "vals" (into-array Class [Object])) [(fn [i] {i (str i)})]
    (.getDeclaredMethod clojure.lang.RT "get" (into-array Class [Object Object])) [(fn [i]{i (str i)})]
+   (.getDeclaredMethod clojure.lang.RT "find" (into-array Class [Object Object])) [(fn [i] {i (str i)})]
    (.getDeclaredMethod clojure.lang.RT "assoc" (into-array Class [Object Object Object])) [(fn [i]{i (str i)})]
    (.getDeclaredMethod clojure.lang.RT "dissoc" (into-array Class [Object Object])) [(fn [i]{i (str i)})]
    ;; lists
@@ -250,8 +252,6 @@
     (.getDeclaredMethod clojure.lang.Numbers "reduceBigInt" (into-array Class [clojure.lang.BigInt]))
     (.getDeclaredMethod clojure.lang.RT "conj" (into-array Class [clojure.lang.IPersistentCollection Object]) )
     (.getDeclaredMethod clojure.lang.RT "doFormat" (into-array Class [java.io.Writer String clojure.lang.ISeq]))
-    (.getDeclaredMethod clojure.lang.RT "find" (into-array Class [Object Object]))
-    (.getDeclaredMethod clojure.lang.RT "findKey" (into-array Class [clojure.lang.Keyword clojure.lang.ISeq]))
     (.getDeclaredMethod clojure.lang.RT "format" (into-array Class [Object String (type->array-type Object)]))
     (.getDeclaredMethod clojure.lang.RT "formatAesthetic" (into-array Class [java.io.Writer Object]))
     (.getDeclaredMethod clojure.lang.RT "formatStandard" (into-array Class [java.io.Writer Object]))
