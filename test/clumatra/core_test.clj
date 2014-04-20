@@ -345,7 +345,6 @@
 
 (definterface BooleanKernel (^void invoke [^booleans in ^booleans out ^int gid]))
 
-
 (deftest boolean-copy-test
   (testing "copy elements of a boolean[]"
     (let [kernel (reify BooleanKernel
