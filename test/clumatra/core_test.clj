@@ -191,7 +191,9 @@
    (.getDeclaredMethod clojure.lang.RT "seqToTypedArray" (into-array Class [clojure.lang.ISeq])) [(fn [i] (seq [i]))]
    (.getDeclaredMethod clojure.lang.RT "peek" (into-array Class [Object])) [(fn [i] (vec (range i)))]
    (.getDeclaredMethod clojure.lang.RT "pop" (into-array Class [Object])) [(fn [i] (vec (range i)))]
-    
+   (.getDeclaredMethod clojure.lang.RT "next" (into-array Class [Object])) [(fn [i] (seq (vec (range i))))]
+   (.getDeclaredMethod clojure.lang.RT "more" (into-array Class [Object])) [(fn [i] (seq (vec (range i))))]
+
    ;; maps
    (.getDeclaredMethod clojure.lang.RT "keys" (into-array Class [Object])) [(fn [i] {i (str i)})]
    (.getDeclaredMethod clojure.lang.RT "vals" (into-array Class [Object])) [(fn [i] {i (str i)})]
@@ -274,8 +276,6 @@
     ;; these need more work on overriding input types/values
     (.getDeclaredMethod clojure.lang.RT "map" (into-array Class [(type->array-type Object)]))
     (.getDeclaredMethod clojure.lang.RT "meta" (into-array Class [Object]))
-    (.getDeclaredMethod clojure.lang.RT "more" (into-array Class [Object]))
-    (.getDeclaredMethod clojure.lang.RT "next" (into-array Class [Object]))
     })
 
 
