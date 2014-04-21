@@ -191,8 +191,9 @@
    (.getDeclaredMethod clojure.lang.RT "seqToTypedArray" (into-array Class [clojure.lang.ISeq])) [(fn [i] (seq [i]))]
    (.getDeclaredMethod clojure.lang.RT "peek" (into-array Class [Object])) [(fn [i] (vec (range i)))]
    (.getDeclaredMethod clojure.lang.RT "pop" (into-array Class [Object])) [(fn [i] (vec (range i)))]
-   (.getDeclaredMethod clojure.lang.RT "next" (into-array Class [Object])) [(fn [i] (seq (vec (range i))))]
+   (.getDeclaredMethod clojure.lang.RT "next" (into-array Class [Object])) [(fn [i] (seq (vec (range (inc i)))))]
    (.getDeclaredMethod clojure.lang.RT "more" (into-array Class [Object])) [(fn [i] (seq (vec (range i))))]
+   (.getDeclaredMethod clojure.lang.RT "map" (into-array Class [(type->array-type Object)])) [(fn [i] (into-array Object (vec (range (* i 2)))))]
 
    ;; maps
    (.getDeclaredMethod clojure.lang.RT "keys" (into-array Class [Object])) [(fn [i] {i (str i)})]
@@ -252,30 +253,29 @@
     (.getDeclaredMethod clojure.lang.RT "var" (into-array Class [String String]))
     (.getDeclaredMethod clojure.lang.RT "print" (into-array Class [Object java.io.Writer]))
 
-    ;; these crash simulated build
-    (.getDeclaredMethod clojure.lang.RT "mapUniqueKeys" (into-array Class [(type->array-type Object)])) [(fn [i] (into-array Object [i (str i)]))]
-    (.getDeclaredMethod clojure.lang.RT "vector" (into-array Class [(type->array-type Object)])) [(fn [i](into-array (range i)))]
-    (.getDeclaredMethod clojure.lang.Numbers "min" (into-array Class [Long/TYPE Double/TYPE]))
-    (.getDeclaredMethod clojure.lang.Numbers "min" (into-array Class [Double/TYPE Long/TYPE]))
+    ;; these seem to crash simulated build
     (.getDeclaredMethod clojure.lang.Numbers "max" (into-array Class [Double/TYPE Long/TYPE]))
     (.getDeclaredMethod clojure.lang.Numbers "max" (into-array Class [Long/TYPE Double/TYPE]))
-    (.getDeclaredMethod clojure.lang.Numbers "num" (into-array Class [Float/TYPE]))
+    (.getDeclaredMethod clojure.lang.Numbers "min" (into-array Class [Double/TYPE Long/TYPE]))
+    (.getDeclaredMethod clojure.lang.Numbers "min" (into-array Class [Long/TYPE Double/TYPE]))
     (.getDeclaredMethod clojure.lang.Numbers "num" (into-array Class [Double/TYPE]))
-    (.getDeclaredMethod clojure.lang.RT "list" (into-array Class []))
-    (.getDeclaredMethod clojure.lang.RT "list" (into-array Class [Object]))
-    (.getDeclaredMethod clojure.lang.RT "listStar" (into-array Class [Object clojure.lang.ISeq])) [identity (fn [i] (seq [i]))]
-    (.getDeclaredMethod clojure.lang.RT "listStar" (into-array Class [Object Object clojure.lang.ISeq])) [identity identity (fn [i] (seq [i]))]
-    (.getDeclaredMethod clojure.lang.RT "listStar" (into-array Class [Object Object Object clojure.lang.ISeq])) [identity identity identity (fn [i] (seq [i]))]
-    (.getDeclaredMethod clojure.lang.RT "listStar" (into-array Class [Object Object Object Object clojure.lang.ISeq])) [identity identity identity identity (fn [i] (seq [i]))]
-    (.getDeclaredMethod clojure.lang.RT "listStar" (into-array Class [Object Object Object Object Object clojure.lang.ISeq])) [identity identity identity identity identity (fn [i] (seq [i]))]
+    (.getDeclaredMethod clojure.lang.Numbers "num" (into-array Class [Float/TYPE]))
+    (.getDeclaredMethod clojure.lang.RT "arrayToList" (into-array Class [(type->array-type Object)]))
     (.getDeclaredMethod clojure.lang.RT "box" (into-array Class [Double/TYPE]))
     (.getDeclaredMethod clojure.lang.RT "box" (into-array Class [Float/TYPE]))
     (.getDeclaredMethod clojure.lang.RT "box" (into-array Class [Short/TYPE]))
-    (.getDeclaredMethod clojure.lang.RT "arrayToList" (into-array Class [(type->array-type Object)]))
+    (.getDeclaredMethod clojure.lang.RT "list" (into-array Class [Object]))
+    (.getDeclaredMethod clojure.lang.RT "list" (into-array Class []))
+    (.getDeclaredMethod clojure.lang.RT "listStar" (into-array Class [Object Object Object Object Object clojure.lang.ISeq])) [identity identity identity identity identity (fn [i] (seq [i]))]
+    (.getDeclaredMethod clojure.lang.RT "listStar" (into-array Class [Object Object Object Object clojure.lang.ISeq])) [identity identity identity identity (fn [i] (seq [i]))]
+    (.getDeclaredMethod clojure.lang.RT "listStar" (into-array Class [Object Object Object clojure.lang.ISeq])) [identity identity identity (fn [i] (seq [i]))]
+    (.getDeclaredMethod clojure.lang.RT "listStar" (into-array Class [Object Object clojure.lang.ISeq])) [identity identity (fn [i] (seq [i]))]
+    (.getDeclaredMethod clojure.lang.RT "listStar" (into-array Class [Object clojure.lang.ISeq])) [identity (fn [i] (seq [i]))]
+    (.getDeclaredMethod clojure.lang.RT "mapUniqueKeys" (into-array Class [(type->array-type Object)])) [(fn [i] (into-array Object [i (str i)]))]
+    (.getDeclaredMethod clojure.lang.RT "vector" (into-array Class [(type->array-type Object)])) [(fn [i](into-array (range i)))]
 
-    ;; these need more work on overriding input types/values
-    (.getDeclaredMethod clojure.lang.RT "map" (into-array Class [(type->array-type Object)]))
-    (.getDeclaredMethod clojure.lang.RT "meta" (into-array Class [Object]))
+    (.getDeclaredMethod clojure.lang.RT "meta" (into-array Class [Object])) [(fn [i] (vec (range i)))]
+
     })
 
 
