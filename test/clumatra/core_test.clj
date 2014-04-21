@@ -189,6 +189,8 @@
    (.getDeclaredMethod clojure.lang.RT "seqToPassedArray" (into-array Class [clojure.lang.ISeq (type->array-type Object)])) [(fn [i] (seq (into [] (range i)))) (fn [i] (make-array Object i))]
    (.getDeclaredMethod clojure.lang.RT "seqToTypedArray" (into-array Class [Class clojure.lang.ISeq])) [type (fn [i] (seq [i]))]
    (.getDeclaredMethod clojure.lang.RT "seqToTypedArray" (into-array Class [clojure.lang.ISeq])) [(fn [i] (seq [i]))]
+   (.getDeclaredMethod clojure.lang.RT "peek" (into-array Class [Object])) [(fn [i] (vec (range i)))]
+   (.getDeclaredMethod clojure.lang.RT "pop" (into-array Class [Object])) [(fn [i] (vec (range i)))]
     
    ;; maps
    (.getDeclaredMethod clojure.lang.RT "keys" (into-array Class [Object])) [(fn [i] {i (str i)})]
@@ -274,8 +276,6 @@
     (.getDeclaredMethod clojure.lang.RT "meta" (into-array Class [Object]))
     (.getDeclaredMethod clojure.lang.RT "more" (into-array Class [Object]))
     (.getDeclaredMethod clojure.lang.RT "next" (into-array Class [Object]))
-    (.getDeclaredMethod clojure.lang.RT "peek" (into-array Class [Object]))
-    (.getDeclaredMethod clojure.lang.RT "pop" (into-array Class [Object]))
     })
 
 
