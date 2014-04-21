@@ -580,7 +580,7 @@
 ;;------------------------------------------------------------------------------
 
 (deftest-kernels (extract-methods clojure.lang.RT))
-;;(deftest-kernels (extract-methods clojure.lang.Numbers))
+(deftest-kernels (extract-methods clojure.lang.Numbers))
 
 ;;------------------------------------------------------------------------------
 
