@@ -170,6 +170,7 @@
    (.getDeclaredMethod clojure.lang.Numbers "divide" (into-array Class [java.math.BigInteger,java.math.BigInteger])) [(fn [i](java.math.BigInteger. (str i)))(fn [i](java.math.BigInteger. (str i)))]
    (.getDeclaredMethod clojure.lang.Numbers "reduceBigInt" (into-array Class [clojure.lang.BigInt])) [bigint]
    (.getDeclaredMethod clojure.lang.RT "format" (into-array Class [Object String (type->array-type Object)])) [(fn [i] nil)(fn [i] "~a")(fn [i] (into-array Object (range i)))]
+   (.getDeclaredMethod clojure.lang.RT "meta" (into-array Class [Object])) [(fn [i] (with-meta (vec (range i)) {:arg i}))]
 
    ;; seqs
    (.getDeclaredMethod clojure.lang.RT "count" (into-array Class [Object])) [(fn [i] (list i))]
@@ -273,9 +274,6 @@
     (.getDeclaredMethod clojure.lang.RT "listStar" (into-array Class [Object clojure.lang.ISeq])) [identity (fn [i] (seq [i]))]
     (.getDeclaredMethod clojure.lang.RT "mapUniqueKeys" (into-array Class [(type->array-type Object)])) [(fn [i] (into-array Object [i (str i)]))]
     (.getDeclaredMethod clojure.lang.RT "vector" (into-array Class [(type->array-type Object)])) [(fn [i](into-array (range i)))]
-
-    (.getDeclaredMethod clojure.lang.RT "meta" (into-array Class [Object])) [(fn [i] (vec (range i)))]
-
     })
 
 
