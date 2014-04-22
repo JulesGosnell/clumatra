@@ -546,6 +546,14 @@
 
 ;;------------------------------------------------------------------------------
 
+(defn public? [^Method m]
+  (let [modifiers (.getModifiers m)]
+    (java.lang.reflect.Modifier/isPublic modifiers)))
+
+(defn static? [^Method m]
+  (let [modifiers (.getModifiers m)]
+    (java.lang.reflect.Modifier/isStatic modifiers)))
+
 (defn public-static? [^Method m]
   (let [modifiers (.getModifiers m)]
     (and (java.lang.reflect.Modifier/isPublic modifiers)
@@ -568,17 +576,21 @@
 
 ;;------------------------------------------------------------------------------
 
-(defn extract-methods [^Class class]
+(defn extract-methods [modifier ^Class class]
   (filter
    (fn [m] (not (contains? excluded-methods m)))
-     (filter
-      public-static?
-      (.getDeclaredMethods class))))
+   (filter
+    modifier
+    (filter
+     public?
+     (.getDeclaredMethods class)))))
 
 ;;------------------------------------------------------------------------------
 
-(deftest-kernels (extract-methods clojure.lang.RT))
-(deftest-kernels (extract-methods clojure.lang.Numbers))
+(deftest-kernels (extract-methods static? clojure.lang.RT))
+(deftest-kernels (extract-methods static? clojure.lang.Numbers))
+
+;;(deftest-kernels (extract-methods (fn [m] (not (static? m))) clojure.lang.APersistentVector))
 
 ;;------------------------------------------------------------------------------
 
