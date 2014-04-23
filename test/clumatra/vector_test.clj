@@ -148,7 +148,7 @@
 
 (defn non-static? [m] (fn [m] (not (static? m))))
 
-;;(deftest-kernels (extract-methods non-static? clojure.lang.PersistentVector excluded-methods) input-fns) 
+;;;;(deftest-kernels (extract-methods non-static? clojure.lang.PersistentVector excluded-methods) inc input-fns) 
 
 ;;------------------------------------------------------------------------------
 

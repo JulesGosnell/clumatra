@@ -49,7 +49,7 @@
 
    })
 
-(deftest-kernels (extract-methods static? clojure.lang.Numbers excluded-methods) input-fns)
+(deftest-kernels (extract-methods static? clojure.lang.Numbers excluded-methods) inc input-fns)
 
 ;;------------------------------------------------------------------------------
 

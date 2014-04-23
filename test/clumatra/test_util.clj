@@ -83,8 +83,9 @@
     (and (java.lang.reflect.Modifier/isPublic modifiers)
          (java.lang.reflect.Modifier/isStatic modifiers))))
 
-(defmacro deftest-kernel [method input-fns]
+(defmacro deftest-kernel [method default-input-fn input-fns]
   (let [^Method method# (eval method)
+        default-input-fn# (eval default-input-fn)
         input-fns# input-fns
         dummy (println "GENERATING:" (.toString method#))
         static# (static? method#)
@@ -114,7 +115,7 @@
                results#
                (test-kernel
                 ~kernel#
-                inc
+                ~default-input-fn#
                 ~(mapv vector input-types# (concat (input-fns# method#) (repeat identity)))
                 ~output-type#)]
            (is (apply = results#)))))))
@@ -162,9 +163,10 @@
 (defn returns-primitive? [^Method m]
   (primitive? (.getReturnType m)))
 
-(defmacro deftest-kernels [methods input-fns]
-  (let [input-fns# (eval input-fns)]
-    (conj (map (fn [method#] `(deftest-kernel ~method# ~input-fns#)) (eval methods)) 'do)))
+(defmacro deftest-kernels [methods default-input-fn input-fns]
+  (let [default-input-fn# (eval default-input-fn)
+        input-fns# (eval input-fns)]
+    (conj (map (fn [method#] `(deftest-kernel ~method# ~default-input-fn# ~input-fns#)) (eval methods)) 'do)))
 
 ;;------------------------------------------------------------------------------
 

@@ -182,7 +182,7 @@
 
    })
 
-(deftest-kernels (extract-methods static? clojure.lang.RT excluded-methods) input-fns)
+(deftest-kernels (extract-methods static? clojure.lang.RT excluded-methods) inc input-fns)
 
 ;;------------------------------------------------------------------------------
 
