@@ -114,6 +114,7 @@
                results#
                (test-kernel
                 ~kernel#
+                (range 1 ~(inc *wavefront-size*))
                 ~(mapv vector input-types# (concat (input-fns# method#) (repeat identity)))
                 ~output-type#)]
            (is (apply = results#)))))))
@@ -134,13 +135,13 @@
 (defn r-seq [a]
   (if (array? a) [:array (map r-seq a)] a))
 
-(defn test-kernel [kernel in-types-and-fns out-type]
+(defn test-kernel [kernel default-input in-types-and-fns out-type]
   (let [method (find-method kernel "invoke")
         out-element (type->default out-type)
         out-fn (if out-element
                  (fn [] (into-array out-type (repeat *wavefront-size* out-element)))
                  (fn [] (make-array out-type *wavefront-size*)))
-        in-arrays (mapv (fn [[t f]] (into-array t (map f (range 1 (inc *wavefront-size*))))) in-types-and-fns)
+        in-arrays (mapv (fn [[t f]] (into-array t (map f default-input))) in-types-and-fns)
         ;;;in-arrays (mapv (fn [t] (into-array t (map identity (range 1 (inc *wavefront-size*))))) in-types)
         compiled (okra-kernel-compile kernel method *wavefront-size*)] ;compile once
     [(r-seq (apply compiled (conj in-arrays (out-fn))))              
