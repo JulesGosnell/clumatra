@@ -9,13 +9,6 @@
             [clumatra.test-util :refer :all])
   (:gen-class))
 
-(set! *warn-on-reflection* true)
-
-;;------------------------------------------------------------------------------
-
-(defn old-test-kernel [kernel ts t]
-  (test-kernel kernel (range 1 (inc *wavefront-size*)) ts t))
-
 ;;------------------------------------------------------------------------------
 
 (definterface BooleanKernel (^void invoke [^booleans in ^booleans out ^int gid]))
@@ -25,7 +18,7 @@
     (let [kernel (reify BooleanKernel
                    (^void invoke [^BooleanKernel self ^booleans in ^booleans out ^int gid]
                      (aset out gid (aget in gid))))
-          results (old-test-kernel kernel [[Boolean/TYPE even?]] Boolean/TYPE)]
+          results (test-kernel kernel inc [[Boolean/TYPE even?]] Boolean/TYPE)]
       (is (apply = results)))))
 
 (deftest boolean-if-test
@@ -33,7 +26,7 @@
     (let [kernel (reify BooleanKernel
                    (^void invoke [^BooleanKernel self ^booleans in ^booleans out ^int gid]
                      (aset out gid (if (aget in gid) false true))))
-          results (old-test-kernel kernel [[Boolean/TYPE even?]] Boolean/TYPE)]
+          results (test-kernel kernel inc [[Boolean/TYPE even?]] Boolean/TYPE)]
       (is (apply = results)))))
 
 ;;------------------------------------------------------------------------------
@@ -45,7 +38,7 @@
     (let [kernel (reify ByteKernel
                    (^void invoke [^ByteKernel self ^bytes in ^bytes out ^int gid]
                      (aset out gid (aget in gid))))
-          results (old-test-kernel kernel [[Byte/TYPE identity]] Byte/TYPE)]
+          results (test-kernel kernel inc [[Byte/TYPE identity]] Byte/TYPE)]
       (is (apply = results)))))
 
 (deftest byte-inc-test
@@ -53,7 +46,7 @@
     (let [kernel (reify ByteKernel
                    (^void invoke [^ByteKernel self ^bytes in ^bytes out ^int gid]
                      (aset out gid (byte (inc (aget in gid))))))
-          results (old-test-kernel kernel [[Byte/TYPE identity]] Byte/TYPE)]
+          results (test-kernel kernel inc [[Byte/TYPE identity]] Byte/TYPE)]
       (is (apply = results)))))
 
 ;;------------------------------------------------------------------------------
@@ -65,7 +58,7 @@
     (let [kernel (reify CharKernel
                    (^void invoke [^CharKernel self ^chars in ^chars out ^int gid]
                      (aset out gid (aget in gid))))
-          results (old-test-kernel kernel [[Character/TYPE (fn [n] (+ 65 (mod n 26)))]] Character/TYPE)]
+          results (test-kernel kernel inc [[Character/TYPE (fn [n] (+ 65 (mod n 26)))]] Character/TYPE)]
       (is (apply = results)))))
 
 (deftest char-toLowercase-test
@@ -73,7 +66,7 @@
     (let [kernel (reify CharKernel
                    (^void invoke [^CharKernel self ^chars in ^chars out ^int gid]
                      (aset out gid (java.lang.Character/toLowerCase (aget in gid)))))
-          results (old-test-kernel kernel [[Character/TYPE (fn [n] (+ 65 (mod n 26)))]] Character/TYPE)]
+          results (test-kernel kernel inc [[Character/TYPE (fn [n] (+ 65 (mod n 26)))]] Character/TYPE)]
       (is (apply = results)))))
 
 ;; ;;------------------------------------------------------------------------------
@@ -85,7 +78,7 @@
     (let [kernel (reify ShortKernel
                    (^void invoke [^ShortKernel self ^shorts in ^shorts out ^int gid]
                      (aset out gid (aget in gid))))
-          results (old-test-kernel kernel [[Short/TYPE identity]] Short/TYPE)]
+          results (test-kernel kernel inc [[Short/TYPE identity]] Short/TYPE)]
       (is (apply = results)))))
 
 (deftest short-inc-test
@@ -93,7 +86,7 @@
     (let [kernel (reify ShortKernel
                    (^void invoke [^ShortKernel self ^shorts in ^shorts out ^int gid]
                      (aset out gid (short (inc (aget in gid))))))
-          results (old-test-kernel kernel [[Short/TYPE identity]] Short/TYPE)]
+          results (test-kernel kernel inc [[Short/TYPE identity]] Short/TYPE)]
       (is (apply = results)))))
 
 ;;------------------------------------------------------------------------------
@@ -105,7 +98,7 @@
     (let [kernel (reify IntKernel
                    (^void invoke [^IntKernel self ^ints in ^ints out ^int gid]
                      (aset out gid (aget in gid))))
-          results (old-test-kernel kernel [[Integer/TYPE identity]] Integer/TYPE)]
+          results (test-kernel kernel inc [[Integer/TYPE identity]] Integer/TYPE)]
       (is (apply = results)))))
 
 ;;------------------------------------------------------------------------------
@@ -117,7 +110,7 @@
     (let [kernel (reify LongKernel
                    (^void invoke [^LongKernel self ^longs in ^longs out ^int gid]
                      (aset out gid (aget in gid))))
-          results (old-test-kernel kernel [[Long/TYPE identity]] Long/TYPE)]
+          results (test-kernel kernel inc [[Long/TYPE identity]] Long/TYPE)]
       (is (apply = results)))))
 
 (deftest long-inc-test
@@ -125,7 +118,7 @@
     (let [kernel (reify LongKernel
                    (^void invoke [^LongKernel self ^longs in ^longs out ^int gid]
                      (aset out gid (inc (aget in gid)))))
-          results (old-test-kernel kernel [[Long/TYPE identity]] Long/TYPE)]
+          results (test-kernel kernel inc [[Long/TYPE identity]] Long/TYPE)]
       (is (apply = results)))))
 
 (defn ^long my-inc [^long l] (inc l))
@@ -135,7 +128,7 @@
     (let [kernel (reify LongKernel
                    (^void invoke [^LongKernel self ^longs in ^longs out ^int gid]
                      (aset out gid (long (my-inc (aget in gid))))))
-          results (old-test-kernel kernel [[Long/TYPE identity]] Long/TYPE)]
+          results (test-kernel kernel inc [[Long/TYPE identity]] Long/TYPE)]
       (is (apply = results)))))
 
 (defn ^:static ^long my-static-inc [^long l] (inc l)) ;I don't think this is static..
@@ -145,7 +138,7 @@
     (let [kernel (reify LongKernel
                    (^void invoke [^LongKernel self ^longs in ^longs out ^int gid]
                      (aset out gid (long (my-static-inc (aget in gid))))))
-          results (old-test-kernel kernel [[Long/TYPE identity]] Long/TYPE)]
+          results (test-kernel kernel inc [[Long/TYPE identity]] Long/TYPE)]
       (is (apply = results)))))
 
 (deftest long-anonymous-inc-test
@@ -154,7 +147,7 @@
           kernel (reify LongKernel
                    (^void invoke [^LongKernel self ^longs in ^longs out ^int gid]
                      (aset out gid (long (my-inc (aget in gid))))))
-          results (old-test-kernel kernel [[Long/TYPE identity]] Long/TYPE)]
+          results (test-kernel kernel inc [[Long/TYPE identity]] Long/TYPE)]
       (is (apply = results)))))
 
 ;;------------------------------------------------------------------------------
@@ -166,7 +159,7 @@
     (let [kernel (reify FloatKernel
                    (^void invoke [^FloatKernel self ^floats in ^floats out ^int gid]
                      (aset out gid (aget in gid))))
-          results (old-test-kernel kernel [[Float/TYPE identity]] Float/TYPE)]
+          results (test-kernel kernel inc [[Float/TYPE identity]] Float/TYPE)]
       (is (apply = results)))))
 
 (deftest float-inc-test
@@ -174,7 +167,7 @@
     (let [kernel (reify FloatKernel
                    (^void invoke [^FloatKernel self ^floats in ^floats out ^int gid]
                      (aset out gid (float (inc (aget in gid))))))
-          results (old-test-kernel kernel [[Float/TYPE identity]] Float/TYPE)]
+          results (test-kernel kernel inc [[Float/TYPE identity]] Float/TYPE)]
       (is (apply = results)))))
 
 ;;------------------------------------------------------------------------------
@@ -186,7 +179,7 @@
     (let [kernel (reify DoubleKernel
                    (^void invoke [^CharKernel self ^doubles in ^doubles out ^int gid]
                      (aset out gid (aget in gid))))
-          results (old-test-kernel kernel [[Double/TYPE identity]] Double/TYPE)]
+          results (test-kernel kernel inc [[Double/TYPE identity]] Double/TYPE)]
       (is (apply = results)))))
 
 ;;------------------------------------------------------------------------------
@@ -198,7 +191,7 @@
     (let [kernel (reify ObjectKernel
                    (^void invoke [^ObjectKernel self ^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out ^int i]
                      (aset out i (aget in i))))
-          results (old-test-kernel kernel [[Object identity]] Object)]
+          results (test-kernel kernel inc [[Object identity]] Object)]
       (is (apply = results)))))
 
 (deftest multiplication-test
@@ -206,7 +199,7 @@
     (let [kernel (reify ObjectKernel
                    (^void invoke [^ObjectKernel self ^objects in ^objects out ^int gid]
                      (aset out gid (* (aget in gid) (aget in gid)))))
-          results (old-test-kernel kernel [[Object identity]] Object)]
+          results (test-kernel kernel inc [[Object identity]] Object)]
       (is (apply = results)))))
 
 ;;------------------------------------------------------------------------------
@@ -218,6 +211,16 @@
     (let [kernel (reify StringIntKernel
                    (^void invoke [^StringIntKernel self ^"[Ljava.lang.String;" in ^ints out ^int gid]
                      (aset out gid (.length ^String (aget in gid)))))
-          results (old-test-kernel kernel [[String (fn [^Long i] (.toString i))]] Integer/TYPE)]
+          results (test-kernel kernel inc [[String (fn [^Long i] (.toString i))]] Integer/TYPE)]
       (is (apply = results)))))
 
+;;------------------------------------------------------------------------------
+
+(defn -main
+  "run individual tests by name from the command line...no args runs all the tests."
+  [& args]
+  (let [interns (ns-interns 'clumatra.misc-test)]
+    (if args
+      (doseq [test args]
+        (test-vars [(interns (symbol test))]))
+      (test-vars (vals interns)))))

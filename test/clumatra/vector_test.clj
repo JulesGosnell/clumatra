@@ -155,7 +155,7 @@
 (defn -main
   "run individual tests by name from the command line...no args runs all the tests."
   [& args]
-  (let [interns (ns-interns 'clumatra.core-test)]
+  (let [interns (ns-interns 'clumatra.vector-test)]
     (if args
       (doseq [test args]
         (test-vars [(interns (symbol test))]))
