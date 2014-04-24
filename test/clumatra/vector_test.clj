@@ -139,8 +139,6 @@
     }
   )
 
-(defn non-static? [m] (fn [m] (not (static? m))))
-
 (deftest-kernels
   (filter (fn [^java.lang.reflect.Method m] (not (contains? #{java.lang.Object clojure.lang.AFn java.lang.Iterable java.util.List java.util.Collection} (.getDeclaringClass m))))
           (extract-methods non-static? clojure.lang.PersistentVector excluded-methods))

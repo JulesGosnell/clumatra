@@ -78,6 +78,8 @@
   (let [modifiers (.getModifiers m)]
     (java.lang.reflect.Modifier/isStatic modifiers)))
 
+(defn non-static? [m] (fn [m] (not (static? m))))
+
 (defn public-static? [^Method m]
   (let [modifiers (.getModifiers m)]
     (and (java.lang.reflect.Modifier/isPublic modifiers)
