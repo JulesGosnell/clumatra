@@ -4,7 +4,7 @@
   (:import
    [java.lang.reflect Method]
    [com.oracle.graal.hsail HSAIL]
-   [com.oracle.graal.phases GraalOptions]
+   [com.oracle.graal.compiler.common GraalOptions]
    [com.oracle.graal.options OptionValue]
    [com.oracle.graal.hotspot HotSpotGraalRuntime]
    [com.oracle.graal.hotspot.hsail HSAILHotSpotBackend]
