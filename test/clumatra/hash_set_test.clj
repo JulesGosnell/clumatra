@@ -17,6 +17,7 @@
     (.getMethod clojure.lang.APersistentSet "iterator" (into-array Class []))
     (.getMethod clojure.lang.APersistentSet "remove" (into-array Class [Object]))
     (.getMethod clojure.lang.APersistentSet "toArray" (into-array Class [(type->array-type Object)]))
+
     (.getMethod clojure.lang.PersistentHashSet "addAll" (into-array Class [java.util.Collection]))
     (.getMethod clojure.lang.PersistentHashSet "asTransient" (into-array Class []))
     (.getMethod clojure.lang.PersistentHashSet "clear" (into-array Class []))
@@ -30,6 +31,7 @@
     (.getMethod clojure.lang.PersistentHashSet "removeAll" (into-array Class [java.util.Collection]))
     (.getMethod clojure.lang.PersistentHashSet "retainAll" (into-array Class [java.util.Collection]))
     (.getMethod clojure.lang.PersistentHashSet "withMeta" (into-array Class [clojure.lang.IPersistentMap]))
+
     (first (filter (fn [^java.lang.reflect.Method m] (and (= (.getName m) "withMeta") (= (.getReturnType m) clojure.lang.IObj))) (.getMethods clojure.lang.PersistentHashSet)))
     })
 
@@ -51,7 +53,7 @@
 (defn -main
   "run individual tests by name from the command line...no args runs all the tests."
   [& args]
-  (let [interns (ns-interns 'clumatra.vector-test)]
+  (let [interns (ns-interns 'clumatra.hash-set-test)]
     (if args
       (doseq [test args]
         (test-vars [(interns (symbol test))]))
