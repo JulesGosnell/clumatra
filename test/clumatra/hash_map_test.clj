@@ -20,8 +20,8 @@
     (.getMethod clojure.lang.APersistentMap "invoke" (into-array Class [Object]))
     (.getMethod clojure.lang.APersistentMap "remove" (into-array Class [Object]))
     (.getMethod clojure.lang.APersistentMap "seq" (into-array Class []))
-    (.getMethod clojure.lang.APersistentMap "valAt" (into-array Class [Object Object]))
-    (.getMethod clojure.lang.APersistentMap "valAt" (into-array Class [Object]))
+;;    (.getMethod clojure.lang.APersistentMap "valAt" (into-array Class [Object Object]))
+;;    (.getMethod clojure.lang.APersistentMap "valAt" (into-array Class [Object]))
     (.getMethod clojure.lang.APersistentMap "values" (into-array Class []))
 
     (.getMethod clojure.lang.PersistentHashMap "asTransient" (into-array Class []))
@@ -46,8 +46,8 @@
 
     (first (filter (fn [^java.lang.reflect.Method m] (and (= (.getName m) "asTransient") (= (.getReturnType m) clojure.lang.ITransientCollection))) (.getMethods clojure.lang.PersistentHashMap)))
     (first (filter (fn [^java.lang.reflect.Method m] (and (= (.getName m) "assoc") (= (.getReturnType m) clojure.lang.Associative))) (.getMethods clojure.lang.PersistentHashMap)))
+    (first (filter (fn [^java.lang.reflect.Method m] (and (= (.getName m) "valAt") (= (.getReturnType m) Object) (= (seq (.getParameterTypes m)) [Object]))) (.getMethods clojure.lang.PersistentHashMap)))
     (first (filter (fn [^java.lang.reflect.Method m] (and (= (.getName m) "valAt") (= (.getReturnType m) Object) (= (seq (.getParameterTypes m)) [Object Object]))) (.getMethods clojure.lang.PersistentHashMap)))
-    (first (filter (fn [^java.lang.reflect.Method m] (and (= (.getName m) "valAt") (= (.getReturnType m) Object))) (.getMethods clojure.lang.PersistentHashMap)))
     (first (filter (fn [^java.lang.reflect.Method m] (and (= (.getName m) "withMeta") (= (.getReturnType m) clojure.lang.IObj))) (.getMethods clojure.lang.PersistentHashMap)))
     })
 
