@@ -20,11 +20,8 @@
      (.getMethod clojure.lang.APersistentMap "invoke" (into-array Class [Object]))
      (.getMethod clojure.lang.APersistentMap "remove" (into-array Class [Object]))
      (.getMethod clojure.lang.APersistentMap "seq" (into-array Class []))
-     (.getMethod clojure.lang.APersistentMap "valAt" (into-array Class [Object Object]))
-     (.getMethod clojure.lang.APersistentMap "valAt" (into-array Class [Object]))
      (.getMethod clojure.lang.APersistentMap "values" (into-array Class []))
 
-     (.getMethod clojure.lang.PersistentStructMap "assoc" (into-array Class [Object Object]))
      (.getMethod clojure.lang.PersistentStructMap "assocEx" (into-array Class [Object Object]))
      (.getMethod clojure.lang.PersistentStructMap "construct" (into-array Class [clojure.lang.PersistentStructMap$Def clojure.lang.ISeq]))
      (.getMethod clojure.lang.PersistentStructMap "containsKey" (into-array Class [Object]))
