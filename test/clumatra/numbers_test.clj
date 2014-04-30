@@ -1,5 +1,7 @@
 (ns clumatra.numbers-test
-  (:import  [java.lang.reflect Method])
+  (:import  [java.math BigInteger]
+            [java.lang.reflect Method]
+            [clojure.lang Numbers BigInt])
   (:require [clojure.test :refer :all]
             [clojure.core
              [reducers :as r]
@@ -14,42 +16,42 @@
 (def excluded-methods
   #{
     ;; these seem to crash simulated build
-    (.getMethod clojure.lang.Numbers "max" (into-array Class [Double/TYPE Long/TYPE]))
-    (.getMethod clojure.lang.Numbers "max" (into-array Class [Long/TYPE Double/TYPE]))
-    (.getMethod clojure.lang.Numbers "min" (into-array Class [Double/TYPE Long/TYPE]))
-    (.getMethod clojure.lang.Numbers "min" (into-array Class [Long/TYPE Double/TYPE]))
-    (.getMethod clojure.lang.Numbers "num" (into-array Class [Double/TYPE]))
-    (.getMethod clojure.lang.Numbers "num" (into-array Class [Float/TYPE]))
+    (fetch-method Numbers "max" [Double/TYPE Long/TYPE])
+    (fetch-method Numbers "max" [Long/TYPE Double/TYPE])
+    (fetch-method Numbers "min" [Double/TYPE Long/TYPE])
+    (fetch-method Numbers "min" [Long/TYPE Double/TYPE])
+    (fetch-method Numbers "num" [Double/TYPE])
+    (fetch-method Numbers "num" [Float/TYPE])
     })
 
 (def input-fns
   {
    ;; arrays
-   (.getMethod clojure.lang.Numbers "boolean_array" (into-array Class [Integer/TYPE Object]))[identity even?]
-   (.getMethod clojure.lang.Numbers "byte_array" (into-array Class [Integer/TYPE Object]))[identity byte]
-   (.getMethod clojure.lang.Numbers "char_array" (into-array Class [Integer/TYPE Object]))[identity (fn [i] (char (+ i 65)))]
-   (.getMethod clojure.lang.Numbers "char_array" (into-array Class [Object]))[(fn [i] (list (char (+ i 65))))]
-   (.getMethod clojure.lang.Numbers "double_array" (into-array Class [Object]))[(fn [i] (list (double i)))]
-   (.getMethod clojure.lang.Numbers "float_array" (into-array Class [Object]))[(fn [i] (list (float i)))]
-   (.getMethod clojure.lang.Numbers "short_array" (into-array Class [Integer/TYPE Object]))[identity short]
+   (fetch-method Numbers "boolean_array" [Integer/TYPE Object])[identity even?]
+   (fetch-method Numbers "byte_array"    [Integer/TYPE Object])[identity byte]
+   (fetch-method Numbers "char_array"    [Integer/TYPE Object])[identity (fn [i] (char (+ i 65)))]
+   (fetch-method Numbers "char_array"    [Object])[(fn [i] (list (char (+ i 65))))]
+   (fetch-method Numbers "double_array"  [Object])[(fn [i] (list (double i)))]
+   (fetch-method Numbers "float_array"   [Object])[(fn [i] (list (float i)))]
+   (fetch-method Numbers "short_array"   [Integer/TYPE Object])[identity short]
 
    ;; cast array
-   (.getMethod clojure.lang.Numbers "booleans" (into-array Class [Object])) [(fn [i] (boolean-array (map even? (range i))))]
-   (.getMethod clojure.lang.Numbers "bytes" (into-array Class [Object])) [(fn [i] (byte-array (map byte (range i))))]
-   (.getMethod clojure.lang.Numbers "chars" (into-array Class [Object])) [(fn [i] (char-array (map (fn [i2] (char (+ 65 i2))) (range i))))]
-   (.getMethod clojure.lang.Numbers "doubles" (into-array Class [Object])) [(fn [i] (double-array (map double (range i))))]
-   (.getMethod clojure.lang.Numbers "floats" (into-array Class [Object])) [(fn [i] (float-array (map float (range i))))]
-   (.getMethod clojure.lang.Numbers "ints" (into-array Class [Object])) [(fn [i] (int-array (map int (range i))))]
-   (.getMethod clojure.lang.Numbers "longs" (into-array Class [Object])) [(fn [i] (long-array (range i)))]
-   (.getMethod clojure.lang.Numbers "shorts" (into-array Class [Object])) [(fn [i] (short-array (map short (range i))))]
+   (fetch-method Numbers "booleans" [Object]) [(fn [i] (boolean-array (map even? (range i))))]
+   (fetch-method Numbers "bytes"    [Object]) [(fn [i] (byte-array (map byte (range i))))]
+   (fetch-method Numbers "chars"    [Object]) [(fn [i] (char-array (map (fn [i2] (char (+ 65 i2))) (range i))))]
+   (fetch-method Numbers "doubles"  [Object]) [(fn [i] (double-array (map double (range i))))]
+   (fetch-method Numbers "floats"   [Object]) [(fn [i] (float-array (map float (range i))))]
+   (fetch-method Numbers "ints"     [Object]) [(fn [i] (int-array (map int (range i))))]
+   (fetch-method Numbers "longs"    [Object]) [(fn [i] (long-array (range i)))]
+   (fetch-method Numbers "shorts"   [Object]) [(fn [i] (short-array (map short (range i))))]
 
    ;; misc
-   (.getMethod clojure.lang.Numbers "divide" (into-array Class [java.math.BigInteger,java.math.BigInteger])) [(fn [i](java.math.BigInteger. (str i)))(fn [i](java.math.BigInteger. (str i)))]
-   (.getMethod clojure.lang.Numbers "reduceBigInt" (into-array Class [clojure.lang.BigInt])) [bigint]
+   (fetch-method Numbers "divide"       [BigInteger BigInteger]) [(fn [i](BigInteger. (str i)))(fn [i](BigInteger. (str i)))]
+   (fetch-method Numbers "reduceBigInt" [BigInt]) [bigint]
 
    })
 
-(deftest-kernels (extract-methods static? clojure.lang.Numbers excluded-methods) inc input-fns)
+(deftest-kernels (extract-methods static? Numbers excluded-methods) inc input-fns)
 
 ;;------------------------------------------------------------------------------
 

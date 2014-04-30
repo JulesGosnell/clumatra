@@ -1,4 +1,6 @@
 (ns clumatra.struct-map-test
+  (:import  [java.util Collection Map]
+            [clojure.lang AFn IPersistentMap APersistentMap PersistentStructMap PersistentStructMap$Def ISeq])
   (:require [clojure.core
              [reducers :as r]
              [rrb-vector :as v]]
@@ -10,36 +12,36 @@
 
 (def excluded-methods
   #{
-     (.getMethod clojure.lang.APersistentMap "clear" (into-array Class []))
-     (.getMethod clojure.lang.APersistentMap "put" (into-array Class [Object Object]))
-     (.getMethod clojure.lang.APersistentMap "putAll" (into-array Class [java.util.Map]))
+     (fetch-method APersistentMap "clear"  [])
+     (fetch-method APersistentMap "put"    [Object Object])
+     (fetch-method APersistentMap "putAll" [Map])
 
-     (.getMethod clojure.lang.APersistentMap "count" (into-array Class []))
-     (.getMethod clojure.lang.APersistentMap "empty" (into-array Class []))
-     (.getMethod clojure.lang.APersistentMap "get" (into-array Class [Object]))
-     (.getMethod clojure.lang.APersistentMap "invoke" (into-array Class [Object]))
-     (.getMethod clojure.lang.APersistentMap "remove" (into-array Class [Object]))
-     (.getMethod clojure.lang.APersistentMap "seq" (into-array Class []))
-     (.getMethod clojure.lang.APersistentMap "values" (into-array Class []))
+     (fetch-method APersistentMap "count"  [])
+     (fetch-method APersistentMap "empty"  [])
+     (fetch-method APersistentMap "get"    [Object])
+     (fetch-method APersistentMap "invoke" [Object])
+     (fetch-method APersistentMap "remove" [Object])
+     (fetch-method APersistentMap "seq"    [])
+     (fetch-method APersistentMap "values" [])
 
-     (.getMethod clojure.lang.PersistentStructMap "assocEx" (into-array Class [Object Object]))
-     (.getMethod clojure.lang.PersistentStructMap "construct" (into-array Class [clojure.lang.PersistentStructMap$Def clojure.lang.ISeq]))
-     (.getMethod clojure.lang.PersistentStructMap "containsKey" (into-array Class [Object]))
-     (.getMethod clojure.lang.PersistentStructMap "count" (into-array Class []))
-     (.getMethod clojure.lang.PersistentStructMap "create" (into-array Class [clojure.lang.PersistentStructMap$Def clojure.lang.ISeq]))
-     (.getMethod clojure.lang.PersistentStructMap "createSlotMap" (into-array Class [clojure.lang.ISeq]))
-     (.getMethod clojure.lang.PersistentStructMap "empty" (into-array Class []))
-     (.getMethod clojure.lang.PersistentStructMap "entryAt" (into-array Class [Object]))
-     (.getMethod clojure.lang.PersistentStructMap "getAccessor" (into-array Class [clojure.lang.PersistentStructMap$Def Object]))
-     (.getMethod clojure.lang.PersistentStructMap "iterator" (into-array Class []))
-     (.getMethod clojure.lang.PersistentStructMap "meta" (into-array Class []))
-     (.getMethod clojure.lang.PersistentStructMap "seq" (into-array Class []))
-     (.getMethod clojure.lang.PersistentStructMap "withMeta" (into-array Class [clojure.lang.IPersistentMap]))
-     (.getMethod clojure.lang.PersistentStructMap "without" (into-array Class [Object]))
+     (fetch-method PersistentStructMap "assocEx"       [Object Object])
+     (fetch-method PersistentStructMap "construct"     [PersistentStructMap$Def ISeq])
+     (fetch-method PersistentStructMap "containsKey"   [Object])
+     (fetch-method PersistentStructMap "count"         [])
+     (fetch-method PersistentStructMap "create"        [PersistentStructMap$Def ISeq])
+     (fetch-method PersistentStructMap "createSlotMap" [ISeq])
+     (fetch-method PersistentStructMap "empty"         [])
+     (fetch-method PersistentStructMap "entryAt"       [Object])
+     (fetch-method PersistentStructMap "getAccessor"   [PersistentStructMap$Def Object])
+     (fetch-method PersistentStructMap "iterator"      [])
+     (fetch-method PersistentStructMap "meta"          [])
+     (fetch-method PersistentStructMap "seq"           [])
+     (fetch-method PersistentStructMap "withMeta"      [IPersistentMap])
+     (fetch-method PersistentStructMap "without"       [Object])
 
-     (first (filter (fn [^java.lang.reflect.Method m] (and (= (.getName m) "assoc") (= (.getReturnType m) clojure.lang.Associative))) (.getMethods clojure.lang.PersistentStructMap)))
-     (first (filter (fn [^java.lang.reflect.Method m] (and (= (.getName m) "valAt") (= (.getReturnType m) Object) (= (seq (.getParameterTypes m)) [Object Object]))) (.getMethods clojure.lang.PersistentStructMap)))
-     (first (filter (fn [^java.lang.reflect.Method m] (and (= (.getName m) "valAt") (= (.getReturnType m) Object))) (.getMethods clojure.lang.PersistentStructMap)))
+     (first (filter (fn [^java.lang.reflect.Method m] (and (= (.getName m) "assoc") (= (.getReturnType m) clojure.lang.Associative))) (.getMethods PersistentStructMap)))
+     (first (filter (fn [^java.lang.reflect.Method m] (and (= (.getName m) "valAt") (= (.getReturnType m) Object) (= (seq (.getParameterTypes m)) [Object Object]))) (.getMethods PersistentStructMap)))
+     (first (filter (fn [^java.lang.reflect.Method m] (and (= (.getName m) "valAt") (= (.getReturnType m) Object))) (.getMethods PersistentStructMap)))
     })
 
 (def input-fns {})
@@ -51,9 +53,10 @@
    (fn [^java.lang.reflect.Method m]
      (not
       (contains?
-       #{java.lang.Object clojure.lang.AFn java.lang.Iterable java.util.Map java.util.Collection}
+       #{Object Iterable Map Collection
+          AFn}
        (.getDeclaringClass m))))
-   (extract-methods non-static? clojure.lang.PersistentStructMap excluded-methods))
+   (extract-methods non-static? PersistentStructMap excluded-methods))
   (fn [i] (struct-map s :input i))
   input-fns)
 

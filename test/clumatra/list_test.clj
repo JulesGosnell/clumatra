@@ -1,4 +1,7 @@
 (ns clumatra.list-test
+  (:import  [java.lang.reflect Method]
+            [java.util Collection Map List Set]
+            [clojure.lang Obj IObj AFn IFn ISeq ASeq IPersistentMap ITransientCollection PersistentList])
   (:require [clojure.core
              [reducers :as r]
              [rrb-vector :as v]]
@@ -10,12 +13,12 @@
 
 (def excluded-methods
   #{
-    (.getMethod clojure.lang.PersistentList "reduce" (into-array Class [clojure.lang.IFn Object]))
-    (.getMethod clojure.lang.PersistentList "reduce" (into-array Class [clojure.lang.IFn]))
-    (.getMethod clojure.lang.PersistentList "withMeta" (into-array Class [clojure.lang.IPersistentMap]))
+    (fetch-method PersistentList "reduce"   [IFn Object])
+    (fetch-method PersistentList "reduce"   [IFn])
 
-    (first (filter (fn [^java.lang.reflect.Method m] (and (= (.getName m) "withMeta") (= (.getReturnType m) clojure.lang.IObj))) (.getMethods clojure.lang.PersistentList)))
-    (first (filter (fn [^java.lang.reflect.Method m] (and (= (.getName m) "withMeta") (= (.getReturnType m) clojure.lang.Obj))) (.getMethods clojure.lang.PersistentList)))
+    (fetch-method PersistentList "withMeta" PersistentList [IPersistentMap])
+    (fetch-method PersistentList "withMeta" IObj [IPersistentMap])
+    (fetch-method PersistentList "withMeta" Obj [IPersistentMap])
     })
 
 (def input-fns
@@ -24,12 +27,12 @@
 
 (deftest-kernels
   (filter
-   (fn [^java.lang.reflect.Method m]
+   (fn [^Method m]
      (not
       (contains?
-       #{java.lang.Object clojure.lang.AFn clojure.lang.ASeq clojure.lang.Obj java.lang.Iterable java.util.List java.util.Collection}
+       #{Object AFn ASeq Obj Iterable List Collection}
        (.getDeclaringClass m))))
-   (extract-methods non-static? clojure.lang.PersistentList excluded-methods))
+   (extract-methods non-static? PersistentList excluded-methods))
   (fn [i] (into '() (map (fn [j] (* i j)) (range *wavefront-size*))))
   input-fns)
 

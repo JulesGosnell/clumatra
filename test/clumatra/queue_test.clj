@@ -1,4 +1,7 @@
 (ns clumatra.queue-test
+  (:import  [java.lang.reflect Method]
+            [java.util Collection Map List Set]
+            [clojure.lang Obj IObj AFn IFn ISeq ASeq IPersistentMap ITransientCollection PersistentQueue])
   (:require [clojure.core
              [reducers :as r]
              [rrb-vector :as v]]
@@ -10,19 +13,18 @@
 
 (def excluded-methods
   #{
-    (.getMethod clojure.lang.PersistentQueue "clear" (into-array Class []))
+    (fetch-method PersistentQueue "clear"     [])
+    (fetch-method PersistentQueue "retainAll" [Collection])
+    (fetch-method PersistentQueue "remove"    [Object])
+    (fetch-method PersistentQueue "removeAll" [Collection])
+    (fetch-method PersistentQueue "add"       [Object])
+    (fetch-method PersistentQueue "addAll"    [Collection])
+    (fetch-method PersistentQueue "toArray"   [(type->array-type Object)])
+    (fetch-method PersistentQueue "iterator"  [])
 
-    (.getMethod clojure.lang.PersistentQueue "retainAll" (into-array Class [java.util.Collection]))
-    (.getMethod clojure.lang.PersistentQueue "remove" (into-array Class [Object]))
-    (.getMethod clojure.lang.PersistentQueue "removeAll" (into-array Class [java.util.Collection]))
-    (.getMethod clojure.lang.PersistentQueue "add" (into-array Class [Object]))
-    (.getMethod clojure.lang.PersistentQueue "addAll" (into-array Class [java.util.Collection]))
-    (.getMethod clojure.lang.PersistentQueue "toArray" (into-array Class [(type->array-type Object)]))
-    (.getMethod clojure.lang.PersistentQueue "iterator" (into-array Class []))
-
-    (first (filter (fn [^java.lang.reflect.Method m] (and (= (.getName m) "withMeta") (= (.getReturnType m) clojure.lang.IObj))) (.getMethods clojure.lang.PersistentQueue)))
-    (first (filter (fn [^java.lang.reflect.Method m] (and (= (.getName m) "withMeta") (= (.getReturnType m) clojure.lang.Obj))) (.getMethods clojure.lang.PersistentQueue)))
-    (first (filter (fn [^java.lang.reflect.Method m] (and (= (.getName m) "withMeta") (= (.getReturnType m) clojure.lang.PersistentQueue))) (.getMethods clojure.lang.PersistentQueue)))
+    (fetch-method PersistentQueue "withMeta" IObj [IPersistentMap])
+    (fetch-method PersistentQueue "withMeta" Obj [IPersistentMap])
+    (fetch-method PersistentQueue "withMeta" PersistentQueue [IPersistentMap])
     })
 
 (def input-fns
@@ -31,13 +33,13 @@
 
 (deftest-kernels
   (filter
-   (fn [^java.lang.reflect.Method m]
+   (fn [^Method m]
      (not
       (contains?
-       #{java.lang.Object clojure.lang.AFn clojure.lang.ASeq clojure.lang.Obj java.lang.Iterable java.util.List java.util.Collection}
+       #{Object AFn ASeq Obj Iterable List Collection}
        (.getDeclaringClass m))))
-   (extract-methods non-static? clojure.lang.PersistentQueue excluded-methods))
-  (fn [i] (into clojure.lang.PersistentQueue/EMPTY (map (fn [j] (* i j)) (range *wavefront-size*))))
+   (extract-methods non-static? PersistentQueue excluded-methods))
+  (fn [i] (into PersistentQueue/EMPTY (map (fn [j] (* i j)) (range *wavefront-size*))))
   input-fns)
 
 ;;------------------------------------------------------------------------------

@@ -1,4 +1,6 @@
 (ns clumatra.vector-test
+  (:import  [java.util Collection Map]
+            [clojure.lang AFn ISeq APersistentVector PersistentVector Associative])
   (:require [clojure.core
              [reducers :as r]
              [rrb-vector :as v]]
@@ -80,68 +82,68 @@
 
 (def excluded-methods
   #{
-    (.getMethod clojure.lang.AFn "run" (into-array Class []))
-    (.getMethod java.lang.Object "wait" (into-array Class [Long/TYPE Integer/TYPE]))
-    (.getMethod java.lang.Object "wait" (into-array Class [Long/TYPE]))
-    (.getMethod java.lang.Object "wait" (into-array Class []))
-    (.getMethod java.lang.Object "notify" (into-array Class []))
-    (.getMethod java.lang.Object "notifyAll" (into-array Class []))
-    (.getMethod java.lang.Iterable "forEach" (into-array Class [java.util.function.Consumer]))
-    (.getMethod java.util.List "replaceAll" (into-array Class [java.util.function.UnaryOperator]))
-    (.getMethod java.util.List "sort" (into-array Class [java.util.Comparator]))
+    (fetch-method clojure.lang.AFn "run" [])
+    (fetch-method java.lang.Object "wait" [Long/TYPE Integer/TYPE])
+    (fetch-method java.lang.Object "wait" [Long/TYPE])
+    (fetch-method java.lang.Object "wait" [])
+    (fetch-method java.lang.Object "notify" [])
+    (fetch-method java.lang.Object "notifyAll" [])
+    (fetch-method java.lang.Iterable "forEach" [java.util.function.Consumer])
+    (fetch-method java.util.List "replaceAll" [java.util.function.UnaryOperator])
+    (fetch-method java.util.List "sort" [java.util.Comparator])
     ;; vector - unsupported 
-    (.getMethod clojure.lang.APersistentVector "removeAll" (into-array Class [java.util.Collection]))
-    (.getMethod clojure.lang.APersistentVector "retainAll" (into-array Class [java.util.Collection]))
-    (.getMethod clojure.lang.APersistentVector "clear" (into-array Class []))
-    (.getMethod clojure.lang.APersistentVector "addAll" (into-array Class [java.util.Collection]))
-    (.getMethod clojure.lang.APersistentVector "remove" (into-array Class [Integer/TYPE]))
-    (.getMethod clojure.lang.APersistentVector "set" (into-array Class [Integer/TYPE Object]))
-    (.getMethod clojure.lang.APersistentVector "add" (into-array Class [Integer/TYPE Object]))
-    (.getMethod clojure.lang.APersistentVector "addAll" (into-array Class [Integer/TYPE java.util.Collection]))
-    (.getMethod clojure.lang.APersistentVector "add" (into-array Class [Object]))
-    (.getMethod clojure.lang.APersistentVector "remove" (into-array Class [Object]))
+    (fetch-method APersistentVector "removeAll" [java.util.Collection])
+    (fetch-method APersistentVector "retainAll" [java.util.Collection])
+    (fetch-method APersistentVector "clear" [])
+    (fetch-method APersistentVector "addAll" [java.util.Collection])
+    (fetch-method APersistentVector "remove" [Integer/TYPE])
+    (fetch-method APersistentVector "set" [Integer/TYPE Object])
+    (fetch-method APersistentVector "add" [Integer/TYPE Object])
+    (fetch-method APersistentVector "addAll" [Integer/TYPE java.util.Collection])
+    (fetch-method APersistentVector "add" [Object])
+    (fetch-method APersistentVector "remove" [Object])
     ;; how can I avoid this
-    (first (filter (fn [^java.lang.reflect.Method m] (and (= (.getName m) "assoc") (= (.getReturnType m) clojure.lang.Associative))) (.getMethods clojure.lang.APersistentVector))) 
-    (first (filter (fn [^java.lang.reflect.Method m] (and (= (.getName m) "assocN") (= (.getReturnType m) clojure.lang.IPersistentVector))) (.getMethods clojure.lang.PersistentVector))) 
-    (first (filter (fn [^java.lang.reflect.Method m] (and (= (.getName m) "withMeta") (= (.getReturnType m) clojure.lang.IObj))) (.getMethods clojure.lang.PersistentVector))) 
-    (first (filter (fn [^java.lang.reflect.Method m] (and (= (.getName m) "asTransient") (= (.getReturnType m) clojure.lang.ITransientCollection))) (.getMethods clojure.lang.PersistentVector))) 
+    (first (filter (fn [^java.lang.reflect.Method m] (and (= (.getName m) "assoc") (= (.getReturnType m) Associative))) (.getMethods APersistentVector))) 
+    (first (filter (fn [^java.lang.reflect.Method m] (and (= (.getName m) "assocN") (= (.getReturnType m) clojure.lang.IPersistentVector))) (.getMethods PersistentVector))) 
+    (first (filter (fn [^java.lang.reflect.Method m] (and (= (.getName m) "withMeta") (= (.getReturnType m) clojure.lang.IObj))) (.getMethods PersistentVector))) 
+    (first (filter (fn [^java.lang.reflect.Method m] (and (= (.getName m) "asTransient") (= (.getReturnType m) clojure.lang.ITransientCollection))) (.getMethods PersistentVector))) 
     ;; looks like iterators do not compare well
-    (.getMethod clojure.lang.PersistentVector "iterator" (into-array Class []))
-    (.getMethod clojure.lang.APersistentVector "listIterator" (into-array Class [Integer/TYPE]))
-    (.getMethod clojure.lang.APersistentVector "listIterator" (into-array Class []))
-    (.getMethod clojure.lang.PersistentVector "asTransient" (into-array Class []))
+    (fetch-method PersistentVector "iterator" [])
+    (fetch-method APersistentVector "listIterator" [Integer/TYPE])
+    (fetch-method APersistentVector "listIterator" [])
+    (fetch-method PersistentVector "asTransient" [])
 
     ;;; NYI
-    (.getMethod clojure.lang.PersistentVector "kvreduce" (into-array Class [clojure.lang.IFn Object]))
-    (.getMethod clojure.lang.PersistentVector "withMeta" (into-array Class [clojure.lang.IPersistentMap]))
-    (.getMethod clojure.lang.PersistentVector "nth" (into-array Class [Integer/TYPE Object]))
-    (.getMethod clojure.lang.APersistentVector "invoke" (into-array Class [Object]))
-    (.getMethod clojure.lang.PersistentVector "create" (into-array Class [(type->array-type Object)]))
-    (.getMethod clojure.lang.PersistentVector "create" (into-array Class [clojure.lang.ISeq]))
-    (.getMethod clojure.lang.PersistentVector "assocN" (into-array Class [Integer/TYPE Object]))
-    (.getMethod clojure.lang.APersistentVector "toArray" (into-array Class [(type->array-type Object)]))
-    (.getMethod clojure.lang.APersistentVector "valAt" (into-array Class [Object]))
-    (.getMethod clojure.lang.PersistentVector "arrayFor" (into-array Class [Integer/TYPE]))
-    (.getMethod clojure.lang.PersistentVector "nth" (into-array Class [Integer/TYPE]))
+    (fetch-method PersistentVector "kvreduce" [clojure.lang.IFn Object])
+    (fetch-method PersistentVector "withMeta" [clojure.lang.IPersistentMap])
+    (fetch-method PersistentVector "nth" [Integer/TYPE Object])
+    (fetch-method APersistentVector "invoke" [Object])
+    (fetch-method PersistentVector "create" [(type->array-type Object)])
+    (fetch-method PersistentVector "create" [clojure.lang.ISeq])
+    (fetch-method PersistentVector "assocN" [Integer/TYPE Object])
+    (fetch-method APersistentVector "toArray" [(type->array-type Object)])
+    (fetch-method APersistentVector "valAt" [Object])
+    (fetch-method PersistentVector "arrayFor" [Integer/TYPE])
+    (fetch-method PersistentVector "nth" [Integer/TYPE])
     })
 
 (def input-fns
    {
-    (.getMethod clojure.lang.APersistentVector "assoc" (into-array Class [Object Object])) [identity (fn [_] 0) (fn [_] nil)]
-    (.getMethod clojure.lang.APersistentVector "compareTo" (into-array Class [Object])) []
-    (.getMethod clojure.lang.APersistentVector "contains" (into-array Class [Object])) [identity (fn [[h]] h)]
-    (.getMethod clojure.lang.APersistentVector "containsAll" (into-array Class [java.util.Collection])) []
-    (.getMethod clojure.lang.APersistentVector "containsKey" (into-array Class [Object])) [identity (fn [i] 0)]
-    (.getMethod clojure.lang.APersistentVector "entryAt" (into-array Class [Object])) [identity (fn [_] 0)]
-    (.getMethod clojure.lang.APersistentVector "get" (into-array Class [Integer/TYPE])) [identity (fn [_] 0)]
-    (.getMethod clojure.lang.APersistentVector "subList" (into-array Class [Integer/TYPE Integer/TYPE])) [identity (fn [_] 0) (fn [_] 1)]
-    (.getMethod clojure.lang.PersistentVector "meta" (into-array Class [])) [(fn [v] (with-meta v {:arg "meta"}))]
+    (fetch-method APersistentVector "assoc" [Object Object]) [identity (fn [_] 0) (fn [_] nil)]
+    (fetch-method APersistentVector "compareTo" [Object]) []
+    (fetch-method APersistentVector "contains" [Object]) [identity (fn [[h]] h)]
+    (fetch-method APersistentVector "containsAll" [java.util.Collection]) []
+    (fetch-method APersistentVector "containsKey" [Object]) [identity (fn [i] 0)]
+    (fetch-method APersistentVector "entryAt" [Object]) [identity (fn [_] 0)]
+    (fetch-method APersistentVector "get" [Integer/TYPE]) [identity (fn [_] 0)]
+    (fetch-method APersistentVector "subList" [Integer/TYPE Integer/TYPE]) [identity (fn [_] 0) (fn [_] 1)]
+    (fetch-method PersistentVector "meta" []) [(fn [v] (with-meta v {:arg "meta"}))]
     }
   )
 
 (deftest-kernels
   (filter (fn [^java.lang.reflect.Method m] (not (contains? #{java.lang.Object clojure.lang.AFn java.lang.Iterable java.util.List java.util.Collection} (.getDeclaringClass m))))
-          (extract-methods non-static? clojure.lang.PersistentVector excluded-methods))
+          (extract-methods non-static? PersistentVector excluded-methods))
   (fn [i] (mapv (fn [j] (* i j)) (range 1 (inc *wavefront-size*))))
   input-fns)
 

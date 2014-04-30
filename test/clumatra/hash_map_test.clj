@@ -1,4 +1,7 @@
 (ns clumatra.hash-map-test
+  (:import  [java.lang.reflect Method]
+            [java.util Collection Map]
+            [clojure.lang IObj AFn IFn ISeq IPersistentMap ITransientCollection APersistentMap PersistentHashMap Associative PersistentHashMap$TransientHashMap])
   (:require [clojure.core
              [reducers :as r]
              [rrb-vector :as v]]
@@ -10,57 +13,56 @@
 
 (def excluded-methods
   #{
-    (.getMethod clojure.lang.APersistentMap "clear" (into-array Class []))
-    (.getMethod clojure.lang.APersistentMap "put" (into-array Class [Object Object]))
-    (.getMethod clojure.lang.APersistentMap "putAll" (into-array Class [java.util.Map]))
+    (fetch-method APersistentMap "clear"   [])
+    (fetch-method APersistentMap "count"   [])
+    (fetch-method APersistentMap "empty"   [])
+    (fetch-method APersistentMap "get"     [Object])
+    (fetch-method APersistentMap "invoke"  [Object])
+    (fetch-method APersistentMap "put"     [Object Object])
+    (fetch-method APersistentMap "putAll"  [Map])
+    (fetch-method APersistentMap "remove"  [Object])
+    (fetch-method APersistentMap "seq"     [])
+    (fetch-method APersistentMap "values"  [])
 
-    (.getMethod clojure.lang.APersistentMap "count" (into-array Class []))
-    (.getMethod clojure.lang.APersistentMap "empty" (into-array Class []))
-    (.getMethod clojure.lang.APersistentMap "get" (into-array Class [Object]))
-    (.getMethod clojure.lang.APersistentMap "invoke" (into-array Class [Object]))
-    (.getMethod clojure.lang.APersistentMap "remove" (into-array Class [Object]))
-    (.getMethod clojure.lang.APersistentMap "seq" (into-array Class []))
-;;    (.getMethod clojure.lang.APersistentMap "valAt" (into-array Class [Object Object]))
-;;    (.getMethod clojure.lang.APersistentMap "valAt" (into-array Class [Object]))
-    (.getMethod clojure.lang.APersistentMap "values" (into-array Class []))
+    (fetch-method PersistentHashMap "assocEx"         [Object Object])
+    (fetch-method PersistentHashMap "containsKey"     [Object])
+    (fetch-method PersistentHashMap "count"           [])
+    (fetch-method PersistentHashMap "create"          [(type->array-type Object)])
+    (fetch-method PersistentHashMap "create"          [IPersistentMap (type->array-type Object)])
+    (fetch-method PersistentHashMap "create"          [ISeq])
+    (fetch-method PersistentHashMap "createWithCheck" [(type->array-type Object)])
+    (fetch-method PersistentHashMap "createWithCheck" [ISeq])
+    (fetch-method PersistentHashMap "empty"           [])
+    (fetch-method PersistentHashMap "entryAt"         [Object])
+    (fetch-method PersistentHashMap "fold"            [Long/TYPE IFn IFn IFn IFn IFn IFn])
+    (fetch-method PersistentHashMap "iterator"        [])
+    (fetch-method PersistentHashMap "kvreduce"        [IFn Object])
+    (fetch-method PersistentHashMap "meta"            [])
+    (fetch-method PersistentHashMap "seq"             [])
+    (fetch-method PersistentHashMap "without"         [Object])
 
-    (.getMethod clojure.lang.PersistentHashMap "asTransient" (into-array Class []))
-    (.getMethod clojure.lang.PersistentHashMap "assoc" (into-array Class [Object Object]))
-    (.getMethod clojure.lang.PersistentHashMap "assocEx" (into-array Class [Object Object]))
-    (.getMethod clojure.lang.PersistentHashMap "containsKey" (into-array Class [Object]))
-    (.getMethod clojure.lang.PersistentHashMap "count" (into-array Class []))
-    (.getMethod clojure.lang.PersistentHashMap "create" (into-array Class [(type->array-type Object)]))
-    (.getMethod clojure.lang.PersistentHashMap "create" (into-array Class [clojure.lang.IPersistentMap (type->array-type Object)]))
-    (.getMethod clojure.lang.PersistentHashMap "create" (into-array Class [clojure.lang.ISeq]))
-    (.getMethod clojure.lang.PersistentHashMap "createWithCheck" (into-array Class [(type->array-type Object)]))
-    (.getMethod clojure.lang.PersistentHashMap "createWithCheck" (into-array Class [clojure.lang.ISeq]))
-    (.getMethod clojure.lang.PersistentHashMap "empty" (into-array Class []))
-    (.getMethod clojure.lang.PersistentHashMap "entryAt" (into-array Class [Object]))
-    (.getMethod clojure.lang.PersistentHashMap "fold" (into-array Class [Long/TYPE clojure.lang.IFn clojure.lang.IFn clojure.lang.IFn clojure.lang.IFn clojure.lang.IFn clojure.lang.IFn]))
-    (.getMethod clojure.lang.PersistentHashMap "iterator" (into-array Class []))
-    (.getMethod clojure.lang.PersistentHashMap "kvreduce" (into-array Class [clojure.lang.IFn Object]))
-    (.getMethod clojure.lang.PersistentHashMap "meta" (into-array Class []))
-    (.getMethod clojure.lang.PersistentHashMap "seq" (into-array Class []))
-    (.getMethod clojure.lang.PersistentHashMap "withMeta" (into-array Class [clojure.lang.IPersistentMap]))
-    (.getMethod clojure.lang.PersistentHashMap "without" (into-array Class [Object]))
-
-    (first (filter (fn [^java.lang.reflect.Method m] (and (= (.getName m) "asTransient") (= (.getReturnType m) clojure.lang.ITransientCollection))) (.getMethods clojure.lang.PersistentHashMap)))
-    (first (filter (fn [^java.lang.reflect.Method m] (and (= (.getName m) "assoc") (= (.getReturnType m) clojure.lang.Associative))) (.getMethods clojure.lang.PersistentHashMap)))
-    (first (filter (fn [^java.lang.reflect.Method m] (and (= (.getName m) "valAt") (= (.getReturnType m) Object) (= (seq (.getParameterTypes m)) [Object]))) (.getMethods clojure.lang.PersistentHashMap)))
-    (first (filter (fn [^java.lang.reflect.Method m] (and (= (.getName m) "valAt") (= (.getReturnType m) Object) (= (seq (.getParameterTypes m)) [Object Object]))) (.getMethods clojure.lang.PersistentHashMap)))
-    (first (filter (fn [^java.lang.reflect.Method m] (and (= (.getName m) "withMeta") (= (.getReturnType m) clojure.lang.IObj))) (.getMethods clojure.lang.PersistentHashMap)))
+    (fetch-method APersistentMap "valAt" Object [Object Object])
+    (fetch-method APersistentMap "valAt" Object [Object])
+    (fetch-method PersistentHashMap "asTransient" ITransientCollection [])
+    (fetch-method PersistentHashMap "asTransient" PersistentHashMap$TransientHashMap [])
+    (fetch-method PersistentHashMap "assoc" Associative [Object Object])
+    (fetch-method PersistentHashMap "assoc" IPersistentMap [Object Object])
+    (fetch-method PersistentHashMap "valAt" Object [Object Object])
+    (fetch-method PersistentHashMap "valAt" Object [Object])
+    (fetch-method PersistentHashMap "withMeta" IObj [IPersistentMap])
+    (fetch-method PersistentHashMap "withMeta" PersistentHashMap [IPersistentMap])
     })
 
 (def input-fns {})
 
 (deftest-kernels
   (filter
-   (fn [^java.lang.reflect.Method m]
+   (fn [^Method m]
      (not
       (contains?
-       #{java.lang.Object clojure.lang.AFn java.lang.Iterable java.util.Map java.util.Collection}
+       #{Object AFn Iterable Map Collection}
        (.getDeclaringClass m))))
-   (extract-methods non-static? clojure.lang.PersistentHashMap excluded-methods))
+   (extract-methods non-static? PersistentHashMap excluded-methods))
   (fn [i] (reduce (fn [r j] (conj r [(* i j) j])) {} (range 1 (inc *wavefront-size*))))
   input-fns)
 

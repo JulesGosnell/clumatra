@@ -1,4 +1,7 @@
 (ns clumatra.hash-set-test
+  (:import  [java.lang.reflect Method]
+            [java.util Collection Map List Set]
+            [clojure.lang IObj AFn IFn ISeq IPersistentMap ITransientCollection APersistentSet PersistentHashSet Associative])
   (:require [clojure.core
              [reducers :as r]
              [rrb-vector :as v]]
@@ -11,40 +14,40 @@
 (def excluded-methods
   #{
     ;;; NYI
-    (.getMethod clojure.lang.APersistentSet "add" (into-array Class [Object]))
-    (.getMethod clojure.lang.APersistentSet "get" (into-array Class [Object]))
-    (.getMethod clojure.lang.APersistentSet "invoke" (into-array Class [Object]))
-    (.getMethod clojure.lang.APersistentSet "iterator" (into-array Class []))
-    (.getMethod clojure.lang.APersistentSet "remove" (into-array Class [Object]))
-    (.getMethod clojure.lang.APersistentSet "toArray" (into-array Class [(type->array-type Object)]))
+    (fetch-method APersistentSet "add"      [Object])
+    (fetch-method APersistentSet "get"      [Object])
+    (fetch-method APersistentSet "invoke"   [Object])
+    (fetch-method APersistentSet "iterator" [])
+    (fetch-method APersistentSet "remove"   [Object])
+    (fetch-method APersistentSet "toArray"  [(type->array-type Object)])
 
-    (.getMethod clojure.lang.PersistentHashSet "addAll" (into-array Class [java.util.Collection]))
-    (.getMethod clojure.lang.PersistentHashSet "asTransient" (into-array Class []))
-    (.getMethod clojure.lang.PersistentHashSet "clear" (into-array Class []))
-    (.getMethod clojure.lang.PersistentHashSet "create" (into-array Class [(type->array-type Object)]))
-    (.getMethod clojure.lang.PersistentHashSet "create" (into-array Class [clojure.lang.ISeq]))
-    (.getMethod clojure.lang.PersistentHashSet "create" (into-array Class [java.util.List]))
-    (.getMethod clojure.lang.PersistentHashSet "createWithCheck" (into-array Class [(type->array-type Object)]))
-    (.getMethod clojure.lang.PersistentHashSet "createWithCheck" (into-array Class [clojure.lang.ISeq]))
-    (.getMethod clojure.lang.PersistentHashSet "createWithCheck" (into-array Class [java.util.List]))
-    (.getMethod clojure.lang.PersistentHashSet "meta" (into-array Class []))
-    (.getMethod clojure.lang.PersistentHashSet "removeAll" (into-array Class [java.util.Collection]))
-    (.getMethod clojure.lang.PersistentHashSet "retainAll" (into-array Class [java.util.Collection]))
-    (.getMethod clojure.lang.PersistentHashSet "withMeta" (into-array Class [clojure.lang.IPersistentMap]))
+    (fetch-method PersistentHashSet "addAll"          [Collection])
+    (fetch-method PersistentHashSet "asTransient"     [])
+    (fetch-method PersistentHashSet "clear"           [])
+    (fetch-method PersistentHashSet "create"          [(type->array-type Object)])
+    (fetch-method PersistentHashSet "create"          [ISeq])
+    (fetch-method PersistentHashSet "create"          [List])
+    (fetch-method PersistentHashSet "createWithCheck" [(type->array-type Object)])
+    (fetch-method PersistentHashSet "createWithCheck" [ISeq])
+    (fetch-method PersistentHashSet "createWithCheck" [List])
+    (fetch-method PersistentHashSet "meta"            [])
+    (fetch-method PersistentHashSet "removeAll"       [Collection])
+    (fetch-method PersistentHashSet "retainAll"       [Collection])
 
-    (first (filter (fn [^java.lang.reflect.Method m] (and (= (.getName m) "withMeta") (= (.getReturnType m) clojure.lang.IObj))) (.getMethods clojure.lang.PersistentHashSet)))
+    (fetch-method PersistentHashSet "withMeta" PersistentHashSet [IPersistentMap])
+    (fetch-method PersistentHashSet "withMeta" IObj              [IPersistentMap])
     })
 
 (def input-fns {})
 
 (deftest-kernels
   (filter
-   (fn [^java.lang.reflect.Method m]
+   (fn [^Method m]
      (not
       (contains?
-       #{java.lang.Object clojure.lang.AFn java.lang.Iterable java.util.Set java.util.Collection}
+       #{Object AFn Iterable Set Collection}
        (.getDeclaringClass m))))
-   (extract-methods non-static? clojure.lang.PersistentHashSet excluded-methods))
+   (extract-methods non-static? PersistentHashSet excluded-methods))
   (fn [i] (into #{} (map (fn [j] (* i j)) (range 1 (inc *wavefront-size*)))))
   input-fns)
 
