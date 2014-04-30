@@ -1,6 +1,6 @@
 (ns clumatra.sorted-map-test
-  (:import  [java.util Collection Map]
-            [clojure.lang AFn ISeq APersistentMap PersistentTreeMap PersistentTreeMap$NodeIterator])
+  (:import  [java.util Collection Map Iterator]
+            [clojure.lang Associative AFn ISeq IPersistentMap IMapEntry APersistentMap PersistentTreeMap PersistentTreeMap$NodeIterator])
   (:require [clojure.core
              [reducers :as r]
              [rrb-vector :as v]]
@@ -48,15 +48,15 @@
     (fetch-method PersistentTreeMap "seqFrom" [Object Boolean/TYPE])
     (fetch-method PersistentTreeMap "without" [Object])
 
-    (first (filter (fn [^java.lang.reflect.Method m] (and (= (.getName m) "assoc") (= (.getReturnType m) clojure.lang.Associative) (= (seq (.getParameterTypes m)) [Object Object]))) (.getMethods PersistentTreeMap)))
-    (first (filter (fn [^java.lang.reflect.Method m] (and (= (.getName m) "assoc") (= (.getReturnType m) clojure.lang.IPersistentMap) (= (seq (.getParameterTypes m)) [Object Object]))) (.getMethods PersistentTreeMap)))
-    (first (filter (fn [^java.lang.reflect.Method m] (and (= (.getName m) "assocEx") (= (.getReturnType m) clojure.lang.IPersistentMap) (= (seq (.getParameterTypes m)) [Object Object]))) (.getMethods PersistentTreeMap)))
-    (first (filter (fn [^java.lang.reflect.Method m] (and (= (.getName m) "entryAt") (= (.getReturnType m) clojure.lang.IMapEntry) (= (seq (.getParameterTypes m)) [Object]))) (.getMethods PersistentTreeMap)))
-    (first (filter (fn [^java.lang.reflect.Method m] (and (= (.getName m) "iterator") (= (.getReturnType m) java.util.Iterator))) (.getMethods PersistentTreeMap)))
-    (first (filter (fn [^java.lang.reflect.Method m] (and (= (.getName m) "valAt") (= (.getReturnType m) Object) (= (seq (.getParameterTypes m)) [Object Object]))) (.getMethods PersistentTreeMap)))
-    (first (filter (fn [^java.lang.reflect.Method m] (and (= (.getName m) "valAt") (= (.getReturnType m) Object) (= (seq (.getParameterTypes m)) [Object]))) (.getMethods PersistentTreeMap)))
-    (first (filter (fn [^java.lang.reflect.Method m] (and (= (.getName m) "without") (= (.getReturnType m) clojure.lang.IPersistentMap) (= (seq (.getParameterTypes m)) [Object Object]))) (.getMethods PersistentTreeMap)))
-    (first (filter (fn [^java.lang.reflect.Method m] (and (= (.getName m) "without") (= (.getReturnType m) clojure.lang.IPersistentMap) (= (seq (.getParameterTypes m)) [Object]))) (.getMethods PersistentTreeMap)))
+    (fetch-method PersistentTreeMap "assoc" Associative [Object Object])
+    (fetch-method PersistentTreeMap "assoc" IPersistentMap [Object Object])
+    (fetch-method PersistentTreeMap "assocEx" IPersistentMap [Object Object])
+    (fetch-method PersistentTreeMap "entryAt" IMapEntry [Object])
+    (fetch-method PersistentTreeMap "iterator" Iterator [])
+    (fetch-method PersistentTreeMap "valAt" Object [Object Object])
+    (fetch-method PersistentTreeMap "valAt" Object [Object])
+    (fetch-method PersistentTreeMap "without" IPersistentMap [Object Object])
+    (fetch-method PersistentTreeMap "without" IPersistentMap [Object])
     })
 
 (def input-fns {})

@@ -43,7 +43,7 @@
      (fetch-method PersistentStructMap "valAt" Object [Object Object])
 
      ;;(fetch-method PersistentStructMap "assoc" Associative [Object])
-     (first (filter (fn [^java.lang.reflect.Method m] (and (= (.getName m) "assoc") (= (.getReturnType m) clojure.lang.Associative))) (.getMethods PersistentStructMap)))
+     ;(first (filter (fn [^java.lang.reflect.Method m] (and (= (.getName m) "assoc") (= (.getReturnType m) clojure.lang.Associative))) (.getMethods PersistentStructMap)))
     })
 
 (def input-fns {})
