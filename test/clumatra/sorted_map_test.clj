@@ -46,7 +46,6 @@
     (fetch-method PersistentTreeMap "meta" [])
     (fetch-method PersistentTreeMap "reverseIterator" [])
     (fetch-method PersistentTreeMap "seqFrom" [Object Boolean/TYPE])
-    (fetch-method PersistentTreeMap "without" [Object])
 
     (fetch-method PersistentTreeMap "assoc" Associative [Object Object])
     (fetch-method PersistentTreeMap "assoc" IPersistentMap [Object Object])
@@ -55,8 +54,9 @@
     (fetch-method PersistentTreeMap "iterator" Iterator [])
     (fetch-method PersistentTreeMap "valAt" Object [Object Object])
     (fetch-method PersistentTreeMap "valAt" Object [Object])
-    (fetch-method PersistentTreeMap "without" IPersistentMap [Object Object])
+;;    (fetch-method PersistentTreeMap "without" IPersistentMap [Object Object])
     (fetch-method PersistentTreeMap "without" IPersistentMap [Object])
+    (fetch-method PersistentTreeMap "without" PersistentTreeMap [Object])
     })
 
 (def input-fns {})

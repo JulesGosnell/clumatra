@@ -1,6 +1,6 @@
 (ns clumatra.sorted-set-test
   (:import  [java.util Collection Map]
-            [clojure.lang AFn ISeq PersistentTreeSet APersistentSet])
+            [clojure.lang AFn IObj ISeq IPersistentSet IPersistentCollection PersistentTreeSet APersistentSet])
   (:require [clojure.core
              [reducers :as r]
              [rrb-vector :as v]]
@@ -24,7 +24,6 @@
 
     (fetch-method PersistentTreeSet "clear"      [])
     (fetch-method PersistentTreeSet "comparator" [])
-    (fetch-method PersistentTreeSet "cons"       [Object])
     (fetch-method PersistentTreeSet "create"     [clojure.lang.ISeq])
     (fetch-method PersistentTreeSet "create"     [java.util.Comparator clojure.lang.ISeq])
     (fetch-method PersistentTreeSet "disjoin"    [Object])
@@ -34,10 +33,11 @@
     (fetch-method PersistentTreeSet "rseq"       [])
     (fetch-method PersistentTreeSet "seq"        [Boolean/TYPE])
     (fetch-method PersistentTreeSet "seqFrom"    [Object Boolean/TYPE])
-    (fetch-method PersistentTreeSet "withMeta"   [clojure.lang.IPersistentMap])
 
-    (first (filter (fn [^java.lang.reflect.Method m] (and (= (.getName m) "cons") (= (.getReturnType m) clojure.lang.IPersistentCollection))) (.getMethods PersistentTreeSet)))
-    (first (filter (fn [^java.lang.reflect.Method m] (and (= (.getName m) "withMeta") (= (.getReturnType m) clojure.lang.IObj))) (.getMethods PersistentTreeSet)))
+    (fetch-method PersistentTreeSet "cons" IPersistentCollection [Object])
+    (fetch-method PersistentTreeSet "cons" IPersistentSet [Object])
+    (fetch-method PersistentTreeSet "withMeta" PersistentTreeSet [clojure.lang.IPersistentMap])
+    (fetch-method PersistentTreeSet "withMeta" IObj [clojure.lang.IPersistentMap])
     })
 
 (def input-fns {})
