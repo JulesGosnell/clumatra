@@ -1,6 +1,6 @@
 (ns clumatra.vector-test
   (:import  [java.util Collection Map]
-            [clojure.lang AFn ISeq APersistentVector PersistentVector Associative])
+            [clojure.lang IObj AFn ISeq IPersistentVector APersistentVector PersistentVector Associative PersistentVector$TransientVector ITransientCollection])
   (:require [clojure.core
              [reducers :as r]
              [rrb-vector :as v]]
@@ -102,20 +102,22 @@
     (fetch-method APersistentVector "addAll" [Integer/TYPE java.util.Collection])
     (fetch-method APersistentVector "add" [Object])
     (fetch-method APersistentVector "remove" [Object])
+
     ;; how can I avoid this
-    (first (filter (fn [^java.lang.reflect.Method m] (and (= (.getName m) "assoc") (= (.getReturnType m) Associative))) (.getMethods APersistentVector))) 
-    (first (filter (fn [^java.lang.reflect.Method m] (and (= (.getName m) "assocN") (= (.getReturnType m) clojure.lang.IPersistentVector))) (.getMethods PersistentVector))) 
-    (first (filter (fn [^java.lang.reflect.Method m] (and (= (.getName m) "withMeta") (= (.getReturnType m) clojure.lang.IObj))) (.getMethods PersistentVector))) 
-    (first (filter (fn [^java.lang.reflect.Method m] (and (= (.getName m) "asTransient") (= (.getReturnType m) clojure.lang.ITransientCollection))) (.getMethods PersistentVector))) 
+    (fetch-method PersistentVector "assocN" IPersistentVector [Integer/TYPE Object])
+    (fetch-method APersistentVector "assoc" Associative [Object Object])
+    (fetch-method PersistentVector "withMeta" PersistentVector [clojure.lang.IPersistentMap])
+    (fetch-method PersistentVector "withMeta" IObj [clojure.lang.IPersistentMap])
+    (fetch-method PersistentVector "asTransient" ITransientCollection [])
+    (fetch-method PersistentVector "asTransient"  [])
+    
     ;; looks like iterators do not compare well
     (fetch-method PersistentVector "iterator" [])
     (fetch-method APersistentVector "listIterator" [Integer/TYPE])
     (fetch-method APersistentVector "listIterator" [])
-    (fetch-method PersistentVector "asTransient" [])
 
     ;;; NYI
     (fetch-method PersistentVector "kvreduce" [clojure.lang.IFn Object])
-    (fetch-method PersistentVector "withMeta" [clojure.lang.IPersistentMap])
     (fetch-method PersistentVector "nth" [Integer/TYPE Object])
     (fetch-method APersistentVector "invoke" [Object])
     (fetch-method PersistentVector "create" [(type->array-type Object)])
