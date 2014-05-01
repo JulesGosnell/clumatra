@@ -1,7 +1,7 @@
 (ns clumatra.queue-test
   (:import  [java.lang.reflect Method]
-            [java.util Collection Map List Set]
-            [clojure.lang Obj IObj AFn IFn ISeq ASeq IPersistentMap ITransientCollection PersistentQueue])
+            [java.util Collection List]
+            [clojure.lang Obj IObj AFn ASeq IPersistentMap PersistentQueue])
   (:require [clojure.core
              [reducers :as r]
              [rrb-vector :as v]]

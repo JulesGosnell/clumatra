@@ -1,7 +1,7 @@
 (ns clumatra.list-test
   (:import  [java.lang.reflect Method]
-            [java.util Collection Map List Set]
-            [clojure.lang Obj IObj AFn IFn ISeq ASeq IPersistentMap ITransientCollection PersistentList])
+            [java.util Collection List]
+            [clojure.lang Obj IObj AFn IFn ASeq IPersistentMap PersistentList])
   (:require [clojure.core
              [reducers :as r]
              [rrb-vector :as v]]

@@ -1,7 +1,7 @@
 (ns clumatra.array-map-test
   (:import  [java.lang.reflect Method]
             [java.util Collection Map]
-            [clojure.lang AFn IFn ISeq APersistentMap PersistentArrayMap ITransientCollection])
+            [clojure.lang AFn IFn APersistentMap PersistentArrayMap ITransientCollection ITransientMap])
   (:require [clojure.core
              [reducers :as r]
              [rrb-vector :as v]]
@@ -27,7 +27,6 @@
     (fetch-method APersistentMap "valAt"  [Object])
     (fetch-method APersistentMap "values" [])
 
-    (fetch-method PersistentArrayMap "asTransient"       [])
     (fetch-method PersistentArrayMap "createAsIfByAssoc" [(type->array-type Object)])
     (fetch-method PersistentArrayMap "createWithCheck"   [(type->array-type Object)])
     (fetch-method PersistentArrayMap "entryAt"           [Object])
@@ -35,6 +34,7 @@
     (fetch-method PersistentArrayMap "kvreduce"          [IFn Object])
     (fetch-method PersistentArrayMap "meta"              [])
 
+    (fetch-method PersistentArrayMap "asTransient" ITransientMap [])
     (fetch-method PersistentArrayMap "asTransient" ITransientCollection [])
     (fetch-method PersistentArrayMap "valAt"       Object [Object Object])
     (fetch-method PersistentArrayMap "valAt"       Object [Object])

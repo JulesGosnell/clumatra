@@ -1,7 +1,7 @@
 (ns clumatra.hash-set-test
   (:import  [java.lang.reflect Method]
-            [java.util Collection Map List Set]
-            [clojure.lang IObj AFn IFn ISeq IPersistentMap ITransientCollection APersistentSet PersistentHashSet Associative])
+            [java.util Collection List Set]
+            [clojure.lang IObj AFn ISeq IPersistentMap APersistentSet PersistentHashSet])
   (:require [clojure.core
              [reducers :as r]
              [rrb-vector :as v]]
