@@ -71,32 +71,37 @@
         [(count v)
          shift
          (vmap-node (.root v) (/ shift 5) bk lk)
-         (tk f (.tail v))]))))
+         (tk f (.tail v))])))))
 
-  (defn vmap [f ^PersistentVector v]
-    (let [lk (kernel-compile-leaf f)
-          bk (kernel-compile-branch (fn [n l bk] (if n (vmap-node n l bk lk))))]
-      (vmap-2 f v bk lk process-tail)))
 
-  (let [[fjpool fjtask fjinvoke fjfork fjjoin] (u/with-ns 'clojure.core.reducers [pool fjtask fjinvoke fjfork fjjoin])]
+(let [[fjpool fjtask fjinvoke fjfork fjjoin]
+      (u/with-ns 'clojure.core.reducers [pool fjtask fjinvoke fjfork fjjoin])]
 
-    (defn fjkernel-compile-branch [f]
-      (fn [^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out & args]
-        (fjinvoke
-         (fn []
-           (doseq [task (mapv 
-                         (fn [i] (fjfork (fjtask #(aset out i (apply f (aget in i) args)))))
-                         [0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31])]
-             (fjjoin task))))
-        out))
-  
-    (defn fjvmap [f ^PersistentVector v]
-      (let [lk (kernel-compile-leaf f)
-            bk (kernel-compile-branch (fn [n l bk] (if n (vmap-node n l bk lk))))
-            pbk (fjkernel-compile-branch (fn [n l pbk] (if n (vmap-node n l bk lk))))]
-        (vmap-2 f v pbk lk (fn [f t] (fjjoin (fjinvoke (fn [] (fjfork (fjtask #(process-tail f t)))))))))))
+  (defn fjkernel-compile-branch [f]
+    (fn [^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out & args]
+      (fjinvoke
+       (fn []
+         (doseq [task (mapv 
+                       (fn [i] (fjfork (fjtask #(aset out i (apply f (aget in i) args)))))
+                       [0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31])]
+           (fjjoin task))))
+      out))
+
+  (defn fjprocess-tail [f t]
+    (fjjoin (fjinvoke (fn [] (fjfork (fjtask #(process-tail f t)))))))
 
   )
+
+(defn vmap [f ^PersistentVector v]
+  (let [lk (kernel-compile-leaf f)
+        bk (kernel-compile-branch (fn [n l bk] (if n (vmap-node n l bk lk))))]
+    (vmap-2 f v bk lk process-tail)))
+
+(defn fjvmap [f ^PersistentVector v]
+  (let [lk (kernel-compile-leaf f)
+        bk (kernel-compile-branch (fn [n l bk] (if n (vmap-node n l bk lk))))
+        pbk (fjkernel-compile-branch (fn [n l pbk] (if n (vmap-node n l bk lk))))]
+    (vmap-2 f v pbk lk fjprocess-tail)))
 
 ;;------------------------------------------------------------------------------
 
