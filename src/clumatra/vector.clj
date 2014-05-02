@@ -34,13 +34,6 @@
           (recur (unchecked-inc i)))
         out))))
 
-;; map a kernel across an input array returning the output array...
-(defn vmap-leaf-array [^"[Ljava.lang.Object;" in k]
-  (k in (make-array Object 32)))
-
-(defn vmap-branch-array [^"[Ljava.lang.Object;" in level k]
-  (k in (make-array Object 32) level k))
-
 ;; recurse down a node mapping the branch and leaf kernels across the
 ;; appropriate arrays, returning a new Node...
 (defn vmap-node [^PersistentVector$Node n level bk lk]
@@ -48,8 +41,8 @@
    (AtomicReference.)
    (let [a (.array n)]
      (if (zero? level)
-       (vmap-leaf-array a lk)
-       (vmap-branch-array a (dec level) bk)
+       (lk a (make-array Object 32))
+       (bk a (make-array Object 32) (dec level) bk)
        ))))
 
 (defn process-tail [f ^"[Ljava.lang.Object;" in]
