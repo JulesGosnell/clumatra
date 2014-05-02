@@ -19,30 +19,17 @@
 (defn process-tail [f ^"[Ljava.lang.Object;" in]
   (let [n (count in)
         ^"[Ljava.lang.Object;" out (make-array Object n)]
-    (loop [i 0]
-      (if (< i n)
-        (do
-          (aset out i (f (aget in i)))
-          (recur (unchecked-inc i)))
-        out))))
+    (dotimes [i (count in)] (aset out i (f (aget in i))))
+    out))
 
 (defn kernel-compile-leaf [f]
   (fn [^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out]
-    (loop [i 0]
-      (if (< i 32)
-        (do
-          (aset out i (f (aget in i)))
-          (recur (unchecked-inc i)))
-        out))))
+    (dotimes [i 32] (aset out i (f (aget in i))))
+    out))
 
 (defn kernel-compile-branch [f]
   (fn [^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out & args]
-    (loop [i 0]
-      (if (< i 32)
-        (do
-          (aset out i (apply f (aget in i) args))
-          (recur (unchecked-inc i)))
-        out))))
+    (dotimes [i 32] (aset out i (apply f (aget in i) args))) out))
 
 ;; recurse down a node mapping the branch and leaf kernels across the
 ;; appropriate arrays, returning a new Node...
@@ -82,12 +69,13 @@
       (fjinvoke
        ;; can this be simplified ?
        (fn []
-         (doseq [task (mapv 
+         ;;; what about just using reduce or loop/recur/conj
+         (doseq [task (mapv
                        (fn [i] (fjfork (fjtask #(aset out i (apply f (aget in i) args)))))
                        [0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31])]
            (fjjoin task))))
       out))
-
+  
   (defn fjprocess-tail [f t]
     ;;can this be simplified ?
     (fjjoin (fjinvoke (fn [] (fjfork (fjtask #(process-tail f t)))))))
@@ -111,4 +99,7 @@
 ;;  add a gvmap that uses gpu
 ;;  define vreduce, fjvreduce and gvreduce
 ;;  timings and tests
+;;  fixed and variable sized kernel compilation
+;;  load-time kernel compilation of fn -> [bk, lk, tk] and map fns that accept this in place of fn
+;;  as above for reductions
 
