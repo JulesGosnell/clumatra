@@ -80,6 +80,7 @@
   (defn fjkernel-compile-branch [f]
     (fn [^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out & args]
       (fjinvoke
+       ;; can this be simplified ?
        (fn []
          (doseq [task (mapv 
                        (fn [i] (fjfork (fjtask #(aset out i (apply f (aget in i) args)))))
@@ -88,6 +89,7 @@
       out))
 
   (defn fjprocess-tail [f t]
+    ;;can this be simplified ?
     (fjjoin (fjinvoke (fn [] (fjfork (fjtask #(process-tail f t)))))))
 
   )
@@ -105,5 +107,8 @@
 
 ;;------------------------------------------------------------------------------
 
-
+;; TODO:
+;;  add a gvmap that uses gpu
+;;  define vreduce, fjvreduce and gvreduce
+;;  timings and tests
 
