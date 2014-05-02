@@ -19,7 +19,7 @@
 (defn process-tail [f ^"[Ljava.lang.Object;" in]
   (let [n (count in)
         ^"[Ljava.lang.Object;" out (make-array Object n)]
-    (dotimes [i (count in)] (aset out i (f (aget in i))))
+    (dotimes [i n] (aset out i (f (aget in i))))
     out))
 
 (defn kernel-compile-leaf [f]
