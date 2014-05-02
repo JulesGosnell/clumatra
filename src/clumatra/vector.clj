@@ -67,12 +67,11 @@
   (defn fjkernel-compile-branch [f]
     (fn [^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out & args]
       (fjinvoke
-       ;; can this be simplified ?
        (fn []
-         ;;; what about just using reduce or loop/recur/conj
-         (doseq [task (mapv
-                       (fn [i] (fjfork (fjtask #(aset out i (apply f (aget in i) args)))))
-                       [0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31])]
+         (doseq [task 
+                 (let [tasks (object-array 32)]
+                   (dotimes [i 32] (aset tasks i (fjfork (fjtask #(aset out i (apply f (aget in i) args))))))
+                   tasks)]
            (fjjoin task))))
       out))
   
