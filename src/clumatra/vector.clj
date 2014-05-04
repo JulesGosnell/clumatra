@@ -76,7 +76,6 @@
       out))
   
   (defn fjprocess-tail [f t]
-    ;;can this be simplified ?
     (fjjoin (fjinvoke (fn [] (fjfork (fjtask #(process-tail f t)))))))
 
   )
@@ -92,6 +91,13 @@
         pbk (fjkernel-compile-branch (fn [n l pbk] (if n (vmap-node n l bk lk))))]
     (vmap-2 f v pbk lk fjprocess-tail)))
 
+;; try this on okra...!
+
+;; (defn gvmap [f ^PersistentVector v]
+;;   (let [lk (c/kernel-compile f 32)      ;from clumatra.core/
+;;         bk (kernel-compile-branch (fn [n l bk] (if n (vmap-node n l bk lk))))]
+;;     (vmap-2 f v bk lk process-tail)))
+
 ;;------------------------------------------------------------------------------
 
 ;; TODO:
@@ -101,4 +107,6 @@
 ;;  fixed and variable sized kernel compilation
 ;;  load-time kernel compilation of fn -> [bk, lk, tk] and map fns that accept this in place of fn
 ;;  as above for reductions
+;;  we need versions of these maps that zip
+
 
