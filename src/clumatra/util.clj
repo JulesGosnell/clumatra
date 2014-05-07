@@ -19,12 +19,6 @@
     `(do ~then)
     `(do ~else)))
 
-;; (defn find-method [object ^String name]
-;;   (first (filter (fn [^Method method] (= (.getName method) "invoke")) (.getDeclaredMethods (class object)))))
-
-;; (defn find-method [object ^String name]
-;;   (first (filter (fn [^Method method] (= (.getName method) "invoke")) (.getMethods (class object)))))
-
 (defn warn-if-nil [value message]
   (if (nil? value)
     (do
