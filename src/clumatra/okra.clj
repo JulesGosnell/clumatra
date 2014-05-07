@@ -9,8 +9,7 @@
    [com.amd.okra OkraContext OkraKernel])
   (:require
    [no [disassemble :as d]]
-   [clumatra [util])
-  )
+   [clumatra [util]]))
 
 ;; bottom-up approach to enabling GPU to be used to map a function across a seqence
 
