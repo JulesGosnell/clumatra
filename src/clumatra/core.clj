@@ -21,7 +21,8 @@
  (do
    ;; looks like okra is available :-)
    (println "*** LOADING WITH OKRA ***")
-   (use '(clumatra okra))
+   (require '(clumatra okra))
+   (def okra-kernel-compile clumatra.okra/okra-kernel-compile)
    )
  (do
    ;; we must be on my i386 laptop :-(
