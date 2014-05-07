@@ -29,3 +29,18 @@
    (def okra-kernel-compile local-kernel-compile)
    ))
 (println)
+
+;;------------------------------------------------------------------------------
+;; general kernel for mapping a fn over a single input array...
+
+(definterface Kernel (^void invoke [^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out ^int i]))
+
+(defn kernel-compile [function n]
+  (let [kernel (reify Kernel
+                 (^void invoke [^Kernel self ^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out ^int i]
+                   (aset out i
+                         ;;(foo
+                         (aget in i)
+                         ;;)
+                         )))]
+    (okra-kernel-compile kernel (u/fetch-method (class kernel) "invoke") n)))
