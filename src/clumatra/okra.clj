@@ -37,12 +37,17 @@
                           backend
                           (.lookupJavaMethod (.getMetaAccess (.getProviders backend)) method)
                           false))]
+        ;; TODO: we need a second way of doing this where we pass in
+        ;; the wavefront size at call-time - they could be one and the
+        ;; same, but we need to do some performance testing before
+        ;; making this decision... done the testing there does not
+        ;; seem to be much difference...
         (fn [& args]
           ;; TODO: I am assuming that we need a fresh Kernel for each
           ;; concurrent GPU core...
           (doto (OkraKernel. okra-context code-string "&run")
             (.setLaunchAttributes n)
-            (.dispatchWithArgs (object-array (conj args kernel)))
+            (.dispatchWithArgs (object-array (cons kernel args)))
             (.dispose))
           (last args))))))
 
