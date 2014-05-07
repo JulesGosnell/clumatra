@@ -41,8 +41,8 @@
           ;; concurrent GPU core...
           (doto (OkraKernel. okra-context code-string "&run")
             (.setLaunchAttributes n)
-            (.dispatchWithArgs (object-array (cons kernel args)))
-            (.dispose))
+            (.dispatchWithArgs (object-array (cons kernel args))))
+          ;;(.dispose okra-context)
           (last args))))))
 
 ;;------------------------------------------------------------------------------
