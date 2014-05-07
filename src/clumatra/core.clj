@@ -8,10 +8,11 @@
 
 ;;------------------------------------------------------------------------------
 
+;; WARNING: this is invoked via introspection and will therefore be SLOOOOW...
 (defn local-kernel-compile [kernel ^Method method n]
   (fn [& args]
-    (doseq [^Long i (range n)]
-      (.invoke method kernel (into-array Object (concat args (list (int i))))))
+    (dotimes [i n]
+      (.invoke method kernel (object-array (concat args (list (int i))))))
     (last args)))
 
 (println)
