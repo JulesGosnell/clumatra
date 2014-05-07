@@ -104,7 +104,7 @@
 ;;------------------------------------------------------------------------------
 ;;; lets try reducing
 
-x;; (defn kernel-compile-reduce-leaf [f]
+;; (defn kernel-compile-reduce-leaf [f]
 ;;   (fn [init ^"[Ljava.lang.Object;" a]
 ;;     (clojure.lang.RT/areduce f init a)
 ;;     ;; (let [l (alength a)]
