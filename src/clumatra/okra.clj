@@ -19,7 +19,7 @@
 ;; have finished using the kernel...
 ;;------------------------------------------------------------------------------
 
-(defn kernel-compile2 [kernel ^Method method n]
+(defn okra-kernel-compile [kernel ^Method method n]
   (let [verbose (if (System/getProperty "clumatra.verbose") true false)
         okra-context (doto (OkraContext.) (.setVerbose (true? verbose)))]
     (with-open [a (OptionValue/override (GraalOptions/InlineEverything) true)
@@ -36,9 +36,11 @@
                           (.lookupJavaMethod (.getMetaAccess (.getProviders backend)) method)
                           false))]
         (fn [& args]
+          ;; TODO: I am assuming that we need a fresh Kernel for each
+          ;; concurrent GPU core...
           (doto (OkraKernel. okra-context code-string "&run")
             (.setLaunchAttributes n)
-            (.dispatchWithArgs (into-array Object (conj args kernel))))
+            (.dispatchWithArgs (object-array (conj args kernel))))
           (last args))))))
 
 ;;------------------------------------------------------------------------------
@@ -55,7 +57,6 @@
                          (aget in i)
                          ;;)
                          )))]
-    (kernel-compile2 kernel (fetch-method (class kernel) "invoke") n)))
+    (okra-kernel-compile kernel (fetch-method (class kernel) "invoke") n)))
   
-
 ;;------------------------------------------------------------------------------

@@ -21,12 +21,10 @@
    ;; looks like okra is available :-)
    (println "*** LOADING WITH OKRA ***")
    (use '(clumatra okra))
-   (def okra-kernel-compile kernel-compile2)
    )
  (do
    ;; we must be on my i386 laptop :-(
    (println "*** LOADING WITHOUT OKRA ***")
-    
    (def okra-kernel-compile local-kernel-compile)
    ))
 (println)
