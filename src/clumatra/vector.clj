@@ -11,7 +11,9 @@
              [reducers :as r]
              [rrb-vector :as v]]
             [clumatra
-             [util :as u]])
+             [util :as u]]
+            ;;[no [disassemble :as d]]
+            )
   )
 
 (set! *warn-on-reflection* true)
@@ -25,6 +27,7 @@
 (defn kernel-compile-leaf [f]
   (fn [^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out]
     (dotimes [i 32] (aset out i (f (aget in i))))
+    ;;(clojure.lang.RT/amap f in out)
     out))
 
 (defn kernel-compile-branch [f]
@@ -99,6 +102,55 @@
 ;;     (vmap-2 f v bk lk process-tail)))
 
 ;;------------------------------------------------------------------------------
+;;; lets try reducing
+
+x;; (defn kernel-compile-reduce-leaf [f]
+;;   (fn [init ^"[Ljava.lang.Object;" a]
+;;     (clojure.lang.RT/areduce f init a)
+;;     ;; (let [l (alength a)]
+;;     ;;   (loop  [i 0 r init]
+;;     ;;     (if (< i l)
+;;     ;;       (recur (unchecked-inc i) (f r (aget a i)))
+;;     ;;       r)))
+;;     ))
+
+;; (defn kernel-compile-reduce-branch [f]
+;;   (fn [init ^"[Ljava.lang.Object;" a]
+;;     (clojure.lang.RT/areduce f init a)
+;;     ;; (let [l (alength a)]
+;;     ;;   (loop  [i 0 r init]
+;;     ;;     (if (< i l)
+;;     ;;       (recur (unchecked-inc i) (f r (aget a i)))
+;;     ;;       r)))
+;;     ))
+
+;; (defn vreduce-node [^PersistentVector$Node n level bk lk]
+;;   (let [a (.array n)]
+;;     (if (= 1 level)
+;;       (lk a (make-array Object 32))
+;;       (bk a (make-array Object 32) (dec level) bk)
+;;       )))
+
+;; (defn vreduce-2 [f ^PersistentVector v bk lk tk]
+;;   (let [shift (.shift v)]
+;;     (apply
+;;      f
+;;      (vreduce-node (.root v) (/ shift 5) bk lk)
+;;      (tk f (.tail v)))))
+
+;; (defn vreduce [bf lf v]
+;;   (let [lk (kernel-compile-leaf lf)
+;;         bk (kernel-compile-branch (fn [n l bk] (if n (vmap-node n l bk lk))))]
+;;     (vreduce-2 f v bk lk process-tail)))
+
+;; (defn array-reduce [f init ^"[Ljava.lang.Object;" a]
+;;   (let [l (alength a)]
+;;     (loop  [i 0 r init]
+;;       (if (< i l)
+;;         (recur (unchecked-inc i) (f r (aget a i)))
+;;          r))))
+
+;;------------------------------------------------------------------------------
 
 ;; TODO:
 ;;  add a gvmap that uses gpu
@@ -107,6 +159,6 @@
 ;;  fixed and variable sized kernel compilation
 ;;  load-time kernel compilation of fn -> [bk, lk, tk] and map fns that accept this in place of fn
 ;;  as above for reductions
-;;  we need versions of these maps that zip
+;;  we need versions of these maps that zip - more playing with macros...
 
 
