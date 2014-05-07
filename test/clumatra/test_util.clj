@@ -5,38 +5,9 @@
              [reducers :as r]
              [rrb-vector :as v]]
             [clojure [pprint :as p]]
-            [clumatra [util :as u]])
+            [clumatra [util :as u]]
+            [clumatra.core :refer :all])
   (:gen-class))
-
-(set! *warn-on-reflection* true)
-
-;;------------------------------------------------------------------------------
-
-(defn local-kernel-compile [kernel ^Method method n]
-  (fn [& args]
-    (doseq [^Long i (range n)]
-      (.invoke method kernel (into-array Object (concat args (list (int i))))))
-    (last args)))
-
-(println)
-(u/compile-if
- (Class/forName "com.amd.okra.OkraContext")
- (do
-   ;; looks like okra is available :-)
-   (println "*** TESTING WITH OKRA ***")
-   (use '(clumatra core))
-   (def okra-kernel-compile kernel-compile2)
-   )
- (do
-   ;; we must be on my i386 laptop :-(
-   (println "*** TESTING WITHOUT OKRA ***")
-    
-   (defn find-method [object ^String name]
-     (first (filter (fn [^Method method] (= (.getName method) "invoke")) (.getMethods (class object)))))
-    
-   (def okra-kernel-compile local-kernel-compile)
-   ))
-(println)
 
 ;;------------------------------------------------------------------------------
 

@@ -74,7 +74,7 @@
       </activation>
       <properties>
 	<clojure.vmargs>-Xms1g -Xmx1536m -server</clojure.vmargs>
-	<clojure.excluded.namespaces>clumatra.core</clojure.excluded.namespaces>
+	<clojure.excluded.namespaces>clumatra.okra</clojure.excluded.namespaces>
 	<okra.groupId>org.clojure</okra.groupId>
 	<okra.artifactId>clojure</okra.artifactId>
 	<okra.version>1.6.0</okra.version>
