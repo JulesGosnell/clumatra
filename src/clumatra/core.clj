@@ -1,7 +1,7 @@
 (ns clumatra.core
   (:import [java.lang.reflect Method])
   (:require [clojure.test :refer :all] 
-            [clumatra core [util :as u]])
+            [clumatra [util :as u]])
   )
             
 (set! *warn-on-reflection* true)
@@ -26,9 +26,6 @@
  (do
    ;; we must be on my i386 laptop :-(
    (println "*** LOADING WITHOUT OKRA ***")
-    
-   (defn find-method [object ^String name]
-     (first (filter (fn [^Method method] (= (.getName method) "invoke")) (.getMethods (class object)))))
     
    (def okra-kernel-compile local-kernel-compile)
    ))

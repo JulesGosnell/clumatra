@@ -5,7 +5,7 @@
              [reducers :as r]
              [rrb-vector :as v]]
             [clojure [pprint :as p]]
-            [clumatra [util :as u]]
+            [clumatra.util :refer :all]
             [clumatra.core :refer :all])
   (:gen-class))
 
@@ -110,7 +110,7 @@
   (if (array? a) [:array (map r-seq a)] a))
 
 (defn test-kernel [kernel default-input-fn in-types-and-fns out-type]
-  (let [method (find-method kernel "invoke")
+  (let [method (fetch-method (class kernel) "invoke")
         out-element (type->default out-type)
         out-fn (if out-element
                  (fn [] (into-array out-type (repeat *wavefront-size* out-element)))
@@ -162,24 +162,4 @@
 ;;------------------------------------------------------------------------------
 
 
-(defn warn-if-nil [value message]
-  (if (nil? value)
-    (do
-      (println message)
-      value)
-    value))
-
-(defn fetch-method
-  ([^Class class name parameter-types]
-     (.getMethod class name (into-array Class parameter-types)))
-  ([^Class class name ^Class return-type parameter-types]
-     (warn-if-nil
-      (first
-       (filter
-        (fn [^Method m]
-          (and (= (.getName m) name)
-               (= (.getReturnType m) return-type)
-               (= (seq (.getParameterTypes m)) (seq parameter-types))))
-        (.getMethods class)))
-      (str "ERROR: NO SUCH METHOD: "  return-type " " class "." name parameter-types))))
 

@@ -5,6 +5,7 @@
              [reducers :as r]
              [rrb-vector :as v]]
             [clojure.test :refer :all]
+            [clumatra.util :refer :all]
             [clumatra.vector :refer :all]
             [clumatra.test-util :refer :all]))
 

@@ -1,5 +1,5 @@
 (ns clumatra.util
-  (:import [java.lang.reflect Constructor]))
+  (:import [java.lang.reflect Constructor Method]))
 
 (defn ^Constructor unlock-constructor [^Class class param-types]
   (doto (.getDeclaredConstructor class param-types) (.setAccessible true)))
@@ -18,3 +18,36 @@
   (if (try (eval exp) (catch Throwable _ false))
     `(do ~then)
     `(do ~else)))
+
+;; (defn find-method [object ^String name]
+;;   (first (filter (fn [^Method method] (= (.getName method) "invoke")) (.getDeclaredMethods (class object)))))
+
+;; (defn find-method [object ^String name]
+;;   (first (filter (fn [^Method method] (= (.getName method) "invoke")) (.getMethods (class object)))))
+
+(defn warn-if-nil [value message]
+  (if (nil? value)
+    (do
+      (println message)
+      value)
+    value))
+
+(defn fetch-method
+  ([^Class class name]
+     (warn-if-nil
+      (first (filter (fn [^Method m] (= (.getName m) name)) (.getMethods class)))
+      (str "ERROR: NO SUCH METHOD: " class "." name)))
+  ([^Class class name parameter-types]
+     (.getMethod class name (into-array Class parameter-types)))
+  ([^Class class name ^Class return-type parameter-types]
+     (warn-if-nil
+      (first
+       (filter
+        (fn [^Method m]
+          (and (= (.getName m) name)
+               (= (.getReturnType m) return-type)
+               (= (seq (.getParameterTypes m)) (seq parameter-types))))
+        (.getMethods class)))
+      (str "ERROR: NO SUCH METHOD: "  return-type " " class "." name parameter-types))))
+    
+

@@ -7,7 +7,7 @@
              [reducers :as r]
              [rrb-vector :as v]]
             [clojure [pprint :as p]]
-            [clumatra [util :as u]]
+            [clumatra.util :refer :all]
             [clumatra.test-util :refer :all])
   (:gen-class))
 

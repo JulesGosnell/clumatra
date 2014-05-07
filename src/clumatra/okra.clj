@@ -8,7 +8,8 @@
    [com.oracle.graal.hotspot.hsail HSAILHotSpotBackend]
    [com.amd.okra OkraContext OkraKernel])
   (:require
-   [no [disassemble :as d]])
+   [no [disassemble :as d]]
+   [clumatra [util])
   )
 
 ;; bottom-up approach to enabling GPU to be used to map a function across a seqence
@@ -42,9 +43,6 @@
 
 ;;------------------------------------------------------------------------------
 
-(defn find-method [object ^String name]
-  (first (filter (fn [^Method method] (= (.getName method) "invoke")) (.getDeclaredMethods (class object)))))
-
 ;; consider using gen-interface and pushing this code into kernel-compile
 
 (definterface Kernel (^void invoke [^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out ^int i]))
@@ -57,7 +55,7 @@
                          (aget in i)
                          ;;)
                          )))]
-    (kernel-compile2 kernel (find-method kernel "invoke") n)))
+    (kernel-compile2 kernel (fetch-method (class kernel) "invoke") n)))
   
 
 ;;------------------------------------------------------------------------------
