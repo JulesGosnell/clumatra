@@ -21,7 +21,7 @@
 ;; can we use the same OkraKernel concurrently on multiple GPU cores ? - investigate
 ;;------------------------------------------------------------------------------
 
-(defn okra-kernel-compile [kernel ^Method method n]
+(defn okra-kernel-compile [kernel ^Method method]
   (let [verbose (if (System/getProperty "clumatra.verbose") true false)
         okra-context (doto (OkraContext.) (.setVerbose (true? verbose)))]
     (with-open [a (OptionValue/override (GraalOptions/InlineEverything) true)
@@ -37,12 +37,7 @@
                           backend
                           (.lookupJavaMethod (.getMetaAccess (.getProviders backend)) method)
                           false))]
-        ;; TODO: we need a second way of doing this where we pass in
-        ;; the wavefront size at call-time - they could be one and the
-        ;; same, but we need to do some performance testing before
-        ;; making this decision... done the testing there does not
-        ;; seem to be much difference...
-        (fn [& args]
+        (fn [n & args]
           ;; TODO: I am assuming that we need a fresh Kernel for each
           ;; concurrent GPU core...
           (doto (OkraKernel. okra-context code-string "&run")

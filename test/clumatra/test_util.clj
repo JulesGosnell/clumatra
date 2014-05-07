@@ -117,10 +117,10 @@
                  (fn [] (make-array out-type *wavefront-size*)))
         in-arrays (mapv (fn [[t f]] (into-array t (map f (map default-input-fn (range *wavefront-size*))))) in-types-and-fns)
         ;;;in-arrays (mapv (fn [t] (into-array t (map identity (range 1 (inc *wavefront-size*))))) in-types)
-        compiled (okra-kernel-compile kernel method *wavefront-size*)] ;compile once
-    [(r-seq (apply compiled (conj in-arrays (out-fn))))              
-     (r-seq (apply compiled (conj in-arrays (out-fn)))) ;run twice
-     (r-seq (apply (local-kernel-compile kernel method *wavefront-size*) (conj in-arrays (out-fn))))])) ;compare against control
+        compiled (okra-kernel-compile kernel method)] ;compile once
+    [(r-seq (apply compiled  *wavefront-size* (conj in-arrays (out-fn))))              
+     (r-seq (apply compiled  *wavefront-size* (conj in-arrays (out-fn)))) ;run twice
+     (r-seq (apply (local-kernel-compile kernel method)  *wavefront-size* (conj in-arrays (out-fn))))])) ;compare against control
 
 ;;------------------------------------------------------------------------------
 

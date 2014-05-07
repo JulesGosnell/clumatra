@@ -9,8 +9,8 @@
 ;;------------------------------------------------------------------------------
 
 ;; WARNING: this is invoked via introspection and will therefore be SLOOOOW...
-(defn local-kernel-compile [kernel ^Method method n]
-  (fn [& args]
+(defn local-kernel-compile [kernel ^Method method]
+  (fn [n & args]
     (dotimes [i n]
       (.invoke method kernel (object-array (concat args (list (int i))))))
     (last args)))
@@ -35,7 +35,7 @@
 
 (definterface Kernel (^void invoke [^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out ^int i]))
 
-(defn kernel-compile [function n]
+(defn kernel-compile [function]
   (let [kernel (reify Kernel
                  (^void invoke [^Kernel self ^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out ^int i]
                    (aset out i
@@ -43,4 +43,4 @@
                          (aget in i)
                          ;;)
                          )))]
-    (okra-kernel-compile kernel (u/fetch-method (class kernel) "invoke") n)))
+    (okra-kernel-compile kernel (u/fetch-method (class kernel) "invoke"))))
