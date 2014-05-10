@@ -24,12 +24,10 @@ hg clone http://hg.openjdk.java.net/graal/graal
 cd graal
 ./mx.sh --vmbuild product --vm server build
 
-## test
-./mx.sh --vm server unittest -XX:+TraceGPUInteraction -XX:+GPUOffload -G:Log=CodeGen hsail.test.IntAddTest
-
 ## Note you must use the extra option -XX:+GPUOffload to enable offloading and
 ## use -XX:+TraceGPUInteraction to see extra messages about GPU initialization etc.
 
-cd ../..
+## run test
+exec ./mx.sh --vm server unittest -XX:+TraceGPUInteraction -XX:+GPUOffload -G:Log=CodeGen hsail.test.IntAddTest
 
 
