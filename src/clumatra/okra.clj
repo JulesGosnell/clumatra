@@ -20,7 +20,7 @@
 ;; can we use the same OkraKernel concurrently on multiple GPU cores ? - investigate
 ;;------------------------------------------------------------------------------
 
-(defn okra-kernel-compile [kernel ^Method method]
+(defn okra-kernel-compile [kernel ^Method method num-inputs num-outputs]
   (let [verbose (if (System/getProperty "clumatra.verbose") true false)
         okra-context (doto (OkraContext.) (.setVerbose (true? verbose)))]
     (with-open [a (OptionValue/override (GraalOptions/InlineEverything) true)

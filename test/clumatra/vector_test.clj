@@ -46,7 +46,7 @@
   (testing "mapping across vector"
     (let [data (vec (range 1000000))
           f inc]
-      (is (= (map f data) (vmap f data) (fjvmap f data))))))
+      (is (= (map f data) (vmap f data) (fjvmap f data) (gvmap f data))))))
 
 ;;------------------------------------------------------------------------------
 
