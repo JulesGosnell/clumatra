@@ -138,7 +138,7 @@
 
 ;;------------------------------------------------------------------------------
 ;; Okra impl - another idea - package pairs of Object[32] up to look like Object[64]
-;; to my GPU, which has  anative wavefront of this size...
+;; to my GPU, which has a native wavefront of this size...
 
 (defprotocol Pair
   (left [_])
@@ -224,3 +224,5 @@
 ;;  load-time kernel compilation of fn -> [bk, lk, tk] and map fns that accept this in place of fn
 ;;  as above for reductions
 ;;  we need versions of these maps that zip - more playing with macros...
+
+;; equals is a zip and map of equality operator over 
