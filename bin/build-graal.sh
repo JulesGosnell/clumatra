@@ -28,6 +28,6 @@ cd graal
 ## use -XX:+TraceGPUInteraction to see extra messages about GPU initialization etc.
 
 ## run test
-./mx.sh --vm server unittest -XX:+TraceGPUInteraction -XX:+GPUOffload -G:Log=CodeGen hsail.test.IntAddTest
+exec ./mx.sh --vm server unittest -XX:+TraceGPUInteraction -XX:+GPUOffload -G:Log=CodeGen hsail.test.IntAddTest
 
 
