@@ -226,31 +226,6 @@
       (is (apply = results)))))
 
 ;;------------------------------------------------------------------------------
-;; a basic [] -> Object[][] kernel, that I am thinking for using to map across vectors
-
-(definterface
-  VectorKernel (^void invoke [^clojure.lang.PersistentVector in ^"[[Ljava.lang.Object;" out ^int i]))
-
-(deftest vector-test
-  (testing "process a vector into an Object[][]"
-    (let [kernel (reify VectorKernel
-                   (^void invoke [^VectorKernel self
-                                  ^clojure.lang.PersistentVector in ^"[[Ljava.lang.Object;" out ^int i]
-                     (aset ^objects (aget out (int (/ i 32))) (rem i 32) (get in i))))
-          width (* 32 32)
-          input (vec (range width))
-          output (into-array (type (object-array 0)) (repeatedly 32 (fn [] (object-array 32))))
-          method (fetch-method VectorKernel "invoke")
-          okra (okra-kernel-compile kernel method 1 1)
-          local (local-kernel-compile kernel method 1 1)]
-      (is (=
-           (mapcat identity (okra width input output))
-           (mapcat identity (okra width input output))
-           (mapcat identity (local width input output))
-           input ;; we are just copying
-      )))))
-
-;;------------------------------------------------------------------------------
 
 (defn -main
   "run individual tests by name from the command line...no args runs all the tests."
