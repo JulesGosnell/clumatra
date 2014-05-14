@@ -45,7 +45,13 @@
 
 (defn simple-kernel-compile [f]
   (let [kernel
-        (reify Kernel
-          (^void invoke [^Kernel self ^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out ^int i]
-            (aset out i (f (aget in i)))))]
+        (if (= f identity)
+          ;;; tmp hack to (maybe) allow testing of kernels on gpu before funcalls are working...
+          (reify Kernel
+            (^void invoke [^Kernel self ^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out ^int i]
+              (aset out i (aget in i))))
+          (reify Kernel
+            (^void invoke [^Kernel self ^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out ^int i]
+              (aset out i (f (aget in i))))))
+        ]
     (okra-kernel-compile kernel (u/fetch-method (class kernel) "invoke") 1 1)))
