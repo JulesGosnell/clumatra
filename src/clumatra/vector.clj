@@ -209,3 +209,4 @@
 ;;  as above for reductions
 ;;  we need versions of these maps that zip - more playing with macros...
 
+;; equals is a zip and map of equality operator over 
