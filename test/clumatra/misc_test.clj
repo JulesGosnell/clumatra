@@ -6,6 +6,7 @@
              [rrb-vector :as v]]
             [clojure [pprint :as p]]
             [clumatra.util :refer :all]
+            [clumatra.core :refer :all]
             [clumatra.test-util :refer :all])
   (:gen-class))
 
@@ -194,6 +195,16 @@
           results (test-kernel kernel inc [[Object identity]] Object)]
       (is (apply = results)))))
 
+;; TODO:
+;; try running the same kernel many times in parallel ?
+
+;; parallel object copy test...
+;; compare and contrast running many size 32/64 kernels
+
+;; copying a vector into a large input array, running a single kernel,
+;; copying results out into another vector...
+;; latter would work for Vec32
+
 (deftest multiplication-test
   (testing "square ?Long? elements of an Object[]"
     (let [kernel (reify ObjectKernel
@@ -213,6 +224,31 @@
                      (aset out gid (.length ^String (aget in gid)))))
           results (test-kernel kernel inc [[String (fn [^Long i] (.toString i))]] Integer/TYPE)]
       (is (apply = results)))))
+
+;;------------------------------------------------------------------------------
+;; a basic [] -> Object[][] kernel, that I am thinking for using to map across vectors
+
+(definterface
+  VectorKernel (^void invoke [^clojure.lang.PersistentVector in ^"[[Ljava.lang.Object;" out ^int i]))
+
+(deftest vector-test
+  (testing "process a vector into an Object[][]"
+    (let [kernel (reify VectorKernel
+                   (^void invoke [^VectorKernel self
+                                  ^clojure.lang.PersistentVector in ^"[[Ljava.lang.Object;" out ^int i]
+                     (aset ^objects (aget out (int (/ i 32))) (rem i 32) (get in i))))
+          width (* 32 32)
+          input (vec (range width))
+          output (into-array (type (object-array 0)) (repeatedly 32 (fn [] (object-array 32))))
+          method (fetch-method VectorKernel "invoke")
+          okra (okra-kernel-compile kernel method 1 1)
+          local (local-kernel-compile kernel method 1 1)]
+      (is (=
+           (mapcat identity (okra width input output))
+           (mapcat identity (okra width input output))
+           (mapcat identity (local width input output))
+           input ;; we are just copying
+      )))))
 
 ;;------------------------------------------------------------------------------
 
