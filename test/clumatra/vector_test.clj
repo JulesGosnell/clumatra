@@ -44,13 +44,13 @@
 
 (deftest vector-map-test
   (testing "mapping across vector"
-    (let [data (vec (range 1000000))
+    (let [data (vec (range 100))
           f inc]
       (is (= (map f data) (vmap f data) (fjvmap f data) (gvmap f data))))))
 
 (deftest gvmap-test
   (testing "can we map the identity fn across a large vector using the gpu ?"
-    (let [in (vec (range 1000000))
+    (let [in (vec (range 100))
           out (gvmap identity in)]
       (is (= out in)))))
 
