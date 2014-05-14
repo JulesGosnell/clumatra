@@ -140,6 +140,27 @@
 ;; Okra impl - another idea - package pairs of Object[32] up to look like Object[64]
 ;; to my GPU, which has  anative wavefront of this size...
 
+;; further thinking.
+
+;; apparently, compute-units are at their most efficient when
+;; execution of all their cores is "locked" - i.e. all cores are
+;; executing the same code in sync with each other.  I fear that the
+;; necessary 'if' in pset/pget would mean that this is not the case if
+;; I introduce this pattern into my kernel execution.
+
+;; but if this is the case then most of the code that you might wish
+;; to execute on gpu will have the same problem - ask someone who
+;; knows...
+
+;; if sumatra/graal/okra is targetting the java stream api, then, at
+;; some level, they will have to address the fact that work does not
+;; always arrive in chunks of the same width as the available
+;; compute-unit. If this is done at the graal/okra level then I
+;; may/should be able to reuse it. I think it is more likely that they
+;; would implement the breaking down of larger kernel widths to fit
+;; compute-units than their aggregation, which is what I would like,
+;; but you never know.
+
 (defprotocol Pair
   (left [_])
   (right [_])
@@ -151,9 +172,29 @@
   Pair
   (left [_] l)
   (right [_] r)
-  (pget [_ i] (if (> i 31) (aget r (- i 32)) (aget l i)))
-  (pset [_ i v] (if (> i 31) (aset r (- i 32) v) (aset l i v)))
+
+  ;;(pget [_ i] (if (> i 31) (aget r (- i 32)) (aget l i)))
+  ;;(pset [_ i v] (if (> i 31) (aset r (- i 32) v) (aset l i v)))
+
+  ;; I think this will spend less time SPMD and more SIMD - more ifs
+  ;; but they are shorter...
+  (pget [_ i]   (let [j (rem i 32)] (aget (if (= i j) l r) j)))
+  (pset [_ i v] (let [j (rem i 32)] (aset (if (= i j) l r) j v)))
   )
+
+;; we could switch between arrays depending on whether i was odd or
+;; even - not so intuititive but could it be quicker?
+;; e.g. (clojure.lang.Numbers/isZero (clojure.lang.Numbers/and
+;; (Integer. 2) 1)) - we still have to do the subtraction of 32 from i
+;; so probably no quicker.
+
+;;; lets hope graal can run identical kernels side-by-side on the same
+;;; compute-unit - then they could handle index translation in a way
+;;; that did not "unlock" execution.
+
+;; could I use and address-translation table -
+;; i.e. 0->0,1->1,...33->1,34->2,... ? needs to also produce correct
+;; output array without using an if.
 
 ;; now we have to work out:
 ;; whether we can call kernels on Pairs instead of Object[]s
@@ -224,3 +265,50 @@
 ;;  load-time kernel compilation of fn -> [bk, lk, tk] and map fns that accept this in place of fn
 ;;  as above for reductions
 ;;  we need versions of these maps that zip - more playing with macros...
+
+;; notes:
+;; [] -> root = Object[32]{nil,...}, tail=Object[0], shift=5
+;; [0] -> root = Object[32]{nil,...}, tail=Object[1]{0}, shift=5
+;; (vec (range 32)) -> root=Object[32]{nil,...}, tail=Object[32]{0,1,2,...,31}, shift=5
+;; (vec (range 33)) -> root=Object[32]{old-tail, nil,...}, tail=Object[1]{32}, shift=5
+;; (vec (range 65)) -> root=Object[32]{older-tail, old-tail,nil,...}, tail=Object[1]{64}, shift=5
+;; (vec (range (+ (* 32 32) 1))) -> root=Object[32][32]{older-tail, old-tail,...}, tail=Object[1]{1024}, shift=5
+;; (vec (range (+ (* 32 32) 32 1))) -> root=Object[32][32][32]{recent-tail, nil,...}, tail=Object[1]{1056}, shift=10
+
+;; etc
+
+;; so
+;; tail is always full
+;; arrays are always filled from [0]
+;; only leaf arrays carry data, branch arrays only carry structure
+
+;; possible approaches:
+
+;; 1 thread recurses to bottom of input vec building complete empty
+;; output vec and launching single kernel at bottom for entire
+;; iteration. Arrays would be allocated on way down and wrapped in
+;; Nodes on way up whilst kernel was running. We need some efficient
+;; index maths so that tail can be tacked on end of kernel...
+
+;; going forward, we could step down a level in the vec and launch
+;; ncores threads to each do as above on a subvec - would need a
+;; little thought re how we partition vec and tail...
+
+;; lets just focus on first step
+
+;; (defn bar [c s ^PersistentVector$Node n ^"[Ljava.lang.Object;" t]
+;;   (let [a (.array n)]
+;;     (if (zero? s)
+;;       ;; we are a leaf
+;;       (println (seq a))
+;;       ;; we are a branch
+;;       (dotimes [i 32] (bar c (- s 5) n (aget a i)))
+;;     )))
+
+;; (defn foo [^PersistentVector v]
+;;   (let [c (.count v)
+;;         s (.shift v)
+;;         ^PersistentVector$Node r (.root v)
+;;         ^"[Ljava.lang.Object;" t (.tail v)]
+;;     ;; new Vector(c s 
+;;     (bar c s r t)))
