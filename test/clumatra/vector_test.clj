@@ -48,6 +48,12 @@
           f inc]
       (is (= (map f data) (vmap f data) (fjvmap f data) (gvmap f data))))))
 
+(deftest gvmap-test
+  (testing "can we map the identity fn across a large vector using the gpu ?"
+    (let [in (vec (range 1000000))
+          out (gvmap identity in)]
+      (is (= out in)))))
+
 ;;------------------------------------------------------------------------------
 
 (def excluded-methods
