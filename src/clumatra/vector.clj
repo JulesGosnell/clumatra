@@ -6,33 +6,22 @@
            [clojure.lang
             PersistentVector PersistentVector$Node
             PersistentHashMap PersistentHashMap$INode
+            IFn
             ])
   (:require [clojure.core
              [reducers :as r]
              [rrb-vector :as v]]
             [clumatra
-             [util :as u]]
+             [util :as u]
+             [core :as c]]
             ;;[no [disassemble :as d]]
             )
   )
 
 (set! *warn-on-reflection* true)
 
-(defn process-tail [f ^"[Ljava.lang.Object;" in]
-  (let [n (count in)
-        ^"[Ljava.lang.Object;" out (make-array Object n)]
-    (dotimes [i n] (aset out i (f (aget in i))))
-    out))
-
-(defn kernel-compile-leaf [f]
-  (fn [^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out]
-    (dotimes [i 32] (aset out i (f (aget in i))))
-    ;;(clojure.lang.RT/amap f in out)
-    out))
-
-(defn kernel-compile-branch [f]
-  (fn [^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out & args]
-    (dotimes [i 32] (aset out i (apply f (aget in i) args))) out))
+;;------------------------------------------------------------------------------
+;; infrastructure
 
 ;; recurse down a node mapping the branch and leaf kernels across the
 ;; appropriate arrays, returning a new Node...
@@ -41,8 +30,8 @@
    (AtomicReference.)
    (let [a (.array n)]
      (if (zero? level)
-       (lk a (make-array Object 32))
-       (bk a (make-array Object 32) (dec level) bk)
+       (lk a (object-array 32))
+       (bk a (object-array 32) (dec level) bk)
        ))))
 
 (let [ObjectArray (type (into-array Object []))
@@ -61,8 +50,39 @@
         [(count v)
          shift
          (vmap-node (.root v) (/ shift 5) bk lk)
-         (tk f (.tail v))])))))
+         (let [t (.tail v)
+               n (count t)] 
+           (tk n t (object-array n)))])))))
 
+;;------------------------------------------------------------------------------
+;; local impl
+
+;; wavefront size provided at construction time, no runtime args
+(defn kernel-compile-leaf [f]
+  (fn [^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out]
+    (dotimes [i 32] (aset out i (f (aget in i))))
+    ;;(clojure.lang.RT/amap f in out)
+    out))
+
+;; wavefront size provided at construction time, supports runtime args
+(defn kernel-compile-branch [f]
+  (fn [^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out & args]
+    (dotimes [i 32] (aset out i (apply f (aget in i) args))) out))
+
+;; expects call-time wavefront size - for handling variable size arrays
+(defn kernel-compile-tail [f]
+  (fn [n ^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out]
+    (dotimes [i n] (aset out i (f (aget in i))))
+    out))
+
+(defn vmap [f ^PersistentVector v]
+  (let [lk (kernel-compile-leaf f)
+        bk (kernel-compile-branch (fn [n l bk] (if n (vmap-node n l bk lk))))
+        tk (kernel-compile-tail f)]
+    (vmap-2 f v bk lk tk)))
+
+;;------------------------------------------------------------------------------
+;; fork/join impl
 
 (let [[fjpool fjtask fjinvoke fjfork fjjoin]
       (u/with-ns 'clojure.core.reducers [pool fjtask fjinvoke fjfork fjjoin])]
@@ -78,28 +98,56 @@
            (fjjoin task))))
       out))
   
-  (defn fjprocess-tail [f t]
-    (fjjoin (fjinvoke (fn [] (fjfork (fjtask #(process-tail f t)))))))
+  ;; (defn fjprocess-tail [f t]
+  ;;   (fjjoin (fjinvoke (fn [] (fjfork (fjtask #(process-tail f t)))))))
 
   )
-
-(defn vmap [f ^PersistentVector v]
-  (let [lk (kernel-compile-leaf f)
-        bk (kernel-compile-branch (fn [n l bk] (if n (vmap-node n l bk lk))))]
-    (vmap-2 f v bk lk process-tail)))
 
 (defn fjvmap [f ^PersistentVector v]
   (let [lk (kernel-compile-leaf f)
         bk (kernel-compile-branch (fn [n l bk] (if n (vmap-node n l bk lk))))
-        pbk (fjkernel-compile-branch (fn [n l pbk] (if n (vmap-node n l bk lk))))]
-    (vmap-2 f v pbk lk fjprocess-tail)))
+        pbk (fjkernel-compile-branch (fn [n l pbk] (if n (vmap-node n l bk lk))))
+        tk (kernel-compile-tail f)]
+    (vmap-2 f v pbk lk tk)))     ;TODO run tail on another thread ?
 
-;; try this on okra...!
+;;------------------------------------------------------------------------------
+;; Okra impl
 
-;; (defn gvmap [f ^PersistentVector v]
-;;   (let [lk (c/kernel-compile f 32)      ;from clumatra.core/
-;;         bk (kernel-compile-branch (fn [n l bk] (if n (vmap-node n l bk lk))))]
-;;     (vmap-2 f v bk lk process-tail)))
+;; return a kernel fn that does not need the call-time provision of
+;; wavefront size
+(definterface
+  OkraBranchKernel
+  (^void invoke [^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out ^int i ^long level ^Object bar]))
+
+(defn okra-branch-kernel-compile [foo]
+  (let [kernel
+        (reify
+          OkraBranchKernel
+          (^void invoke [^Kernel self ^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out ^int i ^long level ^Object bar]
+            (aset out i (foo (aget in i) level bar))))]
+    (c/okra-kernel-compile kernel (u/fetch-method (class kernel) "invoke") 1 1)))
+
+(defn kl32 [k] (fn [in out & args] (apply k 32 in out args) out))
+
+;; we still need to define a new vector type with a branching factor
+;; of 64, to take full advantage of compute units...
+(defn gvmap [f ^PersistentVector v]
+  (let [k (c/simple-kernel-compile f) ; use same okra kernel for leaf and tail
+        lk (kl32 k)
+        ;; use an fj kernel for branches - nodes and arrays will be built in parallel
+        bk (kernel-compile-branch (fn [n l bk] (if n (vmap-node n l bk lk))))
+        pbk (fjkernel-compile-branch (fn [n l pbk] (if n (vmap-node n l bk lk))))
+ 
+        ;; if okra supported allocation etc we might be able to do
+        ;; this - but it might be too slow...
+
+;        bk (kl32 (okra-branch-kernel-compile (fn [n l bk] (if n (vmap-node n l bk lk)))))
+
+        ;; if kernels were concurrently shareable, we could reuse innards of lk here...
+        ;; lets assume that they are...
+        tk k]
+    ;; N.B. root and tail are being run in serial NOT parallel - consider...
+    (vmap-2 f v bk lk tk)))
 
 ;;------------------------------------------------------------------------------
 ;;; lets try reducing
@@ -161,4 +209,4 @@
 ;;  as above for reductions
 ;;  we need versions of these maps that zip - more playing with macros...
 
-
+;; equals is a zip and map of equality operator over 

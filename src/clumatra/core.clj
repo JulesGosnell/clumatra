@@ -9,11 +9,18 @@
 ;;------------------------------------------------------------------------------
 
 ;; WARNING: this is invoked via introspection and will therefore be SLOOOOW...
-(defn local-kernel-compile [kernel ^Method method]
-  (fn [n & args]
-    (dotimes [i n]
-      (.invoke method kernel (object-array (concat args (list (int i))))))
-    (last args)))
+(defn local-kernel-compile [kernel ^Method method num-inputs num-outputs]
+    (fn [n & args]
+      (let [[h t] (split-at (+ num-inputs num-outputs) args)]
+        ;; (println "NUM INPUTS:" num-inputs)
+        ;; (println "ARGS:" args)
+        ;; (println "H|T:" h t)
+        (dotimes [i n]
+          (let [params (concat h [(Integer. i)] t)]
+            ;(println method "\n" (map type params) "\n" params)
+            (.invoke method kernel (object-array params))))
+      ;; out
+      (nth args num-inputs))))
 
 (println)
 (u/compile-if
@@ -36,12 +43,15 @@
 
 (definterface Kernel (^void invoke [^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out ^int i]))
 
-(defn kernel-compile [function]
-  (let [kernel (reify Kernel
-                 (^void invoke [^Kernel self ^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out ^int i]
-                   (aset out i
-                         ;;(foo
-                         (aget in i)
-                         ;;)
-                         )))]
-    (okra-kernel-compile kernel (u/fetch-method (class kernel) "invoke"))))
+(defn simple-kernel-compile [f]
+  (let [kernel
+        (if (= f identity)
+          ;;; tmp hack to (maybe) allow testing of kernels on gpu before funcalls are working...
+          (reify Kernel
+            (^void invoke [^Kernel self ^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out ^int i]
+              (aset out i (aget in i))))
+          (reify Kernel
+            (^void invoke [^Kernel self ^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out ^int i]
+              (aset out i (f (aget in i))))))
+        ]
+    (okra-kernel-compile kernel (u/fetch-method (class kernel) "invoke") 1 1)))

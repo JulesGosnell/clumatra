@@ -6,6 +6,7 @@
              [rrb-vector :as v]]
             [clojure [pprint :as p]]
             [clumatra.util :refer :all]
+            [clumatra.core :refer :all]
             [clumatra.test-util :refer :all])
   (:gen-class))
 
@@ -193,6 +194,16 @@
                      (aset out i (aget in i))))
           results (test-kernel kernel inc [[Object identity]] Object)]
       (is (apply = results)))))
+
+;; TODO:
+;; try running the same kernel many times in parallel ?
+
+;; parallel object copy test...
+;; compare and contrast running many size 32/64 kernels
+
+;; copying a vector into a large input array, running a single kernel,
+;; copying results out into another vector...
+;; latter would work for Vec32
 
 (deftest multiplication-test
   (testing "square ?Long? elements of an Object[]"

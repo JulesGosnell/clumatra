@@ -91,7 +91,6 @@
                 ~default-input-fn#
                 ~(mapv vector input-types# (concat (input-fns# method#) (repeat identity)))
                 ~output-type#)]
-           (println "Tested" method# "->" results#)
            (is (apply = results#)))))))
 
 ;; handle method invocations as well as static functions
@@ -117,15 +116,11 @@
                  (fn [] (into-array out-type (repeat *wavefront-size* out-element)))
                  (fn [] (make-array out-type *wavefront-size*)))
         in-arrays (mapv (fn [[t f]] (into-array t (map f (map default-input-fn (range *wavefront-size*))))) in-types-and-fns)
-;;;in-arrays (mapv (fn [t] (into-array t (map identity (range 1 (inc *wavefront-size*))))) in-types)
-        okra (okra-kernel-compile kernel method)
-        local (local-kernel-compile kernel method)] ;compile once
-    (let [results [(r-seq (apply okra *wavefront-size* (conj in-arrays (out-fn))))              
-                   (r-seq (apply okra *wavefront-size* (conj in-arrays (out-fn)))) ;run twice
-                   (r-seq (apply local *wavefront-size* (conj in-arrays (out-fn))))]]
-      (println "RESULTS:" results)
-      results
-      )))
+        ;;;in-arrays (mapv (fn [t] (into-array t (map identity (range 1 (inc *wavefront-size*))))) in-types)
+        compiled (okra-kernel-compile kernel method (count in-arrays) 1)] ;compile once
+    [(r-seq (apply compiled  *wavefront-size* (conj in-arrays (out-fn))))              
+     (r-seq (apply compiled  *wavefront-size* (conj in-arrays (out-fn)))) ;run twice
+     (r-seq (apply (local-kernel-compile kernel method (count in-arrays) 1)  *wavefront-size* (conj in-arrays (out-fn))))])) ;compare against control
 
 ;;------------------------------------------------------------------------------
 
