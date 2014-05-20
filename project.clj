@@ -14,7 +14,7 @@
                  [com.amd/okra "1.8"]
                  ]
   
-  :plugins [[lein-nodisassemble "0.1.3"]]
+;;  :plugins [[lein-nodisassemble "0.1.3"]]
   
   :repositories [["ouroboros" "http://ouroboros.dyndns-free.com/artifactory/repo"]]
   
@@ -22,7 +22,9 @@
                 *assert* false
                 *unchecked-math* true}
   
-  :jvm-opts ["-Xms1g" "-Xmx1g" "-server"
+  :jvm-opts ["-Xms1g" "-Xmx8g" "-server"
              ;;"-Dclumatra.verbose=true"
-             "-G:Log=CodeGen -XX:+GPUOffload" "-XX:+TraceGPUInteraction"]
+             "-Djava.library.path=/home/jules/workspace/clumatra/lib"
+             "-XX:-UseHSAILDeoptimization -XX:-UseHSAILSafepoints -G:Log=CodeGen -XX:+GPUOffload -XX:+TraceGPUInteraction"
+             ]
   )
