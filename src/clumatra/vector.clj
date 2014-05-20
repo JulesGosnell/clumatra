@@ -41,18 +41,19 @@
              Class
              [(Integer/TYPE) (Integer/TYPE) PersistentVector$Node ObjectArray]))]
 
-  (defn vmap-2 [f ^PersistentVector v bk lk tk]
-    (let [shift (.shift v)]
-      (.newInstance
-       ctor
-       (into-array
-        Object
-        [(count v)
-         shift
-         (vmap-node (.root v) (/ shift 5) bk lk)
-         (let [t (.tail v)
-               n (count t)] 
-           (tk n t (object-array n)))])))))
+  ;; we could expose this better via java ?
+  ;; args should be -  [count shift root tail]
+  (defn construct-vector [count shift root tail] (.newInstance ctor (object-array [(int count) (int shift) root tail]))))
+
+(defn vmap-2 [f ^PersistentVector v bk lk tk]
+  (let [shift (.shift v)]
+    (construct-vector
+     (count v)
+     shift
+     (vmap-node (.root v) (/ shift 5) bk lk)
+     (let [t (.tail v)
+           n (count t)] 
+       (tk n t (object-array n))))))
 
 ;;------------------------------------------------------------------------------
 ;; local impl
@@ -150,6 +151,26 @@
     (vmap-2 f v bk lk tk)))
 
 ;;------------------------------------------------------------------------------
+; a more naive approach - using the single dispatch of a single kernel
+
+(defn gvmap2 [f ^PersistentVector v]
+  (let [width (count v)
+        in (object-array v)
+        out (object-array width)
+        kernel (c/simple-kernel-compile f)]
+    (kernel width in out)
+    (into [] out)))
+
+;; consider how we might split up the copying into and out of arrays
+;; and achieve in parallel...
+
+;; consider "fan-out" depth for such an approach...
+
+;; we need an e.g. (fj-object-array vector) and (fjinto [] array)
+;; ------------------------------------------------------------------------------
+
+
+
 ;;; lets try reducing
 
 ;; (defn kernel-compile-reduce-leaf [f]
@@ -210,3 +231,132 @@
 ;;  we need versions of these maps that zip - more playing with macros...
 
 ;; equals is a zip and map of equality operator over 
+
+;;------------------------------------------------------------------------------
+;; fast vector -> array - working
+
+;; (def v (vec (range (* 32 32 32 32))))
+;; (dotimes [n 100](time (object-array v)))
+;; ...
+;; "Elapsed time: 206.751725 msecs"
+;; (dotimes [n 100](time (vector-to-array v)))
+;; ...
+;; "Elapsed time: 45.759406 msecs"
+
+;; 4x faster on a 2 core laptop
+
+;; (= (seq (object-array v)) (seq (vector-to-array v))) -> true
+
+(defn vector-node-to-array [offset shift ^clojure.lang.PersistentVector$Node src ^objects tgt]
+  (let [array (.array src)]
+    (if (= shift 0)
+      (System/arraycopy array 0 tgt offset 32)
+      (let [m (clojure.lang.Numbers/shiftLeftInt 1 shift)
+            new-shift (- shift 5)]
+        (dotimes [n 32]
+          (let [src (aget array n)]
+            (if (not  (nil? src))
+              (vector-node-to-array (+ offset (* m n)) new-shift src tgt))))))))
+
+(defn vector-to-array [^clojure.lang.PersistentVector src]
+  (let [length (.count src)
+        tgt (object-array length)
+        tail (.tail src)
+        tail-length (alength tail)
+        shift (.shift src)]
+    (if (> shift 5)
+      ;; copy in parallel
+      (let [m (clojure.lang.Numbers/shiftLeftInt 1 shift)]
+        ; TODO: use f/j here
+        (doall
+         (pmap
+          (fn [n i] (if (not (nil? n)) (vector-node-to-array (* i m) (- shift 5) n tgt)))
+          (.array (.root src))
+          (range 32))))
+      ;; copy sequentially
+      (vector-node-to-array 0 shift (.root src) tgt))
+    (System/arraycopy tail 0 tgt (- length tail-length) tail-length)
+    tgt))
+
+;;------------------------------------------------------------------------------
+;; fast array -> vector - nearly working...
+
+;; (def a (object-array (range (* 32 32 32 32))))
+;; (dotimes [n 100](time (do (into [] a) nil)))
+;; ...
+;; "Elapsed time: 255.490017 msecs"
+;; (dotimes [n 100](time (do (array-to-vector a) nil)))
+;; ...
+;; "Elapsed time: 20.570319 msecs"
+
+;; 12x faster on a 2 core laptop
+
+;; (= (into [] a) (array-to-vector a)) -> true
+
+;; there is a faster way but...
+(defn find-shift [n]
+  (let [i (take-while (fn [n] (> n 0)) (iterate (fn [n] (bit-shift-right n 5)) n))
+        shift (* 5 (dec (count i)))
+        consumed (bit-shift-left 1 shift)
+        remainder (- n consumed)]
+    (+ shift (if (> remainder 0) 5 0))))
+  
+(defn array-to-vector-node [^objects src-array src-array-index width shift]
+  ;;(println "array-to-vector-node" [^objects src-array src-array-index width shift])
+  (let [array (object-array 32)
+        atom nil                        ;TODO
+        node (clojure.lang.PersistentVector$Node. atom array)]
+    (if (= shift 5)
+      (System/arraycopy src-array src-array-index array 0 32)
+      (let [new-shift (- shift 5)
+            new-width (bit-shift-left 1 new-shift)]
+        (dotimes [n 32]
+          (aset array n (array-to-vector-node src-array (+ src-array-index (* n new-width)) new-width new-shift)))))
+    node))
+
+(defn array-to-vector [^objects src-array]
+  (let [length (alength src-array)
+        shift (find-shift (- length 32))
+        atom (java.util.concurrent.atomic.AtomicReference. nil)
+        root-array (object-array 32)
+        root (clojure.lang.PersistentVector$Node. atom root-array)] ;don't forget tail
+    (doall
+     (pmap
+      (fn [i]
+        (let [new-shift (- shift 5)
+              new-width (bit-shift-left 1 new-shift)]
+          (aset root-array i (array-to-vector-node src-array (* i new-width) new-width new-shift))))
+      (range 32)))
+    (let [rem (mod length 32)
+          tail-length (if (= rem 0) 32 rem)
+          tail (object-array tail-length)]
+      (System/arraycopy src-array (- length tail-length) tail 0 tail-length)
+      (construct-vector length (- shift 5) root tail))))
+
+;;------------------------------------------------------------------------------
+;; finally - this should be quite fast - when run on HSA h/w :-)
+
+;; (def v (vec (range (* 32 32 32 32))))
+;; (= (gvmap3 identity v) v) - true
+
+;; target time is:
+;; (dotimes [n 100] (time (do (mapv identity v) nil)))
+;; on same hardware as:
+;; (dotimes [n 100] (time (do (gvmap3 identity v) nil)))
+;;; :-)
+
+(defn gvmap3 [f ^PersistentVector v]
+  (let [width (count v)
+        in (vector-to-array v)
+        out (object-array width)
+        kernel (c/simple-kernel-compile f)]
+    (kernel width in out)
+    (array-to-vector out)))
+
+;;------------------------------------------------------------------------------
+
+;; try different flag combinations on h/w and s/w build
+;; try to get repl working
+;; time gvmap3 vs pmap or equivalent core/reduction
+;; is it even better with 10,000,000 entries ?
+;; could I do some simple instruction like inc or even a loop on the gpu ?
