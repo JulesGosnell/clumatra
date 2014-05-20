@@ -25,6 +25,6 @@
   :jvm-opts ["-Xms1g" "-Xmx8g" "-server"
              ;;"-Dclumatra.verbose=true"
              "-Djava.library.path=/home/jules/workspace/clumatra/lib"
-             "-XX:-UseHSAILDeoptimization -XX:-UseHSAILSafepoints -G:Log=CodeGen -XX:+GPUOffload -XX:+TraceGPUInteraction"
+             "-XX:-UseHSAILDeoptimization" "-XX:-UseHSAILSafepoints" "-G:Log=CodeGen" "-XX:+GPUOffload" "-XX:+TraceGPUInteraction"
              ]
   )
