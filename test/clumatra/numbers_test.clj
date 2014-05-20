@@ -22,9 +22,6 @@
     (fetch-method Numbers "min" [Long/TYPE Double/TYPE])
     (fetch-method Numbers "num" [Double/TYPE])
     (fetch-method Numbers "num" [Float/TYPE])
-
-    (fetch-method Numbers "divide" [Long/TYPE Long/TYPE])
-
     })
 
 (def input-fns
