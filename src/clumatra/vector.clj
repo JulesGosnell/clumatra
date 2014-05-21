@@ -87,22 +87,26 @@
 
 (let [[fjpool fjtask fjinvoke fjfork fjjoin]
       (u/with-ns 'clojure.core.reducers [pool fjtask fjinvoke fjfork fjjoin])]
+  (def fjpool fjpool)
+  (def fjtask fjtask)
+  (def fjinvoke fjinvoke)
+  (def fjfork fjfork)
+  (def fjjoin fjjoin))
 
-  (defn fjkernel-compile-branch [f]
-    (fn [^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out & args]
-      (fjinvoke
-       (fn []
-         (doseq [task 
-                 (let [tasks (object-array 32)]
-                   (dotimes [i 32] (aset tasks i (fjfork (fjtask #(aset out i (apply f (aget in i) args))))))
-                   tasks)]
-           (fjjoin task))))
-      out))
+(defn fjkernel-compile-branch [f]
+  (fn [^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out & args]
+    (fjinvoke
+     (fn []
+       (doseq [task 
+               (let [tasks (object-array 32)]
+                 (dotimes [i 32] (aset tasks i (fjfork (fjtask #(aset out i (apply f (aget in i) args))))))
+                 tasks)]
+         (fjjoin task))))
+    out))
   
   ;; (defn fjprocess-tail [f t]
   ;;   (fjjoin (fjinvoke (fn [] (fjfork (fjtask #(process-tail f t)))))))
 
-  )
 
 (defn fjvmap [f ^PersistentVector v]
   (let [lk (kernel-compile-leaf f)
@@ -238,10 +242,10 @@
 ;; (def v (vec (range (* 32 32 32 32))))
 ;; (dotimes [n 100](time (object-array v)))
 ;; ...
-;; "Elapsed time: 206.751725 msecs"
+;; "Elapsed time: 144.589973 msecs"
 ;; (dotimes [n 100](time (vector-to-array v)))
 ;; ...
-;; "Elapsed time: 45.759406 msecs"
+;; "Elapsed time: 33.427521 msecs"
 
 ;; 4x faster on a 2 core laptop
 
@@ -250,13 +254,16 @@
 (defn vector-node-to-array [offset shift ^clojure.lang.PersistentVector$Node src ^objects tgt]
   (let [array (.array src)]
     (if (= shift 0)
+      ;; copy leaf
       (System/arraycopy array 0 tgt offset 32)
+      ;; copy child branches
       (let [m (clojure.lang.Numbers/shiftLeftInt 1 shift)
             new-shift (- shift 5)]
         (dotimes [n 32]
-          (let [src (aget array n)]
-            (if (not  (nil? src))
-              (vector-node-to-array (+ offset (* m n)) new-shift src tgt))))))))
+          (if-let [src (aget array n)]
+            (vector-node-to-array (+ offset (* m n)) new-shift src tgt)))))))
+
+(def thirty-two [0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31])
 
 (defn vector-to-array [^clojure.lang.PersistentVector src]
   (let [length (.count src)
@@ -265,17 +272,25 @@
         tail-length (alength tail)
         shift (.shift src)]
     (if (> shift 5)
-      ;; copy in parallel
-      (let [m (clojure.lang.Numbers/shiftLeftInt 1 shift)]
-        ; TODO: use f/j here
-        (doall
-         (pmap
-          (fn [n i] (if (not (nil? n)) (vector-node-to-array (* i m) (- shift 5) n tgt)))
-          (.array (.root src))
-          (range 32))))
-      ;; copy sequentially
-      (vector-node-to-array 0 shift (.root src) tgt))
-    (System/arraycopy tail 0 tgt (- length tail-length) tail-length)
+      ;; parallel copy 
+      (let [m (clojure.lang.Numbers/shiftLeftInt 1 shift)
+            new-shift (- shift 5)
+            root-array (.array (.root src))
+            branches (reduce
+                      (fn [r i]
+                        (if-let [node (aget root-array i)]
+                          (conj r (future (vector-node-to-array (* i m) new-shift node tgt)))
+                          r))
+                      []
+                      thirty-two)]
+        ;; copy tail whilst giving branches some time to run...
+        (System/arraycopy tail 0 tgt (- length tail-length) tail-length)          
+        ;; wait for all branches to finish
+        (doseq [branch branches] (deref branch)))
+      ;; sequential copy
+      (do
+        (vector-node-to-array 0 shift (.root src) tgt)
+        (System/arraycopy tail 0 tgt (- length tail-length) tail-length)))
     tgt))
 
 ;;------------------------------------------------------------------------------
@@ -319,7 +334,7 @@
         shift (find-shift (- length 32))
         atom (java.util.concurrent.atomic.AtomicReference. nil)
         root-array (object-array 32)
-        root (clojure.lang.PersistentVector$Node. atom root-array)] ;don't forget tail
+        root (clojure.lang.PersistentVector$Node. atom root-array)]
     (doall
      (pmap
       (fn [i]
