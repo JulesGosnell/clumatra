@@ -308,7 +308,16 @@
 
 ;; (= (into [] a) (array-to-vector a)) -> true
 
-;; there is a faster way but...
+;; this way is much faster -  needs fine tuning...
+(let [^java.util.TreeMap powers-of-32
+      (reduce
+       (fn [^java.util.Map m [k v]] (.put m k v) m)
+       (java.util.TreeMap.)
+       (map (fn [p] (let [n (* 5 p)][(inc (bit-shift-left 1 n)) (+ n 5)])) (range 4)))]
+
+  (defn find-shift2 [n] (.getValue (.floorEntry powers-of-32 n)))
+  )
+
 (defn find-shift [n]
   (let [i (take-while (fn [n] (> n 0)) (iterate (fn [n] (bit-shift-right n 5)) n))
         shift (* 5 (dec (count i)))
@@ -322,7 +331,9 @@
         atom nil                        ;TODO
         node (clojure.lang.PersistentVector$Node. atom array)]
     (if (= shift 5)
-      (System/arraycopy src-array src-array-index array 0 32)
+      (let [rem (- (count src-array) src-array-index)]
+        (if (> rem 0)
+          (System/arraycopy src-array src-array-index array 0 (min rem 32))))
       (let [new-shift (- shift 5)
             new-width (bit-shift-left 1 new-shift)]
         (dotimes [n 32]
