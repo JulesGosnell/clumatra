@@ -2,7 +2,10 @@
 
 (ns clumatra.vector
   ;;;(:use [clojure.tools.cli :only [cli]])
-  (:import [java.util.concurrent.atomic AtomicReference]
+  (:import [java.util
+            Map TreeMap]
+           [java.util.concurrent.atomic
+            AtomicReference]
            [clojure.lang
             PersistentVector PersistentVector$Node
             PersistentHashMap PersistentHashMap$INode
@@ -253,10 +256,10 @@
 
 ;; (= (into [] a) (array-to-vector a)) -> true
 
-(let [^java.util.TreeMap powers-of-32
+(let [^TreeMap powers-of-32
       (reduce
-       (fn [^java.util.Map m [k v]] (.put m k v) m)
-       (doto (java.util.TreeMap.) (.put 0 5))
+       (fn [^Map m [k v]] (.put m k v) m)
+       (doto (TreeMap.) (.put 0 5))
        (map (fn [p] (let [b (* p 5)] [(bit-shift-left 1 b) b])) (range 1 10)))]
 
   (defn find-shift [n] (.getValue (.floorEntry powers-of-32 n)))
@@ -264,10 +267,8 @@
 
 (defn down-shift [n] (if (= n 5) 5 (- n 5)))
   
-(defn ^PersistentVector$Node array-to-vector-node [^objects src-array src-array-index width shift]
-  (let [array (object-array 32)
-        atom nil                        ;TODO: should be copied down from root...
-        node (PersistentVector$Node. atom array)]
+(defn ^PersistentVector$Node array-to-vector-node [^AtomicReference atom ^objects src-array src-array-index width shift]
+  (let [array (object-array 32)]
     (if (= shift 5)
       (let [rem (- (count src-array) src-array-index)]
         (if (> rem 0)
@@ -276,7 +277,7 @@
             new-width (bit-shift-left 1 new-shift)]
         (dotimes [n 32] ;; TODO: work out how many nodes are needed
           (aset array n (array-to-vector-node src-array (+ src-array-index (* n new-width)) new-width new-shift)))))
-    node))
+    (PersistentVector$Node. atom array)))
 
 ;; TODO: goes wrong at (range 1057)
 ;;
@@ -293,7 +294,7 @@
       (fn [i]
         (let [new-shift (down-shift shift)
               new-width (bit-shift-left 1 new-shift)]
-          (aset root-array i (array-to-vector-node src-array (* i new-width) new-width new-shift))))
+          (aset root-array i (array-to-vector-node atom src-array (* i new-width) new-width new-shift))))
       thirty-two))                      ;TODO: work out how many nodes are needed
     (let [rem (mod length 32)
           tail-length (if (and (not (zero? length))(= rem 0)) 32 rem)
