@@ -196,7 +196,7 @@
 
 ;; (= (seq (object-array v)) (seq (vector-to-array v))) -> true
 
-(defn vector-node-to-array [offset shift ^clojure.lang.PersistentVector$Node src ^objects tgt]
+(defn vector-node-to-array [offset shift ^PersistentVector$Node src ^objects tgt]
   (let [array (.array src)]
     (if (= shift 0)
       ;; copy leaf
@@ -210,7 +210,7 @@
 
 (def thirty-two (vec (range 32)))
 
-(defn vector-to-array [^clojure.lang.PersistentVector src]
+(defn vector-to-array [^PersistentVector src]
   (let [length (.count src)
         tgt (object-array length)
         tail (.tail src)
@@ -264,10 +264,10 @@
 
 (defn down-shift [n] (if (= n 5) 5 (- n 5)))
   
-(defn array-to-vector-node [^objects src-array src-array-index width shift]
+(defn ^PersistentVector$Node array-to-vector-node [^objects src-array src-array-index width shift]
   (let [array (object-array 32)
         atom nil                        ;TODO: should be copied down from root...
-        node (clojure.lang.PersistentVector$Node. atom array)]
+        node (PersistentVector$Node. atom array)]
     (if (= shift 5)
       (let [rem (- (count src-array) src-array-index)]
         (if (> rem 0)
@@ -285,11 +285,11 @@
         shift (find-shift (max 0 (- length 32)))
         atom (java.util.concurrent.atomic.AtomicReference. nil)
         root-array (object-array 32)
-        root (clojure.lang.PersistentVector$Node. atom root-array)]
+        root (PersistentVector$Node. atom root-array)]
     (doall
      ;; TODO: use futures explicitly so that we can deal with tail on
      ;; foreground whilst branches are done in background...
-     (pmap
+     (map
       (fn [i]
         (let [new-shift (down-shift shift)
               new-width (bit-shift-left 1 new-shift)]

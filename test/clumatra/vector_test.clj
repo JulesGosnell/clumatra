@@ -54,13 +54,6 @@
           out (gvmap identity in)]
       (is (= out in)))))
 
-;; (deftest gvmap3-test
-;;   (testing "can we map the identity fn across a large vector using the gpu ?"
-;;     (dotimes [n 64]
-;;       (let [v (range (+ 10 (* n 64)))]
-;;         (is (= (array-to-vector (vector-to-array v)) v))
-;;         (is (= (gvmap3 identity v) v))))))
-
 ;;------------------------------------------------------------------------------
 
 (def excluded-methods
