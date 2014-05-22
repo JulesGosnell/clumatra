@@ -308,22 +308,16 @@
 
 ;; (= (into [] a) (array-to-vector a)) -> true
 
-;; this way is much faster -  needs fine tuning...
 (let [^java.util.TreeMap powers-of-32
       (reduce
        (fn [^java.util.Map m [k v]] (.put m k v) m)
-       (java.util.TreeMap.)
-       (map (fn [p] (let [n (* 5 p)][(inc (bit-shift-left 1 n)) (+ n 5)])) (range 4)))]
+       (doto (java.util.TreeMap.) (.put 0 5))
+       (map (fn [p] (let [b (* p 5)] [(bit-shift-left 1 b) b])) (range 1 10)))]
 
-  (defn find-shift2 [n] (.getValue (.floorEntry powers-of-32 n)))
+  (defn find-shift [n] (.getValue (.floorEntry powers-of-32 n)))
   )
 
-(defn find-shift [n]
-  (let [i (take-while (fn [n] (> n 0)) (iterate (fn [n] (bit-shift-right n 5)) n))
-        shift (* 5 (dec (count i)))
-        consumed (bit-shift-left 1 shift)
-        remainder (- n consumed)]
-    (+ shift (if (> remainder 0) 5 0))))
+(defn down-shift [n] (if (= n 5) 5 (- n 5)))
   
 (defn array-to-vector-node [^objects src-array src-array-index width shift]
   ;;(println "array-to-vector-node" [^objects src-array src-array-index width shift])
@@ -334,7 +328,7 @@
       (let [rem (- (count src-array) src-array-index)]
         (if (> rem 0)
           (System/arraycopy src-array src-array-index array 0 (min rem 32))))
-      (let [new-shift (- shift 5)
+      (let [new-shift (down-shift shift)
             new-width (bit-shift-left 1 new-shift)]
         (dotimes [n 32]
           (aset array n (array-to-vector-node src-array (+ src-array-index (* n new-width)) new-width new-shift)))))
@@ -342,22 +336,22 @@
 
 (defn array-to-vector [^objects src-array]
   (let [length (alength src-array)
-        shift (find-shift (- length 32))
+        shift (find-shift (max 0 (- length 32)))
         atom (java.util.concurrent.atomic.AtomicReference. nil)
         root-array (object-array 32)
         root (clojure.lang.PersistentVector$Node. atom root-array)]
     (doall
      (pmap
       (fn [i]
-        (let [new-shift (- shift 5)
+        (let [new-shift (down-shift shift)
               new-width (bit-shift-left 1 new-shift)]
           (aset root-array i (array-to-vector-node src-array (* i new-width) new-width new-shift))))
       (range 32)))
     (let [rem (mod length 32)
-          tail-length (if (= rem 0) 32 rem)
+          tail-length (if (and (not (zero? length))(= rem 0)) 32 rem)
           tail (object-array tail-length)]
       (System/arraycopy src-array (- length tail-length) tail 0 tail-length)
-      (construct-vector length (- shift 5) root tail))))
+      (construct-vector length (down-shift shift) root tail))))
 
 ;;------------------------------------------------------------------------------
 ;; finally - this should be quite fast - when run on HSA h/w :-)
