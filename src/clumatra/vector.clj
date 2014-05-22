@@ -116,65 +116,6 @@
     (vmap-2 f v pbk lk tk)))     ;TODO run tail on another thread ?
 
 ;;------------------------------------------------------------------------------
-;; Okra impl
-
-;; return a kernel fn that does not need the call-time provision of
-;; wavefront size
-(definterface
-  OkraBranchKernel
-  (^void invoke [^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out ^int i ^long level ^Object bar]))
-
-(defn okra-branch-kernel-compile [foo]
-  (let [kernel
-        (reify
-          OkraBranchKernel
-          (^void invoke [^Kernel self ^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out ^int i ^long level ^Object bar]
-            (aset out i (foo (aget in i) level bar))))]
-    (c/okra-kernel-compile kernel (u/fetch-method (class kernel) "invoke") 1 1)))
-
-(defn kl32 [k] (fn [in out & args] (apply k 32 in out args) out))
-
-;; we still need to define a new vector type with a branching factor
-;; of 64, to take full advantage of compute units...
-(defn gvmap [f ^PersistentVector v]
-  (let [k (c/simple-kernel-compile f) ; use same okra kernel for leaf and tail
-        lk (kl32 k)
-        ;; use an fj kernel for branches - nodes and arrays will be built in parallel
-        bk (kernel-compile-branch (fn [n l bk] (if n (vmap-node n l bk lk))))
-        pbk (fjkernel-compile-branch (fn [n l pbk] (if n (vmap-node n l bk lk))))
- 
-        ;; if okra supported allocation etc we might be able to do
-        ;; this - but it might be too slow...
-
-;        bk (kl32 (okra-branch-kernel-compile (fn [n l bk] (if n (vmap-node n l bk lk)))))
-
-        ;; if kernels were concurrently shareable, we could reuse innards of lk here...
-        ;; lets assume that they are...
-        tk k]
-    ;; N.B. root and tail are being run in serial NOT parallel - consider...
-    (vmap-2 f v bk lk tk)))
-
-;;------------------------------------------------------------------------------
-; a more naive approach - using the single dispatch of a single kernel
-
-(defn gvmap2 [f ^PersistentVector v]
-  (let [width (count v)
-        in (object-array v)
-        out (object-array width)
-        kernel (c/simple-kernel-compile f)]
-    (kernel width in out)
-    (into [] out)))
-
-;; consider how we might split up the copying into and out of arrays
-;; and achieve in parallel...
-
-;; consider "fan-out" depth for such an approach...
-
-;; we need an e.g. (fj-object-array vector) and (fjinto [] array)
-;; ------------------------------------------------------------------------------
-
-
-
 ;;; lets try reducing
 
 ;; (defn kernel-compile-reduce-leaf [f]
@@ -236,6 +177,10 @@
 
 ;; equals is a zip and map of equality operator over 
 
+;;------------------------------------------------------------------------------
+;; A change of tack -
+;; Copy vector contents into a single array, dispatch kernel on this, then copy
+;; results back out into a vector...
 ;;------------------------------------------------------------------------------
 ;; fast vector -> array - working
 
@@ -320,9 +265,8 @@
 (defn down-shift [n] (if (= n 5) 5 (- n 5)))
   
 (defn array-to-vector-node [^objects src-array src-array-index width shift]
-  ;;(println "array-to-vector-node" [^objects src-array src-array-index width shift])
   (let [array (object-array 32)
-        atom nil                        ;TODO
+        atom nil                        ;TODO: should be copied down from root...
         node (clojure.lang.PersistentVector$Node. atom array)]
     (if (= shift 5)
       (let [rem (- (count src-array) src-array-index)]
@@ -330,10 +274,12 @@
           (System/arraycopy src-array src-array-index array 0 (min rem 32))))
       (let [new-shift (down-shift shift)
             new-width (bit-shift-left 1 new-shift)]
-        (dotimes [n 32]
+        (dotimes [n 32] ;; TODO: work out how many nodes are needed
           (aset array n (array-to-vector-node src-array (+ src-array-index (* n new-width)) new-width new-shift)))))
     node))
 
+;; TODO: goes wrong at (range 1057)
+;;
 (defn array-to-vector [^objects src-array]
   (let [length (alength src-array)
         shift (find-shift (max 0 (- length 32)))
@@ -341,12 +287,14 @@
         root-array (object-array 32)
         root (clojure.lang.PersistentVector$Node. atom root-array)]
     (doall
+     ;; TODO: use futures explicitly so that we can deal with tail on
+     ;; foreground whilst branches are done in background...
      (pmap
       (fn [i]
         (let [new-shift (down-shift shift)
               new-width (bit-shift-left 1 new-shift)]
           (aset root-array i (array-to-vector-node src-array (* i new-width) new-width new-shift))))
-      (range 32)))
+      thirty-two))                      ;TODO: work out how many nodes are needed
     (let [rem (mod length 32)
           tail-length (if (and (not (zero? length))(= rem 0)) 32 rem)
           tail (object-array tail-length)]
@@ -365,8 +313,8 @@
 ;; (dotimes [n 100] (time (do (gvmap3 identity v) nil)))
 ;;; :-)
 
-(defn gvmap3 [f ^PersistentVector v]
-  (let [width (count v)
+(defn gvmap [f ^PersistentVector v]
+  (let [width (.count v)
         in (vector-to-array v)
         out (object-array width)
         kernel (c/simple-kernel-compile f)]
