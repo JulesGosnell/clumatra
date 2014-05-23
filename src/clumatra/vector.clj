@@ -260,47 +260,69 @@
       (reduce
        (fn [^Map m [k v]] (.put m k v) m)
        (doto (TreeMap.) (.put 0 5))
-       (map (fn [p] (let [b (* p 5)] [(bit-shift-left 1 b) b])) (range 1 10)))]
-
+       (map (fn [p] (let [b (* p 5)] [(inc (bit-shift-left 1 b)) b])) (range 2 10)))]
+  
   (defn find-shift [n] (.getValue (.floorEntry powers-of-32 n)))
   )
 
+(defn find-shift2 [n] (.shift (vec (range n))))
+
 (defn down-shift [n] (if (= n 5) 5 (- n 5)))
   
-(defn ^PersistentVector$Node array-to-vector-node [^AtomicReference atom ^objects src-array src-array-index width shift]
-  (let [array (object-array 32)]
+(defn round-up [n] (int (Math/ceil (double n))))
+
+(defn ^PersistentVector$Node array-to-vector-node [^AtomicReference atom ^objects src src-start width shift]
+  (println src-start width shift)
+  (let [tgt (object-array 32)]
     (if (= shift 5)
-      (let [rem (- (count src-array) src-array-index)]
+      (let [rem (- (count src) src-start)]
         (if (> rem 0)
-          (System/arraycopy src-array src-array-index array 0 (min rem 32))))
+          (System/arraycopy src src-start tgt 0 (min rem 32))))
       (let [new-shift (down-shift shift)
             new-width (bit-shift-left 1 new-shift)]
-        (dotimes [n 32] ;; TODO: work out how many nodes are needed
-          (aset array n (array-to-vector-node src-array (+ src-array-index (* n new-width)) new-width new-shift)))))
-    (PersistentVector$Node. atom array)))
+        (dotimes [n (round-up (/ width new-width))]
+          (let [new-start (+ src-start (* n new-width))]
+            ;;;(println n [new-start new-width new-shift])
+            (aset tgt n (array-to-vector-node atom src new-start new-width new-shift))))))
+    (PersistentVector$Node. atom tgt)))
 
-;; TODO: goes wrong at (range 1057)
-;;
 (defn array-to-vector [^objects src-array]
   (let [length (alength src-array)
-        shift (find-shift (max 0 (- length 32)))
+        dummy (println "input length:" length)
+        rem (mod length 32)
+        tail-length (if (and (not (zero? length)) (= rem 0)) 32 rem)
+        dummy (println "tail-length:" tail-length)
+        root-length (- length tail-length)
+        dummy (println "root-length:" root-length)
+        shift (find-shift root-length)
+        dummy (println "shift:" shift)
+        width (bit-shift-left 1 shift)
+        dummy (println "width:" width)
         atom (java.util.concurrent.atomic.AtomicReference. nil)
         root-array (object-array 32)
-        root (PersistentVector$Node. atom root-array)]
+        dummy (println "new root array:" root-array)
+        nodes-needed (round-up (/ root-length (bit-shift-left 1 shift)))
+        dummy (println "nodes-needed:" nodes-needed)
+        new-shift (down-shift shift)
+        dummy (println "new-shift:" new-shift)
+        new-width (bit-shift-left 1 new-shift)
+        dummy (println "new-width:" new-width)]
     (doall
      ;; TODO: use futures explicitly so that we can deal with tail on
      ;; foreground whilst branches are done in background...
      (map
       (fn [i]
-        (let [new-shift (down-shift shift)
-              new-width (bit-shift-left 1 new-shift)]
-          (aset root-array i (array-to-vector-node atom src-array (* i new-width) new-width new-shift))))
-      thirty-two))                      ;TODO: work out how many nodes are needed
-    (let [rem (mod length 32)
-          tail-length (if (and (not (zero? length))(= rem 0)) 32 rem)
-          tail (object-array tail-length)]
+        (let [start (* i width)
+              end (min (- root-length start) width)]
+        (aset root-array i (array-to-vector-node atom src-array start end shift)))) ;TODO width should be num remaining elts
+      (range nodes-needed)))
+    (let [tail (object-array tail-length)]
       (System/arraycopy src-array (- length tail-length) tail 0 tail-length)
-      (construct-vector length (down-shift shift) root tail))))
+      (construct-vector
+       length
+       shift
+       (PersistentVector$Node. atom root-array)
+       tail))))
 
 ;;------------------------------------------------------------------------------
 ;; finally - this should be quite fast - when run on HSA h/w :-)
