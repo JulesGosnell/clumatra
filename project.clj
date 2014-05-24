@@ -11,7 +11,7 @@
                  [org.clojure/clojure "1.6.0"]
                  ;;[org.clojure/clojure "1.6.0-master-SNAPSHOT"]
                  [org.clojure/core.rrb-vector "0.0.11"]
-                 [com.amd/okra "1.8"]
+                 [com.amd/okra "1.9"]
                  ]
   
   :plugins [[lein-nodisassemble "0.1.3"]]

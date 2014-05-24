@@ -93,7 +93,7 @@
 	<clojure.excluded.namespaces>NONE</clojure.excluded.namespaces>
 	<okra.groupId>com.amd</okra.groupId>
 	<okra.artifactId>okra-with-sim</okra.artifactId>
-	<okra.version>1.8</okra.version>
+	<okra.version>1.9</okra.version>
       </properties>
     </profile>
     <profile>
@@ -109,7 +109,7 @@
 	<clojure.excluded.namespaces>NONE</clojure.excluded.namespaces>
 	<okra.groupId>com.amd</okra.groupId>
 	<okra.artifactId>okra</okra.artifactId>
-	<okra.version>1.8</okra.version>
+	<okra.version>1.9</okra.version>
       </properties>
     </profile>
   </profiles>
