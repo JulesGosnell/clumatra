@@ -328,7 +328,7 @@
     (time (kernel width (deref future-in) out))
     (array-to-vector out)))
 
-;; consider passing each sub-trie to gou independently rather than all
+;; consider passing each sub-trie to gpu independently rather than all
 ;; threads bottlenecking on gpu at same time...
 ;; ------------------------------------------------------------------------------
 
