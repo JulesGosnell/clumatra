@@ -11,10 +11,10 @@ case "$1" in
     hardware-acceleration)
 	mkdir lib
 	cd lib
-	wget -nv https://raw.githubusercontent.com/HSAFoundation/Okra-Interface-to-HSA-Device/alpha-release/okra/dist/bin/libamdhsacl64.so
-	#wget -nv https://raw.githubusercontent.com/HSAFoundation/Okra-Interface-to-HSA-Device/alpha-release/okra/dist/bin/libhsakmt.so.1
-	wget -nv https://raw.githubusercontent.com/HSAFoundation/Okra-Interface-to-HSA-Device/alpha-release/okra/dist/bin/libnewhsacore64.so
-	wget -nv https://raw.githubusercontent.com/HSAFoundation/Okra-Interface-to-HSA-Device/alpha-release/okra/dist/bin/libokra_x86_64.so
+	wget -nv https://raw.githubusercontent.com/HSAFoundation/Okra-Interface-to-HSA-Device/master/okra/dist/bin/libamdhsacl64.so
+	wget -nv https://raw.githubusercontent.com/HSAFoundation/Okra-Interface-to-HSA-Device/master/okra/dist/bin/libhsakmt.so.1
+	wget -nv https://raw.githubusercontent.com/HSAFoundation/Okra-Interface-to-HSA-Device/master/okra/dist/bin/libnewhsacore64.so
+	wget -nv https://raw.githubusercontent.com/HSAFoundation/Okra-Interface-to-HSA-Device/master/okra/dist/bin/libokra_x86_64.so
 	cd ..
 	;;
 esac
