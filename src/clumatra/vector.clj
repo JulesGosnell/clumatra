@@ -272,7 +272,6 @@
 (defn round-up [n] (int (Math/ceil (double n))))
 
 (defn ^PersistentVector$Node array-to-vector-node [^AtomicReference atom ^objects src src-start width shift]
-  (println src-start width shift)
   (let [tgt (object-array 32)]
     (if (= shift 5)
       (let [rem (- (count src) src-start)]
@@ -282,47 +281,31 @@
             new-width (bit-shift-left 1 new-shift)]
         (dotimes [n (round-up (/ width new-width))]
           (let [new-start (+ src-start (* n new-width))]
-            ;;;(println n [new-start new-width new-shift])
             (aset tgt n (array-to-vector-node atom src new-start new-width new-shift))))))
     (PersistentVector$Node. atom tgt)))
 
 (defn array-to-vector [^objects src-array]
   (let [length (alength src-array)
-        dummy (println "input length:" length)
         rem (mod length 32)
         tail-length (if (and (not (zero? length)) (= rem 0)) 32 rem)
-        dummy (println "tail-length:" tail-length)
         root-length (- length tail-length)
-        dummy (println "root-length:" root-length)
         shift (find-shift root-length)
-        dummy (println "shift:" shift)
         width (bit-shift-left 1 shift)
-        dummy (println "width:" width)
         atom (java.util.concurrent.atomic.AtomicReference. nil)
         root-array (object-array 32)
-        dummy (println "new root array:" root-array)
-        nodes-needed (round-up (/ root-length (bit-shift-left 1 shift)))
-        dummy (println "nodes-needed:" nodes-needed)
-        new-shift (down-shift shift)
-        dummy (println "new-shift:" new-shift)
-        new-width (bit-shift-left 1 new-shift)
-        dummy (println "new-width:" new-width)]
+        nodes-needed (round-up (/ root-length (bit-shift-left 1 shift)))]
     (doall
      ;; TODO: use futures explicitly so that we can deal with tail on
      ;; foreground whilst branches are done in background...
-     (map
+     (pmap
       (fn [i]
         (let [start (* i width)
               end (min (- root-length start) width)]
-        (aset root-array i (array-to-vector-node atom src-array start end shift)))) ;TODO width should be num remaining elts
+        (aset root-array i (array-to-vector-node atom src-array start end shift))))
       (range nodes-needed)))
     (let [tail (object-array tail-length)]
       (System/arraycopy src-array (- length tail-length) tail 0 tail-length)
-      (construct-vector
-       length
-       shift
-       (PersistentVector$Node. atom root-array)
-       tail))))
+      (construct-vector length shift (PersistentVector$Node. atom root-array) tail))))
 
 ;;------------------------------------------------------------------------------
 ;; finally - this should be quite fast - when run on HSA h/w :-)
