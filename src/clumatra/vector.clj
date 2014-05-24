@@ -321,11 +321,11 @@
 ;;; :-)
 
 (defn gvmap [f ^PersistentVector v]
-  (let [width (.count v)
-        in (vector-to-array v)
-        out (object-array width)
-        kernel (c/simple-kernel-compile f)]
-    (kernel width in out)
+  (let [future-in (future (vector-to-array v))
+        kernel (c/simple-kernel-compile f)
+        width (.count v)
+        out (object-array width)]
+    (time (kernel width (deref future-in) out))
     (array-to-vector out)))
 
 ;; consider passing each sub-trie to gou independently rather than all
