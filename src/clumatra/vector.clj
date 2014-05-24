@@ -265,58 +265,59 @@
   (defn find-shift [n] (.getValue (.floorEntry powers-of-32 n)))
   )
 
-(defn find-shift2 [n] (.shift (vec (range n))))
-
 (defn down-shift [n] (if (= n 5) 5 (- n 5)))
   
 (defn round-up [n] (int (Math/ceil (double n))))
 
-(defn ^PersistentVector$Node array-to-vector-node [^AtomicReference atom ^objects src src-start width shift]
+(defn ^PersistentVector$Node array-to-vector-node [^AtomicReference atom ^objects src offset width shift]
   (let [tgt (object-array 32)]
     (if (= shift 5)
-      (let [rem (- (count src) src-start)]
+      (let [rem (- (count src) offset)]
         (if (> rem 0)
-          (System/arraycopy src src-start tgt 0 (min rem 32))))
+          (System/arraycopy src offset tgt 0 (min rem 32))))
       (let [new-shift (down-shift shift)
             new-width (bit-shift-left 1 new-shift)]
         (dotimes [n (round-up (/ width new-width))]
-          (let [new-start (+ src-start (* n new-width))]
-            (aset tgt n (array-to-vector-node atom src new-start new-width new-shift))))))
+          (let [new-offset (+ offset (* n new-width))]
+            (aset tgt n (array-to-vector-node atom src new-offset new-width new-shift))))))
     (PersistentVector$Node. atom tgt)))
 
-(defn array-to-vector [^objects src-array]
-  (let [length (alength src-array)
+(defn array-to-vector [^objects src]
+  (let [length (alength src)
         rem (mod length 32)
         tail-length (if (and (not (zero? length)) (= rem 0)) 32 rem)
         root-length (- length tail-length)
         shift (find-shift root-length)
         width (bit-shift-left 1 shift)
-        atom (java.util.concurrent.atomic.AtomicReference. nil)
+        atom (AtomicReference. nil)
         root-array (object-array 32)
         nodes-needed (round-up (/ root-length (bit-shift-left 1 shift)))]
-    (doall
-     ;; TODO: use futures explicitly so that we can deal with tail on
-     ;; foreground whilst branches are done in background...
-     (pmap
-      (fn [i]
-        (let [start (* i width)
-              end (min (- root-length start) width)]
-        (aset root-array i (array-to-vector-node atom src-array start end shift))))
-      (range nodes-needed)))
-    (let [tail (object-array tail-length)]
-      (System/arraycopy src-array (- length tail-length) tail 0 tail-length)
+    ;; process branches in background in parallel
+    (let [branches (mapv
+                    (fn [i]
+                      (future
+                        (let [offset (* i width)
+                              end (min (- root-length offset) width)]
+                          (aset root-array i (array-to-vector-node atom src offset end shift)))))
+                    (range nodes-needed))
+          tail (object-array tail-length)]
+      ;; process tail
+      (System/arraycopy src (- length tail-length) tail 0 tail-length)
+      ;; wait for all branches to finish
+      (doseq [branch branches] (deref branch))
+      ;; return new vector
       (construct-vector length shift (PersistentVector$Node. atom root-array) tail))))
 
 ;;------------------------------------------------------------------------------
 ;; finally - this should be quite fast - when run on HSA h/w :-)
 
 ;; (def v (vec (range (* 32 32 32 32))))
-;; (= (gvmap3 identity v) v) - true
+;; (= (time (gvmap identity v)) v) - true
 
 ;; target time is:
 ;; (dotimes [n 100] (time (do (mapv identity v) nil)))
 ;; on same hardware as:
-;; (dotimes [n 100] (time (do (gvmap3 identity v) nil)))
+;; (dotimes [n 100] (time (do (gvmap identity v) nil)))
 ;;; :-)
 
 (defn gvmap [f ^PersistentVector v]
@@ -327,7 +328,9 @@
     (kernel width in out)
     (array-to-vector out)))
 
-;;------------------------------------------------------------------------------
+;; consider passing each sub-trie to gou independently rather than all
+;; threads bottlenecking on gpu at same time...
+;; ------------------------------------------------------------------------------
 
 ;; try different flag combinations on h/w and s/w build
 ;; try to get repl working
