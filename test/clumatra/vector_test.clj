@@ -6,6 +6,7 @@
              [rrb-vector :as v]]
             [clojure.test :refer :all]
             [clumatra.util :refer :all]
+            [clumatra.core :refer :all]
             [clumatra.vector :refer :all]
             [clumatra.test-util :refer :all]))
 
@@ -135,3 +136,130 @@
       (doseq [test args]
         (test-vars [(interns (symbol test))]))
       (test-vars (vals interns)))))
+
+;; try reduction using clojure.lang.Numbers/unchecked_add(long, long)
+
+;;------------------------------------------------------------------------------
+
+(definterface ReductionKernel (^void invoke [^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out ^int i]))
+
+(defn reduction-kernel-compile [f]
+  (let [kernel
+        (reify ReductionKernel
+          (^void invoke
+            [^ReductionKernel self ^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out ^int i]
+            (aset
+             out
+             i
+             (let [^"[Ljava.lang.Object;" a (aget in i)]
+               (->>
+                0
+                (clojure.lang.Numbers/unchecked_add (long (aget a 0)))
+                (clojure.lang.Numbers/unchecked_add (long (aget a 1)))
+                (clojure.lang.Numbers/unchecked_add (long (aget a 2)))
+                (clojure.lang.Numbers/unchecked_add (long (aget a 3)))
+                (clojure.lang.Numbers/unchecked_add (long (aget a 4)))
+                (clojure.lang.Numbers/unchecked_add (long (aget a 5)))
+                (clojure.lang.Numbers/unchecked_add (long (aget a 6)))
+                (clojure.lang.Numbers/unchecked_add (long (aget a 7)))
+                (clojure.lang.Numbers/unchecked_add (long (aget a 8)))
+                (clojure.lang.Numbers/unchecked_add (long (aget a 9)))
+                (clojure.lang.Numbers/unchecked_add (long (aget a 10)))
+                (clojure.lang.Numbers/unchecked_add (long (aget a 11)))
+                (clojure.lang.Numbers/unchecked_add (long (aget a 12)))
+                (clojure.lang.Numbers/unchecked_add (long (aget a 13)))
+                (clojure.lang.Numbers/unchecked_add (long (aget a 14)))
+                (clojure.lang.Numbers/unchecked_add (long (aget a 15)))
+                (clojure.lang.Numbers/unchecked_add (long (aget a 16)))
+                (clojure.lang.Numbers/unchecked_add (long (aget a 17)))
+                (clojure.lang.Numbers/unchecked_add (long (aget a 18)))
+                (clojure.lang.Numbers/unchecked_add (long (aget a 19)))
+                (clojure.lang.Numbers/unchecked_add (long (aget a 20)))
+                (clojure.lang.Numbers/unchecked_add (long (aget a 21)))
+                (clojure.lang.Numbers/unchecked_add (long (aget a 22)))
+                (clojure.lang.Numbers/unchecked_add (long (aget a 23)))
+                (clojure.lang.Numbers/unchecked_add (long (aget a 24)))
+                (clojure.lang.Numbers/unchecked_add (long (aget a 25)))
+                (clojure.lang.Numbers/unchecked_add (long (aget a 26)))
+                (clojure.lang.Numbers/unchecked_add (long (aget a 27)))
+                (clojure.lang.Numbers/unchecked_add (long (aget a 28)))
+                (clojure.lang.Numbers/unchecked_add (long (aget a 29)))
+                (clojure.lang.Numbers/unchecked_add (long (aget a 30)))
+                (clojure.lang.Numbers/unchecked_add (long (aget a 31)))
+                )
+               ;; (clojure.lang.Numbers/unchecked_add
+               ;;  (long (aget a 0))
+               ;;  (clojure.lang.Numbers/unchecked_add
+               ;;   (long (aget a 1))
+               ;;   (clojure.lang.Numbers/unchecked_add
+               ;;    (long (aget a 2))
+               ;;    (clojure.lang.Numbers/unchecked_add
+               ;;     (long (aget a 3))
+               ;;     (clojure.lang.Numbers/unchecked_add
+               ;;      (long (aget a 4))
+               ;;      (clojure.lang.Numbers/unchecked_add
+               ;;       (long (aget a 5))
+               ;;       (clojure.lang.Numbers/unchecked_add
+               ;;        (long (aget a 6))
+               ;;        (clojure.lang.Numbers/unchecked_add
+               ;;         (long (aget a 7))
+               ;;         (clojure.lang.Numbers/unchecked_add
+               ;;          (long (aget a 8))
+               ;;          (clojure.lang.Numbers/unchecked_add
+               ;;           (long (aget a 9))
+               ;;           (clojure.lang.Numbers/unchecked_add
+               ;;            (long (aget a 10))
+               ;;            (clojure.lang.Numbers/unchecked_add
+               ;;             (long (aget a 11))
+               ;;             (clojure.lang.Numbers/unchecked_add
+               ;;              (long (aget a 12))
+               ;;              (clojure.lang.Numbers/unchecked_add
+               ;;               (long (aget a 13))
+               ;;               (clojure.lang.Numbers/unchecked_add
+               ;;                (long (aget a 14))
+               ;;                (clojure.lang.Numbers/unchecked_add
+               ;;                 (long (aget a 15))
+               ;;                 (clojure.lang.Numbers/unchecked_add
+               ;;                  (long (aget a 16))
+               ;;                  (clojure.lang.Numbers/unchecked_add
+               ;;                   (long (aget a 17))
+               ;;                   (clojure.lang.Numbers/unchecked_add
+               ;;                    (long (aget a 18))
+               ;;                    (clojure.lang.Numbers/unchecked_add
+               ;;                     (long (aget a 19))
+               ;;                     (clojure.lang.Numbers/unchecked_add
+               ;;                      (long (aget a 20))
+               ;;                      (clojure.lang.Numbers/unchecked_add
+               ;;                       (long (aget a 21))
+               ;;                       (clojure.lang.Numbers/unchecked_add
+               ;;                        (long (aget a 22))
+               ;;                        (clojure.lang.Numbers/unchecked_add
+               ;;                         (long (aget a 23))
+               ;;                         (clojure.lang.Numbers/unchecked_add
+               ;;                          (long (aget a 24))
+               ;;                          (clojure.lang.Numbers/unchecked_add
+               ;;                           (long (aget a 25))
+               ;;                           (clojure.lang.Numbers/unchecked_add
+               ;;                            (long (aget a 26))
+               ;;                            (clojure.lang.Numbers/unchecked_add
+               ;;                             (long (aget a 27))
+               ;;                             (clojure.lang.Numbers/unchecked_add
+               ;;                              (long (aget a 28))
+               ;;                              (clojure.lang.Numbers/unchecked_add
+               ;;                               (long (aget a 29))
+               ;;                               (clojure.lang.Numbers/unchecked_add
+               ;;                                (long (aget a 30))
+               ;;                                (long (aget a 31)))))))))))))))))))))))))))))))))
+               ))))
+        ]
+    (okra-kernel-compile kernel (fetch-method (class kernel) "invoke") 1 1)))
+
+;; if I can get this to work, then I have the beginnings of vector
+;; reduction...
+(deftest proto-reduction-test
+  (testing "can we reduce an Object[][32] into an Object[] using a hardwired function"
+    (let [width 64
+          in (object-array (repeat width (object-array (range 32))))
+          out (object-array (object-array width))
+          kernel (reduction-kernel-compile +)] ;+ is not used here...
+      (is (= (* width 496) (apply + (kernel width in out)))))))
