@@ -271,3 +271,16 @@
 ;; if this works then I have reduced the leaf nodes and therefore the
 ;; work to be done by a factor of 32...
 ;; how should I reduce the rest of the data... ?
+
+;; two types of reduction ?
+;; homogeneous: leaves and branches are reduced by same fn - e.g. +-ing numbers together
+;; heterogeneous: leaves are reduced with F1 and branches with F2
+;; also consider seed values for Fs when a single node needs reduction...
+
+;; how about :
+;; (gvreduce f1 seed vec)
+;; (gvreduce f1 seed f2 seed vec)
+;; e.g.
+;; (gvreduce + 0 [0 1 2 3 ... 1000000])
+;; (gvreduce conj #{} map-merge #{} [0 1 2 3 ... 1000000])
+;; or we could think in terms of monoids - consider ...
