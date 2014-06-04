@@ -182,6 +182,7 @@
 
 ;;------------------------------------------------------------------------------
 ;; A change of tack -
+
 ;; Copy vector contents into a single array, dispatch kernel on this, then copy
 ;; results back out into a vector...
 ;;------------------------------------------------------------------------------
@@ -265,8 +266,6 @@
   (defn find-shift [n] (.getValue (.floorEntry powers-of-32 n)))
   )
 
-(defn find-shift2 [n] (.shift (vec (range n))))
-
 (defn down-shift [n] (if (= n 5) 5 (- n 5)))
   
 (defn round-up [n] (int (Math/ceil (double n))))
@@ -334,3 +333,11 @@
 ;; time gvmap3 vs pmap or equivalent core/reduction
 ;; is it even better with 10,000,000 entries ?
 ;; could I do some simple instruction like inc or even a loop on the gpu ?
+
+;; consider migrating vector<->array fns to seqspert and providing
+;; better access to vec's ctor...
+
+;; experiment with adding items to a set via gpu...
+;; kernel input: (object-array (mapv (fn [i] (object-array (range i (+ i 10)))) (range 10)))
+;; kernel output: #{}[n]
+;; kernel code (aset out n (into #{} (aget in n)))
