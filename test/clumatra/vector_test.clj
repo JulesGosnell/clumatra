@@ -256,6 +256,10 @@
 
 ;; if I can get this to work, then I have the beginnings of vector
 ;; reduction...
+
+;; I would have to copy the vector leaf array pointers into an input
+;; array for this kernel..
+
 (deftest proto-reduction-test
   (testing "can we reduce an Object[][32] into an Object[] using a hardwired function"
     (let [width 64
@@ -263,3 +267,7 @@
           out (object-array (object-array width))
           kernel (reduction-kernel-compile +)] ;+ is not used here...
       (is (= (* width 496) (apply + (kernel width in out)))))))
+
+;; if this works then I have reduced the leaf nodes and therefore the
+;; work to be done by a factor of 32...
+;; how should I reduce the rest of the data... ?
