@@ -1,14 +1,16 @@
 (ns clumatra.vector-test
-  (:import  [java.util Collection Map]
-            [clojure.lang IObj AFn ISeq IPersistentVector APersistentVector PersistentVector Associative PersistentVector$TransientVector ITransientCollection])
-  (:require [clojure.core
-             [reducers :as r]
-             [rrb-vector :as v]]
-            [clojure.test :refer :all]
-            [clumatra.util :refer :all]
-            [clumatra.core :refer :all]
-            [clumatra.vector :refer :all]
-            [clumatra.test-util :refer :all]))
+  (:import
+   [java.util Collection Map]
+   [clojure.lang
+    IObj AFn ISeq IPersistentVector APersistentVector PersistentVector
+    Associative PersistentVector$TransientVector ITransientCollection])
+  (:require
+   [clojure.core
+    [reducers :as r]
+    [rrb-vector :as v]])
+  (:use
+   [clojure test]
+   [clumatra util core vector test-util]))
 
 ;;------------------------------------------------------------------------------
 ;; TODO:
