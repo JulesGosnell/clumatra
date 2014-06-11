@@ -238,4 +238,58 @@
 ;; if every thread collapsed their rhs into their lhs then this would
 ;; be the same as a sequential collapse from left to right ?
 
+;;; what about tail and the non-width-32 scraggy ends of vectors ?
 
+;; serial reduction of vec[1024] into a set would be 1024*t where t is the time for 1 insertion
+;; parallel reduction of same vec could be e.g. 32t 
+
+;; split vec[1024] into 32 * array[32] and reduce in parallel on gpu - 32t - yielding set[32]*32
+;; split these onto 16 threads where each one does set[32]+set[32] - 32t - yielding set[64]*16
+;; split these onto 8 threads where each one does set[64]+set[64] - 64t -  yielding set[128]*8
+;; set[128]+set[128] - 128t - yielding set[256]*4
+;; set[256]+set[256] - 256t - yielding set[512]*2
+;; set[512]+set[512] - 512t - yielding set[1024]
+;; total time = 32t + 32t + 64t + 128t + 256t + 512t = 
+
+;; try writing and testing a kernel to take e.g. vector|array[n] and reduce it to array[n/2]
+
+;; need VectorReduction and ArrayReduction Kernel types
+;; VectorReduction = (aset out i (f (get in (* 2 i)) (get in (inc (* 2 i)))))
+;; ArrayReduction = (aset out i (f (aget in (* 2 i)) (aget in (inc (* 2 i)))))
+;; arity of tree to be reduced should be weighed against weight of function to be applied: heavy fn = low arity (i.e. 2), light function (e.g. +) -> higher arity (e.g. 32 - use inline areduce)
+
+;;; we could either use subvecs or pass in an offset value, allowing
+;;; us to reduce one piece of vec on each cpu core...
+
+;;------------------------------------------------------------------------------
+
+;; output array should be half the length of input vector
+(definterface VectorReductionKernel (^void invoke [in ^"[Ljava.lang.Object;" out ^int i]))
+
+(defn vector-reduction-kernel-compile [f]
+  (let [kernel
+        (reify VectorReductionKernel
+          (^void invoke
+            [^VectorReductionKernel self in ^"[Ljava.lang.Object;" out ^int i]
+            (aset out i (let [j (* 2 i)] (f (get in j) (get in (inc j)))))))]
+    (okra-kernel-compile kernel (fetch-method (class kernel) "invoke") 1 1)))
+
+;; (reduce + 0 (range 1024)) via gpu kernels... - we should be able to
+;; use inline-areduce to do this soon...
+(let [in (vec (range 1024))
+      kernel (vector-reduction-kernel-compile +)
+      foo (fn [n in] (kernel n in (object-array n)))]
+  (= (apply + (foo 2 (foo 4 (foo 8 (foo 16 (foo 32 (foo 64 (foo 128 (foo 256 (foo 512 in))))))))))
+     (apply + (->>
+               in
+               (foo 512)
+               (foo 256)
+               (foo 128)
+               (foo 64)
+               (foo 32)
+               (foo 16)
+               (foo 8)
+               (foo 4)
+               (foo 2)))
+     (apply + (range 1024))))
+  
