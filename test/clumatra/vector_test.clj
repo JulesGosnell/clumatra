@@ -264,32 +264,66 @@
 ;;------------------------------------------------------------------------------
 
 ;; output array should be half the length of input vector
-(definterface VectorReductionKernel (^void invoke [in ^"[Ljava.lang.Object;" out ^int i]))
+(definterface VectorReductionKernel
+  (^void invoke [^clojure.lang.PersistentVector in ^"[Ljava.lang.Object;" out ^int i]))
+
+(definterface ArrayReductionKernel
+  (^void invoke [^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out ^int i]))
 
 (defn vector-reduction-kernel-compile [f]
   (let [kernel
         (reify VectorReductionKernel
           (^void invoke
-            [^VectorReductionKernel self in ^"[Ljava.lang.Object;" out ^int i]
+            [^VectorReductionKernel self ^clojure.lang.PersistentVector in ^"[Ljava.lang.Object;" out ^int i]
             (aset out i (let [j (* 2 i)] (f (get in j) (get in (inc j)))))))]
     (okra-kernel-compile kernel (fetch-method (class kernel) "invoke") 1 1)))
 
 ;; (reduce + 0 (range 1024)) via gpu kernels... - we should be able to
 ;; use inline-areduce to do this soon...
-(let [in (vec (range 1024))
-      kernel (vector-reduction-kernel-compile +)
-      foo (fn [n in] (kernel n in (object-array n)))]
-  (= (apply + (foo 2 (foo 4 (foo 8 (foo 16 (foo 32 (foo 64 (foo 128 (foo 256 (foo 512 in))))))))))
-     (apply + (->>
-               in
-               (foo 512)
-               (foo 256)
-               (foo 128)
-               (foo 64)
-               (foo 32)
-               (foo 16)
-               (foo 8)
-               (foo 4)
-               (foo 2)))
-     (apply + (range 1024))))
+
+;; (let [in (vec (range 1024))
+;;       kernel (vector-reduction-kernel-compile +)
+;;       foo (fn [n in] (kernel n in (object-array n)))]
+;;   (= (apply + (foo 2 (foo 4 (foo 8 (foo 16 (foo 32 (foo 64 (foo 128 (foo 256 (foo 512 in))))))))))
+;;      (apply + (->>
+;;                in
+;;                (foo 512)
+;;                (foo 256)
+;;                (foo 128)
+;;                (foo 64)
+;;                (foo 32)
+;;                (foo 16)
+;;                (foo 8)
+;;                (foo 4)
+;;                (foo 2)))
+;;      (apply + (range 1024))))
   
+;;------------------------------------------------------------------------------
+
+(defn array-copy-kernel-compile [f]
+  (let [kernel
+        (reify ArrayReductionKernel
+          (^void invoke
+            [^ArrayReductionKernel self ^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out ^int i]
+            (aset out i (aget in i))))]
+    (okra-kernel-compile kernel (fetch-method (class kernel) "invoke") 1 1)))
+
+(defn vector-copy-kernel-compile [f]
+  (let [kernel
+        (reify VectorReductionKernel
+          (^void invoke
+            [^VectorReductionKernel self ^clojure.lang.PersistentVector in ^"[Ljava.lang.Object;" out ^int i]
+            (aset out i (get in i))))]
+    (okra-kernel-compile kernel (fetch-method (class kernel) "invoke") 1 1)))
+
+;; TODO: anything over 32 does not work - I think there is a problem
+;; with the translation of get method
+(let [w 31
+      in (vec (range w))
+      kernel (vector-copy-kernel-compile +)]
+  (seq (kernel w in (object-array w))))
+
+(let [w 1024
+      in (object-array (range w))
+      kernel (array-copy-kernel-compile +)]
+  (seq (kernel w in (object-array w))))
