@@ -5,6 +5,7 @@
     IObj AFn ISeq IPersistentVector APersistentVector PersistentVector
     Associative PersistentVector$TransientVector ITransientCollection])
   (:require
+   [clojure [pprint :as p]]
    [clojure.core
     [reducers :as r]
     [rrb-vector :as v]])
@@ -145,116 +146,36 @@
 
 (definterface ReductionKernel (^void invoke [^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out ^int i]))
 
+;; consider using a macro to produce kernel code for single and
+;; multiple level reductions - unroll its loop to reduce branching on
+;; SIMD:
+
+;; This relies on f being both monoid and taking >0 args - e.g. +
+
+;; I could provide a macro to handle non-monoids, but this could
+;; complicate the whole Kernel i/f - so lets see how things go...
+(defmacro inline-areduce
+  [a n f]
+  (let [A (gensym "a")
+        F (gensym "f")]
+    `(let [~A ~a ~F ~f]
+       (->>
+      ~@(map (fn [i#] `(~F (aget ^"[Ljava.lang.Object;" ~A ~i#))) (range n))
+      ))
+    ))
+
 (defn reduction-kernel-compile [f]
   (let [kernel
         (reify ReductionKernel
           (^void invoke
             [^ReductionKernel self ^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out ^int i]
-            (aset
-             out
-             i
-             (let [^"[Ljava.lang.Object;" a (aget in i)]
-               (->>
-                0
-                (clojure.lang.Numbers/unchecked_add (long (aget a 0)))
-                (clojure.lang.Numbers/unchecked_add (long (aget a 1)))
-                (clojure.lang.Numbers/unchecked_add (long (aget a 2)))
-                (clojure.lang.Numbers/unchecked_add (long (aget a 3)))
-                (clojure.lang.Numbers/unchecked_add (long (aget a 4)))
-                (clojure.lang.Numbers/unchecked_add (long (aget a 5)))
-                (clojure.lang.Numbers/unchecked_add (long (aget a 6)))
-                (clojure.lang.Numbers/unchecked_add (long (aget a 7)))
-                (clojure.lang.Numbers/unchecked_add (long (aget a 8)))
-                (clojure.lang.Numbers/unchecked_add (long (aget a 9)))
-                (clojure.lang.Numbers/unchecked_add (long (aget a 10)))
-                (clojure.lang.Numbers/unchecked_add (long (aget a 11)))
-                (clojure.lang.Numbers/unchecked_add (long (aget a 12)))
-                (clojure.lang.Numbers/unchecked_add (long (aget a 13)))
-                (clojure.lang.Numbers/unchecked_add (long (aget a 14)))
-                (clojure.lang.Numbers/unchecked_add (long (aget a 15)))
-                (clojure.lang.Numbers/unchecked_add (long (aget a 16)))
-                (clojure.lang.Numbers/unchecked_add (long (aget a 17)))
-                (clojure.lang.Numbers/unchecked_add (long (aget a 18)))
-                (clojure.lang.Numbers/unchecked_add (long (aget a 19)))
-                (clojure.lang.Numbers/unchecked_add (long (aget a 20)))
-                (clojure.lang.Numbers/unchecked_add (long (aget a 21)))
-                (clojure.lang.Numbers/unchecked_add (long (aget a 22)))
-                (clojure.lang.Numbers/unchecked_add (long (aget a 23)))
-                (clojure.lang.Numbers/unchecked_add (long (aget a 24)))
-                (clojure.lang.Numbers/unchecked_add (long (aget a 25)))
-                (clojure.lang.Numbers/unchecked_add (long (aget a 26)))
-                (clojure.lang.Numbers/unchecked_add (long (aget a 27)))
-                (clojure.lang.Numbers/unchecked_add (long (aget a 28)))
-                (clojure.lang.Numbers/unchecked_add (long (aget a 29)))
-                (clojure.lang.Numbers/unchecked_add (long (aget a 30)))
-                (clojure.lang.Numbers/unchecked_add (long (aget a 31)))
-                )
-               ;; (clojure.lang.Numbers/unchecked_add
-               ;;  (long (aget a 0))
-               ;;  (clojure.lang.Numbers/unchecked_add
-               ;;   (long (aget a 1))
-               ;;   (clojure.lang.Numbers/unchecked_add
-               ;;    (long (aget a 2))
-               ;;    (clojure.lang.Numbers/unchecked_add
-               ;;     (long (aget a 3))
-               ;;     (clojure.lang.Numbers/unchecked_add
-               ;;      (long (aget a 4))
-               ;;      (clojure.lang.Numbers/unchecked_add
-               ;;       (long (aget a 5))
-               ;;       (clojure.lang.Numbers/unchecked_add
-               ;;        (long (aget a 6))
-               ;;        (clojure.lang.Numbers/unchecked_add
-               ;;         (long (aget a 7))
-               ;;         (clojure.lang.Numbers/unchecked_add
-               ;;          (long (aget a 8))
-               ;;          (clojure.lang.Numbers/unchecked_add
-               ;;           (long (aget a 9))
-               ;;           (clojure.lang.Numbers/unchecked_add
-               ;;            (long (aget a 10))
-               ;;            (clojure.lang.Numbers/unchecked_add
-               ;;             (long (aget a 11))
-               ;;             (clojure.lang.Numbers/unchecked_add
-               ;;              (long (aget a 12))
-               ;;              (clojure.lang.Numbers/unchecked_add
-               ;;               (long (aget a 13))
-               ;;               (clojure.lang.Numbers/unchecked_add
-               ;;                (long (aget a 14))
-               ;;                (clojure.lang.Numbers/unchecked_add
-               ;;                 (long (aget a 15))
-               ;;                 (clojure.lang.Numbers/unchecked_add
-               ;;                  (long (aget a 16))
-               ;;                  (clojure.lang.Numbers/unchecked_add
-               ;;                   (long (aget a 17))
-               ;;                   (clojure.lang.Numbers/unchecked_add
-               ;;                    (long (aget a 18))
-               ;;                    (clojure.lang.Numbers/unchecked_add
-               ;;                     (long (aget a 19))
-               ;;                     (clojure.lang.Numbers/unchecked_add
-               ;;                      (long (aget a 20))
-               ;;                      (clojure.lang.Numbers/unchecked_add
-               ;;                       (long (aget a 21))
-               ;;                       (clojure.lang.Numbers/unchecked_add
-               ;;                        (long (aget a 22))
-               ;;                        (clojure.lang.Numbers/unchecked_add
-               ;;                         (long (aget a 23))
-               ;;                         (clojure.lang.Numbers/unchecked_add
-               ;;                          (long (aget a 24))
-               ;;                          (clojure.lang.Numbers/unchecked_add
-               ;;                           (long (aget a 25))
-               ;;                           (clojure.lang.Numbers/unchecked_add
-               ;;                            (long (aget a 26))
-               ;;                            (clojure.lang.Numbers/unchecked_add
-               ;;                             (long (aget a 27))
-               ;;                             (clojure.lang.Numbers/unchecked_add
-               ;;                              (long (aget a 28))
-               ;;                              (clojure.lang.Numbers/unchecked_add
-               ;;                               (long (aget a 29))
-               ;;                               (clojure.lang.Numbers/unchecked_add
-               ;;                                (long (aget a 30))
-               ;;                                (long (aget a 31)))))))))))))))))))))))))))))))))
-               ))))
-        ]
+            (aset out i (inline-areduce (aget in i) 32 f))))]
     (okra-kernel-compile kernel (fetch-method (class kernel) "invoke") 1 1)))
+
+;; e.g.
+;;(def ^"[Ljava.lang.Object;" in (object-array (range 32)))
+;;(p/pprint (macroexpand-1 '(inline-areduce in 32 +)))
+
 
 ;; if I can get this to work, then I have the beginnings of vector
 ;; reduction...
@@ -268,6 +189,14 @@
           in (object-array (repeat width (object-array (range 32))))
           out (object-array (object-array width))
           kernel (reduction-kernel-compile +)] ;+ is not used here...
+      (is (= (* width 496) (apply + (kernel width in out)))))))
+
+(deftest reduction-kernel-test
+  (testing "can we reduce an Object[][32] into an Object[] using a hardwired function"
+    (let [width 64
+          in (object-array (repeat width (object-array (range 32))))
+          out (object-array (object-array width))
+          kernel (reduction-kernel-compile +)]
       (is (= (* width 496) (apply + (kernel width in out)))))))
 
 ;; if this works then I have reduced the leaf nodes and therefore the
@@ -286,3 +215,27 @@
 ;; (gvreduce + 0 [0 1 2 3 ... 1000000])
 ;; (gvreduce conj #{} map-merge #{} [0 1 2 3 ... 1000000])
 ;; or we could think in terms of monoids - consider ...
+
+;; plan A:
+;; -- use multiple threads to walk down to one level above bottom of trie and copy leaf array addresses into single large array for gpu to reduce into similar sized Object[]
+;; -- threads coould wait for this, then pick out results for their leaves and recurse back up combining results until there is only one.
+;; issues:
+;;  no cpu threads working whilst gpu is working 
+;;  no combination can start until all leaves are reduces
+
+;; plan B:
+;; -- fork a task for each of the 1-32 subtries - each on should prepare and execute a kernel to reduce the entire subtrie.
+;; -- we want to combine results as soon as they become available - do we put them on a queue or can we somehow use a lazy seq
+;; issues:
+;; final 32 values recombined in serial - TX32 - if we did the recombination in parallel it would take Tx5
+;;; we could recurse down 5 levels off fork/join tasks, having each
+;;; one spawn and wait for two children then recombine their
+;;; results... - would that be too much overhead ? no for heavy fns - yes for light ones...
+;; can we just divide tree by number of available processors  and only do reduction at this granularity ?
+;; on a 16 core box we would then be left with a recombination cost of 16T instead of 5T...(probably 2*5T as with only 16 threads each one would have to do 2 of the 32 pieces of work),
+
+;; would recombination always occur in the same order - I think so -
+;; if every thread collapsed their rhs into their lhs then this would
+;; be the same as a sequential collapse from left to right ?
+
+
