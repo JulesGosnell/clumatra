@@ -313,17 +313,39 @@
         (reify VectorReductionKernel
           (^void invoke
             [^VectorReductionKernel self ^clojure.lang.PersistentVector in ^"[Ljava.lang.Object;" out ^int i]
-            (aset out i (get in i))))]
+            (aset out i (.nth in i))))]
     (okra-kernel-compile kernel (fetch-method (class kernel) "invoke") 1 1)))
 
 ;; TODO: anything over 32 does not work - I think there is a problem
 ;; with the translation of get method
-(let [w 31
-      in (vec (range w))
-      kernel (vector-copy-kernel-compile +)]
-  (seq (kernel w in (object-array w))))
 
-(let [w 1024
-      in (object-array (range w))
-      kernel (array-copy-kernel-compile +)]
-  (seq (kernel w in (object-array w))))
+(deftest vector-tail-copy-test
+  (testing "can we copy a vector of size<32 into an Object[] on GPU"
+    (let [w 31
+          in (vec (range w))
+          kernel (vector-copy-kernel-compile nil)]
+      (is (= (seq (kernel w in (object-array w))) (range w))))))
+
+(deftest vector-copy-test
+  (testing "can we copy a vector of size<32 into an Object[] on GPU"
+    (let [w 1024
+          in (vec (range w))
+          kernel (vector-copy-kernel-compile nil)]
+      (is (= (seq (kernel w in (object-array w))) (range w))))))
+
+(deftest vector-copy-test
+  (testing "can we copy a vector of size<32 into an Object[] on GPU"
+    (let [w 1024
+          in (object-array (range w))
+          kernel (array-copy-kernel-compile nil)]
+      (is (= (seq (kernel w in (object-array w))) (range w))))))
+
+;------------------------------------------------------------------------------    
+;; I think that I am going to have to write some Java:
+;; 1. to expose private vector ctor
+;; 2. to expose enough of PHM to allow splicing
+;; 3. to refactor PV.nth() to a point whereby it will run on GPU
+
+;; post about and consider use of "heterogenous queueing" i.e. cpu and
+;; gpu can dispatch work on themselves and each other with similar
+;; effort.
