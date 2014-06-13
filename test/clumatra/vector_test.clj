@@ -316,25 +316,22 @@
             (aset out i (.nth in i))))]
     (okra-kernel-compile kernel (fetch-method (class kernel) "invoke") 1 1)))
 
-;; TODO: anything over 32 does not work - I think there is a problem
-;; with the translation of get method
-
 (deftest vector-tail-copy-test
-  (testing "can we copy a vector of size<32 into an Object[] on GPU"
-    (let [w 31
+  (testing "can we copy the contents of a Clojure vector of size<32 directly into an Object[] on GPU"
+    (let [w 31                          ;only tail seems to be working at the moment - investigate
           in (vec (range w))
           kernel (vector-copy-kernel-compile nil)]
       (is (= (seq (kernel w in (object-array w))) (range w))))))
 
 (deftest vector-copy-test
-  (testing "can we copy a vector of size<32 into an Object[] on GPU"
+  (testing "can we copy the contents of a Clojure vector of size>=32 directly into an Object[] on GPU"
     (let [w 1024
           in (vec (range w))
           kernel (vector-copy-kernel-compile nil)]
       (is (= (seq (kernel w in (object-array w))) (range w))))))
 
-(deftest vector-copy-test
-  (testing "can we copy a vector of size<32 into an Object[] on GPU"
+(deftest array-copy-test
+  (testing "can we copy the contents of an Object[] into an Object[] on GPU"
     (let [w 1024
           in (object-array (range w))
           kernel (array-copy-kernel-compile nil)]
@@ -349,3 +346,31 @@
 ;; post about and consider use of "heterogenous queueing" i.e. cpu and
 ;; gpu can dispatch work on themselves and each other with similar
 ;; effort.
+
+;; try translating PersistentVector.nth() into Clojure:
+
+;; work out size of trie (i.e. vector excluding tail)
+(defn my-tailoff [^clojure.lang.PersistentVector v]
+  (let [l (.length v)]
+    ;;(if (< l 32)
+      ;;0 
+      (clojure.lang.Numbers/shiftLeft (clojure.lang.Numbers/unsignedShiftRight (dec l) 5) 5)
+      ;;)
+    ))
+    
+(defn my-array-for-2 [i ^objects a level]
+  (if (zero? level)
+    a
+    (recur
+     i
+     (.array ^clojure.lang.PersistentVector$Node (aget a (bit-and (clojure.lang.Numbers/unsignedShiftRight i level) 16r01f)))
+     (- level 5))))
+  
+(defn ^"[Ljava.lang.Object;" my-array-for [^clojure.lang.PersistentVector v i]
+  (if (>= i (my-tailoff v))
+    (.tail v)
+    (my-array-for-2 i (.array (.root v)) (.shift v))))
+
+(defn my-nth [v i]
+  ;; we are only interested in the first 5 bits...
+  (aget (my-array-for v i) (bit-and i 16r01f)))
