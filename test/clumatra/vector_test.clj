@@ -349,6 +349,13 @@
 
 ;; try translating PersistentVector.nth() into Clojure:
 
+;; (* 32 32 32 32 32 32) -> 1073741824 > 1 Billion
+
+;; so lets use a jump table of size 6 and some loop unrolling to avoid
+;; any branching at all in the lookup of an element in a vector. this
+;; will be much better for simd - might even be faster than the
+;; existing clojure impl :-)
+
 ;; work out size of trie (i.e. vector excluding tail)
 (defn my-tailoff [^clojure.lang.PersistentVector v]
   (let [l (.length v)]
@@ -358,19 +365,71 @@
       ;;)
     ))
     
-(defn my-array-for-2 [i ^objects a level]
-  (if (zero? level)
-    a
-    (recur
-     i
-     (.array ^clojure.lang.PersistentVector$Node (aget a (bit-and (clojure.lang.Numbers/unsignedShiftRight i level) 16r01f)))
-     (- level 5))))
+(defn foo [i l ^objects a]
+  (println (list 'foo i l a))
+  (.array ^clojure.lang.PersistentVector$Node (aget a (bit-and (clojure.lang.Numbers/unsignedShiftRight i l) 16r01f))))
+
+(defn my-array-for-2 [i l a]
+  (if (zero? l) a (recur (foo i l a) i (- l 5))))
+
+
+(defn lookup-0 [i l a]
+  (foo i 5 a))
+
+;; (defmacro inline-areduce-seq
+;;   [a n f s]
+;;   (let [A (gensym "a")
+;;         F (gensym "f")]
+;;     `(let [~A ~a ~F ~f]
+;;        (->>
+;;       ~@(map (fn [i#] `(~F (aget ^"[Ljava.lang.Object;" ~A ~i#))) s)
+;;       ))
+;;     ))
+
+(defn lookup-1 [i l a]
+  (->> a
+   (foo i 5)
+   ))
+
+(defn lookup-2 [i l a]
+  (->> a
+   (foo i 10)
+   (foo i 5)
+   ))
+
+(defn lookup-3 [i l a]
+  (->> a
+   (foo i 15)
+   (foo i 10)
+   (foo i 5)
+   ))
+
+(defn lookup-4 [i l a]
+  (->> a
+   (foo i 20)
+   (foo i 15)
+   (foo i 10)
+   (foo i 5)
+   ))
+
+(let [^objects lookup 
+      (object-array
+       [lookup-0
+        lookup-1
+        lookup-2
+        lookup-3
+        lookup-4])]
+
+  (defn my-array-for-2 [i l a]
+    ((aget lookup (/ l 5)) i l a)))
   
 (defn ^"[Ljava.lang.Object;" my-array-for [^clojure.lang.PersistentVector v i]
   (if (>= i (my-tailoff v))
     (.tail v)
-    (my-array-for-2 i (.array (.root v)) (.shift v))))
+    (my-array-for-2 i (.shift v) (.array (.root v)))))
 
 (defn my-nth [v i]
   ;; we are only interested in the first 5 bits...
-  (aget (my-array-for v i) (bit-and i 16r01f)))
+  (aget (my-array-for v i) (bit-and i 0x1f)))
+
+;; looking good :-)
