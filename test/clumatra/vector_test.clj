@@ -410,7 +410,8 @@
               (aset out i (+ (.nth in n)(.nth in (inc n)))))))]
     (okra-kernel-compile kernel (fetch-method (class kernel) "invoke") 1 1)))
 
-(deftest vector-to-array-reduction-test
+;; only compare first 32 elements of result
+(deftest vector-to-array-reduction-1-test
   (testing "can we perform the first stage of a reduction by '+' from a vector[n] to an Object[n/2] on GPU?"
     (let [w 1024
           half (/ w 2)
@@ -419,3 +420,13 @@
       ;; only seems to work for first 64 elts
       (is (= (take 32 (seq (kernel half in (object-array half))))
              (take 32 (apply map + (vals (group-by even? (range w))))))))))
+
+(deftest vector-to-array-reduction-2-test
+  (testing "can we perform the first stage of a reduction by '+' from a vector[n] to an Object[n/2] on GPU?"
+    (let [w 1024
+          half (/ w 2)
+          in (vec (range w))
+          kernel (vector-to-array-reduction-kernel-compile nil)]
+      (is (= (seq (kernel half in (object-array half)))
+             (apply map + (vals (group-by even? (range w)))))))))
+
