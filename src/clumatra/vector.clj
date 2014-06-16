@@ -307,6 +307,39 @@
       v)))
 
 ;;------------------------------------------------------------------------------
+
+(defn ^PersistentVector$Node empty-vector-node [^AtomicReference atom width shift]
+  (let [tgt (object-array 32)]
+    (if (= shift 5)
+      nil
+      (let [new-shift (down-shift shift)
+            new-width (bit-shift-left 1 new-shift)]
+        (dotimes [n (round-up (/ width new-width))]
+          (aset tgt n (empty-vector-node atom new-width new-shift)))))
+    (PersistentVector$Node. atom tgt)))
+
+(defn empty-vector [length]
+  (let [rem (mod length 32)
+        tail-length (if (and (not (zero? length)) (= rem 0)) 32 rem)
+        root-length (- length tail-length)
+        shift (find-shift root-length)
+        width (bit-shift-left 1 shift)
+        atom (java.util.concurrent.atomic.AtomicReference. nil)
+        root-array (object-array 32)
+        nodes-needed (round-up (/ root-length (bit-shift-left 1 shift)))
+        branches (object-array nodes-needed)]
+    (dotimes [i nodes-needed]
+      (aset branches i
+            (future
+              (let [start (* i width)
+                    end (min (- root-length start) width)]
+                (aset root-array i (empty-vector-node atom end shift))))))
+    (let [tail (object-array tail-length)
+          v (construct-vector length shift (PersistentVector$Node. atom root-array) tail)]
+      (doseq [branch branches] (deref branch))
+      v)))
+
+;;------------------------------------------------------------------------------
 ;; finally - this should be quite fast - when run on HSA h/w :-)
 
 ;; (def v (vec (range (* 32 32 32 32))))
