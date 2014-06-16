@@ -364,8 +364,8 @@
             (let [l (count in)
                   n (clojure.lang.Numbers/shiftLeft (clojure.lang.Numbers/unsignedShiftRight (dec l) 5) 5) ;trie count
                   j (bit-and i 0x1f)
-                  q (bit-and (clojure.lang.Numbers/unsignedShiftRight i 5) 16r01f)
-                  r (bit-and (clojure.lang.Numbers/unsignedShiftRight i 10) 16r01f)]
+                  q (bit-and (clojure.lang.Numbers/unsignedShiftRight i 5) 0x1f)
+                  r (bit-and (clojure.lang.Numbers/unsignedShiftRight i 10) 0x1f)]
               (aset
                (if (>= i n)
                  (.tail out)
@@ -394,6 +394,12 @@
             [^VectorToVectorKernel self ^clojure.lang.PersistentVector in ^clojure.lang.PersistentVector out ^int i]
             (vector-set out i (inc (vector-get in i)))))]
     (okra-kernel-compile kernel (fetch-method (class kernel) "invoke") 1 1)))
+
+(defn gvmap2 [f ^PersistentVector in]
+  (let [width (.count in)
+        out (empty-vector width)
+        kernel (vector-to-vector-mapping-kernel-compile f)]
+    (kernel width in out)))
 
 (deftest vector-to-vector-mapping-test
   (testing "can we perform a direct vector-to-vector (map f v) on the GPU ?"
