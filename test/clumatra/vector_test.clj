@@ -2,7 +2,7 @@
   (:import
    [java.util Collection Map]
    [clojure.lang
-    IObj AFn ISeq IPersistentVector APersistentVector PersistentVector
+    IObj AFn ISeq IPersistentVector APersistentVector PersistentVector PersistentVector$Node
     Associative PersistentVector$TransientVector ITransientCollection])
   (:require
    [clojure [pprint :as p]]
@@ -320,83 +320,56 @@
 ;; will be much better for simd - might even be faster than the
 ;; existing clojure impl :-)
 
-;; work out size of trie (i.e. vector excluding tail)
-(defn my-tailoff [^clojure.lang.PersistentVector v]
-  (let [l (.length v)]
-    ;;(if (< l 32)
-      ;;0 
-      (clojure.lang.Numbers/shiftLeft (clojure.lang.Numbers/unsignedShiftRight (dec l) 5) 5)
-      ;;)
-    ))
-    
-(defn foo [i l ^objects a]
-  ;;(println (list 'foo i l a))
-  (.array ^clojure.lang.PersistentVector$Node (aget a (bit-and (clojure.lang.Numbers/unsignedShiftRight i l) 16r01f))))
 
-(defn my-array-for-2 [i l a]
-  (if (zero? l) a (recur (foo i l a) i (- l 5))))
-
-
-(defn lookup-0 [i l a]
-  (foo i 5 a))
-
-;; (defmacro inline-areduce-seq
-;;   [a n f s]
-;;   (let [A (gensym "a")
-;;         F (gensym "f")]
-;;     `(let [~A ~a ~F ~f]
-;;        (->>
-;;       ~@(map (fn [i#] `(~F (aget ^"[Ljava.lang.Object;" ~A ~i#))) s)
-;;       ))
-;;     ))
-
-(defn lookup-1 [i l a]
-  (->> a
-   (foo i 5)
-   ))
-
-(defn lookup-2 [i l a]
-  (->> a
-   (foo i 10)
-   (foo i 5)
-   ))
-
-(defn lookup-3 [i l a]
-  (->> a
-   (foo i 15)
-   (foo i 10)
-   (foo i 5)
-   ))
-
-(defn lookup-4 [i l a]
-  (->> a
-   (foo i 20)
-   (foo i 15)
-   (foo i 10)
-   (foo i 5)
-   ))
+(defn foo [i l ^"[Ljava.lang.Object;" a]
+  (.array ^PersistentVector$Node (aget a (bit-and (clojure.lang.Numbers/unsignedShiftRight i l) 16r01f))))
 
 (let [^objects lookup 
       (object-array
-       [lookup-0
-        lookup-1
-        lookup-2
-        lookup-3
-        lookup-4])]
+       [(fn [i l a] (foo i 5 a)) 
+        (fn [i l a] (->> a (foo i 5)))
+        (fn [i l a] (->> a (foo i 10) (foo i 5)))
+        (fn [i l a] (->> a (foo i 15) (foo i 10) (foo i 5)))
+        (fn [i l a] (->> a (foo i 20) (foo i 15) (foo i 10) (foo i 5)))
+        (fn [i l a] (->> a (foo i 25) (foo i 20) (foo i 15) (foo i 10) (foo i 5)))
+        (fn [i l a] (->> a (foo i 30) (foo i 25) (foo i 20) (foo i 15) (foo i 10) (foo i 5)))])]
 
-  (defn my-array-for-2 [i l a]
+  (defn vector-trie-array [i l a]
     ((aget lookup (/ l 5)) i l a)))
+
+(defn vector-trie-count [^clojure.lang.PersistentVector v]
+  (let [l (.length v)]
+    (clojure.lang.Numbers/shiftLeft (clojure.lang.Numbers/unsignedShiftRight (dec l) 5) 5)))
   
-(defn ^"[Ljava.lang.Object;" my-array-for [^clojure.lang.PersistentVector v i]
-  (if (>= i (my-tailoff v))
+(defn ^"[Ljava.lang.Object;" vector-array [^clojure.lang.PersistentVector v i]
+  (if (>= i (vector-trie-count v))
     (.tail v)
-    (my-array-for-2 i (.shift v) (.array (.root v)))))
+    (vector-trie-array i (.shift v) (.array (.root v)))))
 
-(defn my-nth [v i]
-  ;; we are only interested in the first 5 bits...
-  (aget (my-array-for v i) (bit-and i 0x1f)))
+(defn vector-get [v i] (aget (vector-array v i) (bit-and i 0x1f)))
+(defn vector-set [v i val] (aset (vector-array v i) (bit-and i 0x1f) val))
 
-;; looking good :-)
+;;------------------------------------------------------------------------------
+
+(definterface VectorToVectorKernel
+  (^void invoke [^clojure.lang.PersistentVector in ^clojure.lang.PersistentVector out ^int i]))
+
+(defn vector-to-vector-mapping-kernel-compile [f]
+  (let [kernel
+        (reify VectorToVectorKernel
+          (^void invoke
+            [^VectorToVectorKernel self ^clojure.lang.PersistentVector in ^clojure.lang.PersistentVector out ^int i]
+            (vector-set out i (f (vector-get in i)))))]
+    (okra-kernel-compile kernel (fetch-method (class kernel) "invoke") 1 1)))
+
+(deftest vector-to-array-reduction-1-test
+  (testing "can we perform a direct vector-to-vector (map f v) on the GPU ?"
+    (let [w 10000
+          in (vec (range w))
+          out (empty-vector w)
+          kernel (vector-to-vector-mapping-kernel-compile inc)]
+      (is (= (kernel w in out)
+             (mapv inc (range w)))))))
 
 ;;------------------------------------------------------------------------------
 ;; further reduction work...
@@ -430,3 +403,15 @@
       (is (= (seq (kernel half in (object-array half)))
              (apply map + (vals (group-by even? (range w)))))))))
 
+;;------------------------------------------------------------------------------
+
+;; tidy up vector-get and provide test - time against nth
+;; write vector-set and provide test
+
+;; MapVectorToVectorKernel - for all depths
+;; MapVectorToArrayKernel - for all depths
+;; MapArrayToArrayKernel
+;; MapArrayToVectorKernel - for all depths
+
+;; ReduceVectorToArrayKernel - for all depths
+;; ReduceArrayToArrayKernel
