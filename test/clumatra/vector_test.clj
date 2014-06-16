@@ -46,11 +46,11 @@
 ;; (time (count (fjvmap inc a)))
 ;; (= (time (r/fold n (r/monoid v/catvec v/vector) conj (r/map inc a))) (fjvmap inc a))
 
-;; (deftest vector-map-test
-;;   (testing "mapping across vector"
-;;     (let [data (vec (range 100))
-;;           f inc]
-;;       (is (= (map f data) (vmap f data) (fjvmap f data) (gvmap f data))))))
+(deftest vector-map-test
+  (testing "mapping across vector"
+    (let [data (vec (range 100))
+          f inc]
+      (is (= (map f data) (vmap f data) (fjvmap f data) (gvmap f data))))))
 
 (deftest gvmap-test
   (testing "can we map the identity fn across a large vector using the gpu ?"
@@ -354,15 +354,48 @@
 (definterface VectorToVectorKernel
   (^void invoke [^clojure.lang.PersistentVector in ^clojure.lang.PersistentVector out ^int i]))
 
+;; inline everything to see if we can get it to work on gpu...
+;; only works for vectors of shift = 10
+(defn vector-to-vector-copy-kernel-compile [_]
+  (let [kernel
+        (reify VectorToVectorKernel
+          (^void invoke
+            [^VectorToVectorKernel self ^clojure.lang.PersistentVector in ^clojure.lang.PersistentVector out ^int i]
+            (let [l (count in)
+                  n (clojure.lang.Numbers/shiftLeft (clojure.lang.Numbers/unsignedShiftRight (dec l) 5) 5) ;trie count
+                  j (bit-and i 0x1f)
+                  q (bit-and (clojure.lang.Numbers/unsignedShiftRight i 5) 16r01f)
+                  r (bit-and (clojure.lang.Numbers/unsignedShiftRight i 10) 16r01f)]
+              (aset
+               (if (>= i n)
+                 (.tail out)
+                 (.array ^PersistentVector$Node (aget (.array ^PersistentVector$Node (aget (.array (.root out)) r)) q)))
+               j
+               (aget
+                 (if (>= i n)
+                   (.tail in)
+                   (.array ^PersistentVector$Node (aget (.array ^PersistentVector$Node (aget (.array (.root in)) r)) q)))
+                 j)))))]
+    (okra-kernel-compile kernel (fetch-method (class kernel) "invoke") 1 1)))
+
+(deftest vector-to-vector-copy-test
+  (testing "can we perform a direct vector-to-vector (map f v) on the GPU ?"
+    (let [w 10000
+          in (vec (range w))
+          out (empty-vector w)
+          kernel (vector-to-vector-copy-kernel-compile inc)]
+      (is (= (kernel w in out)
+             (vec (range w)))))))
+
 (defn vector-to-vector-mapping-kernel-compile [f]
   (let [kernel
         (reify VectorToVectorKernel
           (^void invoke
             [^VectorToVectorKernel self ^clojure.lang.PersistentVector in ^clojure.lang.PersistentVector out ^int i]
-            (vector-set out i (f (vector-get in i)))))]
+            (vector-set out i (vector-get in i))))]
     (okra-kernel-compile kernel (fetch-method (class kernel) "invoke") 1 1)))
 
-(deftest vector-to-array-reduction-1-test
+(deftest vector-to-vector-mapping-test
   (testing "can we perform a direct vector-to-vector (map f v) on the GPU ?"
     (let [w 10000
           in (vec (range w))
