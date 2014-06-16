@@ -392,7 +392,7 @@
         (reify VectorToVectorKernel
           (^void invoke
             [^VectorToVectorKernel self ^clojure.lang.PersistentVector in ^clojure.lang.PersistentVector out ^int i]
-            (vector-set out i (vector-get in i))))]
+            (vector-set out i (inc (vector-get in i)))))]
     (okra-kernel-compile kernel (fetch-method (class kernel) "invoke") 1 1)))
 
 (deftest vector-to-vector-mapping-test
