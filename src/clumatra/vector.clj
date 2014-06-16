@@ -243,7 +243,7 @@
     tgt))
 
 ;;------------------------------------------------------------------------------
-;; fast array -> vector - nearly working...
+;; fast array -> vector - replacement for (into [] array)
 
 ;; (def a (object-array (range (* 32 32 32 32))))
 ;; (dotimes [n 100](time (do (into [] a) nil)))
@@ -292,19 +292,19 @@
         width (bit-shift-left 1 shift)
         atom (java.util.concurrent.atomic.AtomicReference. nil)
         root-array (object-array 32)
-        nodes-needed (round-up (/ root-length (bit-shift-left 1 shift)))]
-    (doall
-     ;; TODO: use futures explicitly so that we can deal with tail on
-     ;; foreground whilst branches are done in background...
-     (pmap
-      (fn [i]
-        (let [start (* i width)
-              end (min (- root-length start) width)]
-        (aset root-array i (array-to-vector-node atom src-array start end shift))))
-      (range nodes-needed)))
-    (let [tail (object-array tail-length)]
+        nodes-needed (round-up (/ root-length (bit-shift-left 1 shift)))
+        branches (object-array nodes-needed)]
+    (dotimes [i nodes-needed]
+      (aset branches i
+            (future
+              (let [start (* i width)
+                    end (min (- root-length start) width)]
+                (aset root-array i (array-to-vector-node atom src-array start end shift))))))
+    (let [tail (object-array tail-length)
+          v (construct-vector length shift (PersistentVector$Node. atom root-array) tail)]
       (System/arraycopy src-array (- length tail-length) tail 0 tail-length)
-      (construct-vector length shift (PersistentVector$Node. atom root-array) tail))))
+      (doseq [branch branches] (deref branch))
+      v)))
 
 ;;------------------------------------------------------------------------------
 ;; finally - this should be quite fast - when run on HSA h/w :-)
@@ -326,7 +326,12 @@
     (kernel width in out)
     (array-to-vector out)))
 
-;;------------------------------------------------------------------------------
+;; TODO: This could be even faster if we built an empty vector in the
+;; same way as array-to-vector works, passed this into the gpu kernel
+;; and populated it directly, instead of using an intermediate array ?
+;; try it and confirm that this is the case...
+
+;; ------------------------------------------------------------------------------
 
 ;; try different flag combinations on h/w and s/w build
 ;; try to get repl working
