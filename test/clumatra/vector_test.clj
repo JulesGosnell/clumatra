@@ -3,7 +3,7 @@
    [java.util Collection Map]
    [clojure.lang
     IObj AFn ISeq IPersistentVector APersistentVector PersistentVector PersistentVector$Node
-    Associative PersistentVector$TransientVector ITransientCollection])
+    Associative PersistentVector$TransientVector ITransientCollection Numbers])
   (:require
    [clojure [pprint :as p]]
    [clojure.core
@@ -84,7 +84,7 @@
     (fetch-method APersistentVector "remove" [Object])
 
     ;; how can I avoid this
-    (fetch-method clojure.lang.PersistentVector "cons" [Object]) ;crashes simulator
+    (fetch-method PersistentVector "cons" [Object]) ;crashes simulator
     (fetch-method PersistentVector "assocN" IPersistentVector [Integer/TYPE Object])
     (fetch-method APersistentVector "assoc" Associative [Object Object])
     (fetch-method PersistentVector "withMeta" PersistentVector [clojure.lang.IPersistentMap])
@@ -141,7 +141,7 @@
         (test-vars [(interns (symbol test))]))
       (test-vars (vals interns)))))
 
-;; try reduction using clojure.lang.Numbers/unchecked_add(long, long)
+;; try reduction using Numbers/unchecked_add(long, long)
 
 ;;------------------------------------------------------------------------------
 
@@ -323,7 +323,7 @@
 
 
 (defn foo [i l ^"[Ljava.lang.Object;" a]
-  (.array ^PersistentVector$Node (aget a (bit-and (clojure.lang.Numbers/unsignedShiftRight i l) 16r01f))))
+  (.array ^PersistentVector$Node (aget a (bit-and (Numbers/unsignedShiftRight i l) 16r01f))))
 
 (let [^objects lookup 
       (object-array
@@ -340,7 +340,7 @@
 
 (defn vector-trie-count [^clojure.lang.PersistentVector v]
   (let [l (.length v)]
-    (clojure.lang.Numbers/shiftLeft (clojure.lang.Numbers/unsignedShiftRight (dec l) 5) 5)))
+    (Numbers/shiftLeft (Numbers/unsignedShiftRight (dec l) 5) 5)))
   
 (defn ^"[Ljava.lang.Object;" vector-array [^clojure.lang.PersistentVector v i]
   (if (>= i (vector-trie-count v))
@@ -362,20 +362,19 @@
         (reify VectorToVectorKernel
           (^void invoke
             [^VectorToVectorKernel self ^clojure.lang.PersistentVector in ^clojure.lang.PersistentVector out ^int i]
-            (let [l (count in)
-                  n (clojure.lang.Numbers/shiftLeft (clojure.lang.Numbers/unsignedShiftRight (dec l) 5) 5) ;trie count
-                  j (bit-and i 0x1f)
-                  q (bit-and (clojure.lang.Numbers/unsignedShiftRight i 5) 0x1f)
-                  r (bit-and (clojure.lang.Numbers/unsignedShiftRight i 10) 0x1f)]
+            (let [n (Numbers/shiftLeft (Numbers/unsignedShiftRight (Numbers/unchecked_int_dec (.count in)) 5) 5) ;trie count
+                  j (Numbers/and i 0x1f)
+                  p1 (Numbers/and (Numbers/unsignedShiftRight i 10) 0x1f)
+                  p2 (Numbers/and (Numbers/unsignedShiftRight i 5) 0x1f)]
               (aset
                (if (>= i n)
                  (.tail out)
-                 (.array ^PersistentVector$Node (aget (.array ^PersistentVector$Node (aget (.array (.root out)) r)) q)))
+                 (.array ^PersistentVector$Node (aget (.array ^PersistentVector$Node (aget (.array (.root out)) p1)) p2)))
                j
                (aget
                  (if (>= i n)
                    (.tail in)
-                   (.array ^PersistentVector$Node (aget (.array ^PersistentVector$Node (aget (.array (.root in)) r)) q)))
+                   (.array ^PersistentVector$Node (aget (.array ^PersistentVector$Node (aget (.array (.root in)) p1)) p2)))
                  j)))))]
     (okra-kernel-compile kernel (fetch-method (class kernel) "invoke") 1 1)))
 
