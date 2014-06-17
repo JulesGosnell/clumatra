@@ -454,3 +454,167 @@
 
 ;; ReduceVectorToArrayKernel - for all depths
 ;; ReduceArrayToArrayKernel
+
+;;------------------------------------------------------------------------------
+;; another iteration on Mapping...
+;; I know that this is ugly, but none of the kernels involved contains any branches...
+
+(definterface VectorNodeToVectorNodeKernel
+  (^void invoke [^clojure.lang.PersistentVector$Node in ^clojure.lang.PersistentVector$Node out ^int i]))
+
+(def ^"[Ljava.lang.Object;" node-mapping-kernel-fns
+  (into-array
+   Object
+   [
+    ;; shift = 0
+    nil
+    ;; shift = 5
+    (fn [f]
+      (let [kernel
+            (reify VectorNodeToVectorNodeKernel
+              (^void invoke
+                [^VectorNodeToVectorNodeKernel self ^clojure.lang.PersistentVector$Node in ^clojure.lang.PersistentVector$Node out ^int i]
+                (let [j (Numbers/and i 0x1f)
+                      p1 (Numbers/and (Numbers/unsignedShiftRight i 5) 0x1f)]
+                  (aset
+                   (.array ^PersistentVector$Node (aget (.array out) p1))
+                   j
+                   (aget
+                    (.array ^PersistentVector$Node (aget (.array in) p1))
+                    j)))))]
+        (okra-kernel-compile kernel (fetch-method (class kernel) "invoke") 1 1)))
+    ;; shift = 10
+    (fn [f]
+      (let [kernel
+            (reify VectorNodeToVectorNodeKernel
+              (^void invoke
+                [^VectorNodeToVectorNodeKernel self ^clojure.lang.PersistentVector$Node in ^clojure.lang.PersistentVector$Node out ^int i]
+                (let [j (Numbers/and i 0x1f)
+                      p1 (Numbers/and (Numbers/unsignedShiftRight i 10) 0x1f)
+                      p2 (Numbers/and (Numbers/unsignedShiftRight i 5) 0x1f)]
+                  (aset
+                   (.array ^PersistentVector$Node (aget (.array ^PersistentVector$Node (aget (.array out) p1)) p2))
+                   j
+                   (aget
+                    (.array ^PersistentVector$Node (aget (.array ^PersistentVector$Node (aget (.array in) p1)) p2))
+                    j)))))]
+        (okra-kernel-compile kernel (fetch-method (class kernel) "invoke") 1 1)))
+    ;; shift = 15
+    (fn [f]
+      (let [kernel
+            (reify VectorNodeToVectorNodeKernel
+              (^void invoke
+                [^VectorNodeToVectorNodeKernel self ^clojure.lang.PersistentVector$Node in ^clojure.lang.PersistentVector$Node out ^int i]
+                (let [j (Numbers/and i 0x1f)
+                      p1 (Numbers/and (Numbers/unsignedShiftRight i 15) 0x1f)
+                      p2 (Numbers/and (Numbers/unsignedShiftRight i 10) 0x1f)
+                      p3 (Numbers/and (Numbers/unsignedShiftRight i 5) 0x1f)]
+                  (aset
+                   (.array ^PersistentVector$Node (aget (.array ^PersistentVector$Node (aget (.array ^PersistentVector$Node (aget (.array out) p1)) p2)) p3))
+                   j
+                   (aget
+                    (.array ^PersistentVector$Node (aget (.array ^PersistentVector$Node (aget (.array ^PersistentVector$Node (aget (.array in) p1)) p2)) p3))
+                    j)))))]
+        (okra-kernel-compile kernel (fetch-method (class kernel) "invoke") 1 1)))
+    ;; shift = 20
+    (fn [f]
+      (let [kernel
+            (reify VectorNodeToVectorNodeKernel
+              (^void invoke
+                [^VectorNodeToVectorNodeKernel self ^clojure.lang.PersistentVector$Node in ^clojure.lang.PersistentVector$Node out ^int i]
+                (let [j (Numbers/and i 0x1f)
+                      p1 (Numbers/and (Numbers/unsignedShiftRight i 20) 0x1f)
+                      p2 (Numbers/and (Numbers/unsignedShiftRight i 15) 0x1f)
+                      p3 (Numbers/and (Numbers/unsignedShiftRight i 10) 0x1f)
+                      p4 (Numbers/and (Numbers/unsignedShiftRight i 5) 0x1f)]
+                  (aset
+                   (.array ^PersistentVector$Node (aget (.array ^PersistentVector$Node (aget (.array ^PersistentVector$Node (aget (.array ^PersistentVector$Node (aget (.array out) p1)) p2)) p3)) p4))
+                   j
+                   (aget
+                    (.array ^PersistentVector$Node (aget (.array ^PersistentVector$Node (aget (.array ^PersistentVector$Node (aget (.array ^PersistentVector$Node (aget (.array in) p1)) p2)) p3)) p4))
+                    j)))))]
+        (okra-kernel-compile kernel (fetch-method (class kernel) "invoke") 1 1)))
+    ;; shift = 25
+    (fn [f]
+      (let [kernel
+            (reify VectorNodeToVectorNodeKernel
+              (^void invoke
+                [^VectorNodeToVectorNodeKernel self ^clojure.lang.PersistentVector$Node in ^clojure.lang.PersistentVector$Node out ^int i]
+                (let [j (Numbers/and i 0x1f)
+                      p1 (Numbers/and (Numbers/unsignedShiftRight i 25) 0x1f)
+                      p2 (Numbers/and (Numbers/unsignedShiftRight i 20) 0x1f)
+                      p3 (Numbers/and (Numbers/unsignedShiftRight i 15) 0x1f)
+                      p4 (Numbers/and (Numbers/unsignedShiftRight i 10) 0x1f)
+                      p5 (Numbers/and (Numbers/unsignedShiftRight i 5) 0x1f)]
+                  (aset
+                   (.array ^PersistentVector$Node (aget (.array ^PersistentVector$Node (aget (.array ^PersistentVector$Node (aget (.array ^PersistentVector$Node (aget (.array ^PersistentVector$Node (aget (.array out) p1)) p2)) p3)) p4)) p5))
+                   j
+                   (aget
+                    (.array ^PersistentVector$Node (aget (.array ^PersistentVector$Node (aget (.array ^PersistentVector$Node (aget (.array ^PersistentVector$Node (aget (.array ^PersistentVector$Node (aget (.array in) p1)) p2)) p3)) p4)) p5))
+                    j)))))]
+        (okra-kernel-compile kernel (fetch-method (class kernel) "invoke") 1 1)))
+    ;; shift = 30
+    (fn [f]
+      (let [kernel
+            (reify VectorNodeToVectorNodeKernel
+              (^void invoke
+                [^VectorNodeToVectorNodeKernel self ^clojure.lang.PersistentVector$Node in ^clojure.lang.PersistentVector$Node out ^int i]
+                (let [j (Numbers/and i 0x1f)
+                      p1 (Numbers/and (Numbers/unsignedShiftRight i 30) 0x1f)
+                      p2 (Numbers/and (Numbers/unsignedShiftRight i 25) 0x1f)
+                      p3 (Numbers/and (Numbers/unsignedShiftRight i 20) 0x1f)
+                      p4 (Numbers/and (Numbers/unsignedShiftRight i 15) 0x1f)
+                      p5 (Numbers/and (Numbers/unsignedShiftRight i 10) 0x1f)
+                      p6 (Numbers/and (Numbers/unsignedShiftRight i 5) 0x1f)]
+                  (aset
+                   (.array ^PersistentVector$Node (aget (.array ^PersistentVector$Node (aget (.array ^PersistentVector$Node (aget (.array ^PersistentVector$Node (aget (.array ^PersistentVector$Node (aget (.array ^PersistentVector$Node (aget (.array out) p1)) p2)) p3)) p4)) p5)) p6))
+                   j
+                   (aget
+                    (.array ^PersistentVector$Node (aget (.array ^PersistentVector$Node (aget (.array ^PersistentVector$Node (aget (.array ^PersistentVector$Node (aget (.array ^PersistentVector$Node (aget (.array ^PersistentVector$Node (aget (.array in) p1)) p2)) p3)) p4)) p5)) p6))
+                    j)))))]
+        (okra-kernel-compile kernel (fetch-method (class kernel) "invoke") 1 1)))
+    ;; shift=...
+    ]))
+
+(definterface ObjectArrayToObjectArrayKernel (^void invoke [^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out ^int i]))
+
+(defn tail-mapping-kernel [f]
+  (let [kernel
+        (reify ObjectArrayToObjectArrayKernel
+          (^void invoke
+            [^ObjectArrayToObjectArrayKernel self ^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out ^int i]
+            (aset out i (aget in i))))]
+    (okra-kernel-compile kernel (fetch-method (class kernel) "invoke") 1 1)))
+
+(defn gvmap3 [f ^PersistentVector in]
+  (let [width (.count in)
+        ^PersistentVector out (empty-vector width)
+        trie-count (Numbers/shiftLeft (Numbers/unsignedShiftRight (Numbers/unchecked_int_dec width) 5) 5)
+        trie-kernel ((aget node-mapping-kernel-fns (/ (.shift in) 5)) f)
+        tail-kernel (tail-mapping-kernel f)]
+    ;;; now run these in parallel
+    (trie-kernel trie-count (.root in) (.root out))
+    (tail-kernel (- width trie-count) (.tail in) (.tail out))
+    out))
+
+(deftest gvmap3-test
+  (testing "can we map the identity fn across a large vector using the gpu ?"
+    (let [in (vec (range 100))
+          out (gvmap identity in)]
+      (is (= out in))))
+  (testing "can we map the identity fn across a large vector using the gpu ?"
+    (let [in (vec (range 1000))
+          out (gvmap identity in)]
+      (is (= out in))))
+  (testing "can we map the identity fn across a large vector using the gpu ?"
+    (let [in (vec (range 10000))
+          out (gvmap identity in)]
+      (is (= out in))))
+  (testing "can we map the identity fn across a large vector using the gpu ?"
+    (let [in (vec (range 100000))
+          out (gvmap identity in)]
+      (is (= out in))))
+  (testing "can we map the identity fn across a large vector using the gpu ?"
+    (let [in (vec (range 1000000))
+          out (gvmap identity in)]
+      (is (= out in)))))
