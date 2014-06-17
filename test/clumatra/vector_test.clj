@@ -84,6 +84,7 @@
     (fetch-method APersistentVector "remove" [Object])
 
     ;; how can I avoid this
+    (fetch-method clojure.lang.PersistentVector "cons" [Object]) ;crashes simulator
     (fetch-method PersistentVector "assocN" IPersistentVector [Integer/TYPE Object])
     (fetch-method APersistentVector "assoc" Associative [Object Object])
     (fetch-method PersistentVector "withMeta" PersistentVector [clojure.lang.IPersistentMap])
