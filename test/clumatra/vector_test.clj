@@ -595,22 +595,20 @@
     (okra-kernel-compile kernel (fetch-method (class kernel) "invoke") 1 1)))
 
 (defn gvmap3 [f ^PersistentVector in]
-  (let [width (.count in)
-        ^PersistentVector out (empty-vector width)
-        trie-count (Numbers/shiftLeft (Numbers/unsignedShiftRight (if (zero? width) width (Numbers/unchecked_int_dec width)) 5) 5)
-        tail-count (- width trie-count)
-        tail-kernel (tail-mapping-kernel f)
-        ;;; hopefully tail-kernel will be executed first - we know it
+  (let [;;; hopefully tail-kernel will be executed first - we know it
         ;;; will not consume a whole compute-unit - maybe it will
         ;;; finish before this is needed...
-        tail-future (future (tail-kernel tail-count (.tail in) (.tail out)))
-        trie-kernel ((select-vector-mapping-kernel-fn in) f)]
+        tail-count (count (.tail in))
+        out-tail-array (object-array tail-count)
+        tail-kernel (tail-mapping-kernel f) ;; memo ?
+        tail-future (future (tail-kernel tail-count (.tail in) out-tail-array))
+        width (.count in)
+        ^PersistentVector out (empty-vector width out-tail-array)
+        trie-count (- width tail-count)
+        trie-kernel ((select-vector-mapping-kernel-fn in) f)] ; memo?
     ;; TODO: we could run tail on cpu whilst trie is running on gpu ?
-    ;; do some timings first and see how it goes...
-    ;; TODO: should we cache the kernels ? [f shift] -> kernel
-    ;; TODO: should we check for 0 size tail ?
-    ;; TODO: should we check for 0 size trie ?
     ;; TODO: should we run small tails/tries on cpu ?
+    ;; do some timings first and see how it goes...
     (trie-kernel trie-count (.root in) (.root out))
     @tail-future
     out))
@@ -642,26 +640,26 @@
 ;; TODO: get this all working in repl and time gvmap, gvmap2 and
 ;; gvmap3 with different sizes of vector...
 
-(println "TESTING gvmapN")
+;; (println "TESTING gvmapN")
 
-(def data
-  (mapv
-   (fn [i] (vec (range i)))
-   [0 1 31
-    32 33 (+ 32 31)
-    1024 1025 (+ 1025 31)
-    (* 32 32 32) (+ (* 32 32 32) 31)
-    (* 32 32 32 32) (+ (* 32 32 32 32) 31)]))
+;; (def data
+;;   (mapv
+;;    (fn [i] (vec (range i)))
+;;    [0 1 31
+;;     32 33 (+ 32 31)
+;;     1024 1025 (+ 1025 31)
+;;     (* 32 32 32) (+ (* 32 32 32) 31)
+;;     (* 32 32 32 32) (+ (* 32 32 32 32) 31)]))
 
-(defn average-time [iters foo]
-  (let [start (System/currentTimeMillis)]
-    (dotimes [_ iters] (foo))
-    (- (System/currentTimeMillis) start)))
+;; (defn average-time [iters foo]
+;;   (let [start (System/currentTimeMillis)]
+;;     (dotimes [_ iters] (foo))
+;;     (- (System/currentTimeMillis) start)))
 
-(doseq [datum data]
-  (println "gvmap :" (count datum) "items -" (average-time 100 #(gvmap  identity datum)) "ms")
-  (println "gvmap2:" (count datum) "items -" (average-time 100 #(gvmap2 identity datum)) "ms")
-  (println "gvmap3:" (count datum) "items -" (average-time 100 #(gvmap3 identity datum)) "ms")
-  )
+;; (doseq [datum data]
+;;   (println "gvmap :" (count datum) "items -" (average-time 100 #(gvmap  identity datum)) "ms")
+;;   (println "gvmap2:" (count datum) "items -" (average-time 100 #(gvmap2 identity datum)) "ms")
+;;   (println "gvmap3:" (count datum) "items -" (average-time 100 #(gvmap3 identity datum)) "ms")
+;;   )
 
 ;; TODO: select one gvmap and migrate to vector.clj ?
