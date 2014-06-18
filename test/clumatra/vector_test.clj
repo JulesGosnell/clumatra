@@ -640,26 +640,26 @@
 ;; TODO: get this all working in repl and time gvmap, gvmap2 and
 ;; gvmap3 with different sizes of vector...
 
-;; (println "TESTING gvmapN")
+(println "TESTING gvmapN")
 
-;; (def data
-;;   (mapv
-;;    (fn [i] (vec (range i)))
-;;    [0 1 31
-;;     32 33 (+ 32 31)
-;;     1024 1025 (+ 1025 31)
-;;     (* 32 32 32) (+ (* 32 32 32) 31)
-;;     (* 32 32 32 32) (+ (* 32 32 32 32) 31)]))
+(def data
+  (mapv
+   (fn [i] (vec (range i)))
+   [0 1 31
+    32 33 (+ 32 31)
+    1024 1025 (+ 1025 31)
+    (* 32 32 32) (+ (* 32 32 32) 31)
+    (* 32 32 32 32) (+ (* 32 32 32 32) 31)]))
 
-;; (defn average-time [iters foo]
-;;   (let [start (System/currentTimeMillis)]
-;;     (dotimes [_ iters] (foo))
-;;     (- (System/currentTimeMillis) start)))
+(defn average-time [iters foo]
+  (let [start (System/currentTimeMillis)]
+    (dotimes [_ iters] (foo))
+    (- (System/currentTimeMillis) start)))
 
-;; (doseq [datum data]
-;;   (println "gvmap :" (count datum) "items -" (average-time 100 #(gvmap  identity datum)) "ms")
-;;   (println "gvmap2:" (count datum) "items -" (average-time 100 #(gvmap2 identity datum)) "ms")
-;;   (println "gvmap3:" (count datum) "items -" (average-time 100 #(gvmap3 identity datum)) "ms")
-;;   )
+(doseq [datum data]
+  (println "gvmap :" (count datum) "items -" (average-time 100 #(gvmap  identity datum)) "ms")
+  (println "gvmap2:" (count datum) "items -" (average-time 100 #(gvmap2 identity datum)) "ms")
+  (println "gvmap3:" (count datum) "items -" (average-time 100 #(gvmap3 identity datum)) "ms")
+  )
 
 ;; TODO: select one gvmap and migrate to vector.clj ?

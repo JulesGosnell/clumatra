@@ -317,7 +317,7 @@
           (aset tgt n (empty-vector-node atom new-width new-shift)))))
     (PersistentVector$Node. atom tgt)))
 
-(defn empty-vector [length & tail-array]
+(defn ^PersistentVector empty-vector [length & [tail-array]]
   (let [rem (mod length 32)
         tail-length (if (and (not (zero? length)) (= rem 0)) 32 rem)
         root-length (- length tail-length)
