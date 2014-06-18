@@ -597,7 +597,7 @@
 (defn gvmap3 [f ^PersistentVector in]
   (let [width (.count in)
         ^PersistentVector out (empty-vector width)
-        trie-count (Numbers/shiftLeft (Numbers/unsignedShiftRight (Numbers/unchecked_int_dec width) 5) 5)
+        trie-count (Numbers/shiftLeft (Numbers/unsignedShiftRight (if (zero? width) width (Numbers/unchecked_int_dec width)) 5) 5)
         tail-count (- width trie-count)
         tail-kernel (tail-mapping-kernel f)
         ;;; hopefully tail-kernel will be executed first - we know it
@@ -644,33 +644,24 @@
 
 (println "TESTING gvmapN")
 
-(def data (mapv (fn [i] (vec (range i))) [1 31
-                                          32 33 (+ 32 31)
-                                          1024 1025 (+ 1025 31)
-                                          (* 32 32 32) (+ (* 32 32 32) 31)]))
+(def data
+  (mapv
+   (fn [i] (vec (range i)))
+   [0 1 31
+    32 33 (+ 32 31)
+    1024 1025 (+ 1025 31)
+    (* 32 32 32) (+ (* 32 32 32) 31)
+    (* 32 32 32 32) (+ (* 32 32 32 32) 31)]))
 
-;; TODO: investigate clojure benchmarking...
-;; I want an average time for the 3 map fns over each of the data
+(defn average-time [iters foo]
+  (let [start (System/currentTimeMillis)]
+    (dotimes [_ iters] (foo))
+    (- (System/currentTimeMillis) start)))
+
 (doseq [datum data]
-  (println "gvmap:" (count datum))
-  (dotimes [_ 100] (gvmap identity datum))
-  (dotimes [_ 10] (time (gvmap identity datum)))
-  (println "gvmap2:" (count datum))
-  (dotimes [_ 100] (gvmap2 identity datum))
-  (dotimes [_ 10] (time (gvmap2 identity datum)))
-  (println "gvmap3:" (count datum))
-  (dotimes [_ 100] (gvmap3 identity datum))
-  (dotimes [_ 10] (time (gvmap3 identity datum))))
+  (println "gvmap :" (count datum) "items -" (average-time 100 #(gvmap  identity datum)) "ms")
+  (println "gvmap2:" (count datum) "items -" (average-time 100 #(gvmap2 identity datum)) "ms")
+  (println "gvmap3:" (count datum) "items -" (average-time 100 #(gvmap3 identity datum)) "ms")
+  )
 
-;; TODO: fix (gvmap3 foo [])
-;; TODO: select one gvmap and migrate to vector.clj
-
-;;(defmacro average-time [iters body]
-
-;; (defn average-time [iters foo]
-;;   (double
-;;    (/
-;;    (let [start (System/currentTimeMillis)]
-;;      (dotimes [_ iters] (foo))
-;;      (- (System/currentTimeMillis) start)) 
-;;    iters)))
+;; TODO: select one gvmap and migrate to vector.clj ?
