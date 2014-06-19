@@ -16,59 +16,14 @@
    [clumatra util core vector test-util]))
 
 ;;------------------------------------------------------------------------------
-
-(defn array-copy-kernel-compile [f]
-  (let [kernel
-        (reify ObjectArrayToObjectArrayKernel
-          (^void invoke
-            [^ObjectArrayToObjectArrayKernel self ^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out ^int i]
-            (aset out i (aget in i))))]
-    (okra-kernel-compile kernel (fetch-method (class kernel) "invoke") 1 1)))
-
-(defn vector-copy-kernel-compile [f]
-  (let [kernel
-        (reify VectorToObjectArrayKernel
-          (^void invoke
-            [^VectorToObjectArrayKernel self ^clojure.lang.PersistentVector in ^"[Ljava.lang.Object;" out ^int i]
-            (aset out i (.nth in i))))]
-    (okra-kernel-compile kernel (fetch-method (class kernel) "invoke") 1 1)))
-
-(deftest vector-copy-test
-  (testing "can we copy the contents of a Clojure vector of size>=32 directly into an Object[] on GPU"
-    (let [w 1024
-          in (vec (range w))
-          kernel (vector-copy-kernel-compile nil)]
-      (is (= (seq (kernel w in (object-array w))) (range w))))))
-
-(deftest array-copy-test
-  (testing "can we copy the contents of an Object[] into an Object[] on GPU"
-    (let [w 1024
-          in (object-array (range w))
-          kernel (array-copy-kernel-compile nil)]
-      (is (= (seq (kernel w in (object-array w))) (range w))))))
-
-;------------------------------------------------------------------------------    
-;; I think that I am going to have to write some Java:
-;; 1. to expose private vector ctor
-;; 2. to expose enough of PHM to allow splicing
-;; 3. to refactor PV.nth() to a point whereby it will run on GPU
-
-;; post about and consider use of "heterogenous queueing" i.e. cpu and
-;; gpu can dispatch work on themselves and each other with similar
-;; effort.
-
-;; try translating PersistentVector.nth() into Clojure:
-
-;; (* 32 32 32 32 32 32) -> 1073741824 > 1 Billion
-
-;; so lets use a jump table of size 6 and some loop unrolling to avoid
-;; any branching at all in the lookup of an element in a vector. this
-;; will be much better for simd - might even be faster than the
-;; existing clojure impl :-)
-
+;; gvmap2 - pass entire vector as input to kernel and copy directly
+;; into empty output vector. gpu must execute branches in
+;; vector-array. loops are unrolled to predermined sizes to avoid
+;; further branches and recursion. trie and tail consumed by same
+;; vector. currently flakey.
 
 (defn foo [i l ^"[Ljava.lang.Object;" a]
-  (.array ^PersistentVector$Node (aget a (bit-and (Numbers/unsignedShiftRight i l) 16r01f))))
+  (.array ^PersistentVector$Node (aget a (bit-and (Numbers/unsignedShiftRight i l) 0x1f))))
 
 (let [^objects lookup 
       (object-array
@@ -86,6 +41,9 @@
 (defn vector-trie-count [^clojure.lang.PersistentVector v]
   (let [l (.length v)]
     (Numbers/shiftLeft (Numbers/unsignedShiftRight (dec l) 5) 5)))
+
+(defn vector-trie-count [^clojure.lang.PersistentVector v]
+  (- (.length v) (count (.tail v))))
   
 (defn ^"[Ljava.lang.Object;" vector-array [^clojure.lang.PersistentVector v i]
   (if (>= i (vector-trie-count v))
@@ -95,39 +53,6 @@
 (defn vector-get [v i] (aget (vector-array v i) (bit-and i 0x1f)))
 (defn vector-set [v i val] (aset (vector-array v i) (bit-and i 0x1f) val))
 
-;;------------------------------------------------------------------------------
-;; inline everything to see if we can get it to work on gpu...
-;; only works for vectors of shift = 10
-(defn vector-to-vector-copy-kernel-compile [_]
-  (let [kernel
-        (reify VectorToVectorKernel
-          (^void invoke
-            [^VectorToVectorKernel self ^clojure.lang.PersistentVector in ^clojure.lang.PersistentVector out ^int i]
-            (let [n (Numbers/shiftLeft (Numbers/unsignedShiftRight (Numbers/unchecked_int_dec (.count in)) 5) 5) ;trie count
-                  j (Numbers/and i 0x1f)
-                  p1 (Numbers/and (Numbers/unsignedShiftRight i 10) 0x1f)
-                  p2 (Numbers/and (Numbers/unsignedShiftRight i 5) 0x1f)]
-              (aset
-               (if (>= i n)
-                 (.tail out)
-                 (.array ^PersistentVector$Node (aget (.array ^PersistentVector$Node (aget (.array (.root out)) p1)) p2)))
-               j
-               (aget
-                 (if (>= i n)
-                   (.tail in)
-                   (.array ^PersistentVector$Node (aget (.array ^PersistentVector$Node (aget (.array (.root in)) p1)) p2)))
-                 j)))))]
-    (okra-kernel-compile kernel (fetch-method (class kernel) "invoke") 1 1)))
-
-(deftest vector-to-vector-copy-test
-  (testing "can we perform a direct vector-to-vector (map f v) on the GPU ?"
-    (let [w 10000
-          in (vec (range w))
-          out (empty-vector w)
-          kernel (vector-to-vector-copy-kernel-compile inc)]
-      (is (= (kernel w in out)
-             (vec (range w)))))))
-
 (defn vector-to-vector-mapping-kernel-compile [f]
   (let [kernel
         (reify VectorToVectorKernel
@@ -135,12 +60,6 @@
             [^VectorToVectorKernel self ^clojure.lang.PersistentVector in ^clojure.lang.PersistentVector out ^int i]
             (vector-set out i (inc (vector-get in i)))))]
     (okra-kernel-compile kernel (fetch-method (class kernel) "invoke") 1 1)))
-
-(defn gvmap2 [f ^PersistentVector in]
-  (let [width (.count in)
-        out (empty-vector width)
-        kernel (vector-to-vector-mapping-kernel-compile f)]
-    (kernel width in out)))
 
 (deftest vector-to-vector-mapping-test
   (testing "can we perform a direct vector-to-vector (map f v) on the GPU ?"
@@ -151,11 +70,17 @@
       (is (= (kernel w in out)
              (mapv inc (range w)))))))
 
-;;------------------------------------------------------------------------------
-;; another iteration on Mapping...
-;; I know that this is ugly, but none of the kernels involved contains any branches...
+(defn gvmap2 [f ^PersistentVector in]
+  (let [width (.count in)
+        out (empty-vector width)
+        kernel (vector-to-vector-mapping-kernel-compile f)]
+    (kernel width in out)))
 
-(let [^"[Ljava.lang.Object;" fns
+;;------------------------------------------------------------------------------
+;; gvmap3 - no branching kernel - separate kernels used for trie and
+;; tail. kernel rather than algorithm looked up in jump table.
+
+(let [^"[Ljava.lang.Object;" kernel-fns
       (into-array
        Object
        [
@@ -275,7 +200,7 @@
         ;; shift=...
         ])]
   
-  (defn select-vector-mapping-kernel-fn [^PersistentVector v] (aget fns (.shift v))))
+  (defn select-vector-mapping-kernel-fn [^PersistentVector v] (aget kernel-fns (.shift v))))
 
 (defn tail-mapping-kernel [f]
   (let [kernel
@@ -343,8 +268,8 @@
     33 (+ 32 31)
     1024
     1025 (+ 1025 31)
-    (* 32 32 32) (+ (* 32 32 32) 31)
-    (* 32 32 32 32) (+ (* 32 32 32 32) 31)
+;;    (* 32 32 32) (+ (* 32 32 32) 31)
+;;    (* 32 32 32 32) (+ (* 32 32 32 32) 31)
     ]))
 
 (defn average-time [iters foo]

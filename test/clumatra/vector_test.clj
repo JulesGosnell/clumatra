@@ -95,4 +95,3 @@
       (doseq [test args]
         (test-vars [(interns (symbol test))]))
       (test-vars (vals interns)))))
-
