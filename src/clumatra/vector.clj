@@ -380,3 +380,15 @@
 ;; kernel input: (object-array (mapv (fn [i] (object-array (range i (+ i 10)))) (range 10)))
 ;; kernel output: #{}[n]
 ;; kernel code (aset out n (into #{} (aget in n)))
+
+;;------------------------------------------------------------------------------
+
+(definterface VectorToObjectArrayKernel
+  (^void invoke [^clojure.lang.PersistentVector in ^"[Ljava.lang.Object;" out ^int i]))
+
+(definterface VectorToVectorKernel
+  (^void invoke [^clojure.lang.PersistentVector in ^clojure.lang.PersistentVector out ^int i]))
+
+(definterface VectorNodeToVectorNodeKernel
+  (^void invoke [^clojure.lang.PersistentVector$Node in ^clojure.lang.PersistentVector$Node out ^int i]))
+

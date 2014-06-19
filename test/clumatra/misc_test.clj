@@ -1,5 +1,6 @@
 (ns clumatra.misc-test
-  (:import  [java.lang.reflect Method])
+  (:import  [java.lang.reflect Method]
+            [clumatra.core ObjectArrayToObjectArrayKernel])
   (:require [clojure.test :refer :all]
             [clojure.core
              [reducers :as r]
@@ -185,12 +186,10 @@
 
 ;;------------------------------------------------------------------------------
 
-(definterface ObjectKernel (^void invoke [^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out ^int i]))
-
 (deftest object-copy-test
   (testing "copy elements of an object[]"
-    (let [kernel (reify ObjectKernel
-                   (^void invoke [^ObjectKernel self ^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out ^int i]
+    (let [kernel (reify ObjectArrayToObjectArrayKernel
+                   (^void invoke [^ObjectArrayToObjectArrayKernel self ^"[Ljava.lang.Object;" in ^"[Ljava.lang.Object;" out ^int i]
                      (aset out i (aget in i))))
           results (test-kernel kernel inc [[Object identity]] Object)]
       (is (apply = results)))))
@@ -207,8 +206,8 @@
 
 (deftest multiplication-test
   (testing "square ?Long? elements of an Object[]"
-    (let [kernel (reify ObjectKernel
-                   (^void invoke [^ObjectKernel self ^objects in ^objects out ^int gid]
+    (let [kernel (reify ObjectArrayToObjectArrayKernel
+                   (^void invoke [^ObjectArrayToObjectArrayKernel self ^objects in ^objects out ^int gid]
                      (aset out gid (* (aget in gid) (aget in gid)))))
           results (test-kernel kernel inc [[Object identity]] Object)]
       (is (apply = results)))))
