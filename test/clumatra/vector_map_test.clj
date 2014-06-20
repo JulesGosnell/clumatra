@@ -272,16 +272,50 @@
 ;;    (* 32 32 32 32) (+ (* 32 32 32 32) 31)
     ]))
 
-(defn average-time [iters foo]
-  (let [start (System/currentTimeMillis)]
-    (dotimes [_ iters] (foo))
-    (- (System/currentTimeMillis) start)))
-
 (doseq [datum data]
-  (println "mapv  :" (count datum) "items -" (average-time 100 #(mapv  identity datum)) "ms")
-  (println "gvmap :" (count datum) "items -" (average-time 100 #(gvmap  identity datum)) "ms")
-;  (println "gvmap2:" (count datum) "items -" (average-time 100 #(gvmap2 identity datum)) "ms")
-  (println "gvmap3:" (count datum) "items -" (average-time 100 #(gvmap3 identity datum)) "ms")
+  (println "mapv  :" (count datum) "items -" (nanos 100 #(mapv  identity datum)) "ns")
+  (println "gvmap :" (count datum) "items -" (nanos 100 #(gvmap  identity datum)) "ns")
+;  (println "gvmap2:" (count datum) "items -" (nanos 100 #(gvmap2 identity datum)) "ns")
+  (println "gvmap3:" (count datum) "items -" (nanos 100 #(gvmap3 identity datum)) "ns")
   )
 
 ;; TODO: select one gvmap and migrate to vector.clj ?
+;;------------------------------------------------------------------------------
+;; c.f.
+;; (def a (into [] (range 10000000)))
+;; (time (do (into [] a) nil)) ;; 124
+;; (time (do (mapv identity a) nil)) ;; 220
+;; (time (do (vmap identity a) nil)) ;; 140
+;; (time (do (mapv inc a) nil)) ;; 280
+;; (time (do (vmap inc a) nil)) ;; 240
+
+;; vmap should win when used in parallel mode because of the zero cost
+;; of concatenation. - but current reduction code not suitable
+
+;; (def n (/ (count a) (.availableProcessors (Runtime/getRuntime)))) ;; = 625000
+
+;; (do (time (r/fold (r/monoid into vector) conj a)) nil) ;; 380 ms
+;; (do (time (r/fold (r/monoid v/catvec v/vector) conj a)) nil) ;; 380 ms
+
+;; (do (time (r/fold (r/monoid into vector) conj (r/map inc a))) nil) ;; 620 ms
+;; (do (time (r/fold (r/monoid v/catvec v/vector) conj (r/map inc a))) nil) ;; 680 ms
+
+;; (do (time (r/fold n (r/monoid into vector) conj (r/map inc a))) nil) ;; 590 ms
+;; (do (time (r/fold n (r/monoid v/catvec v/vector) conj (r/map inc a))) nil) ;; 320 - 520 - erratic !
+
+;; (time (count (vmap inc a))) ;; 230 ms
+;; (time (count (fjvmap inc a)))
+;; (= (time (r/fold n (r/monoid v/catvec v/vector) conj (r/map inc a))) (fjvmap inc a))
+
+;; (deftest vector-map-test
+;;   (testing "mapping across vector"
+;;     (let [data (vec (range 100))
+;;           f inc]
+;;       (is (= (map f data) (vmap f data) (fjvmap f data) (gvmap f data))))))
+
+;; (deftest gvmap-test
+;;   (testing "can we map the identity fn across a large vector using the gpu ?"
+;;     (let [in (vec (range 100))
+;;           out (gvmap identity in)]
+;;       (is (= out in)))))
+

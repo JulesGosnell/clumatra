@@ -161,5 +161,7 @@
 
 ;;------------------------------------------------------------------------------
 
-
-
+(defn nanos [iters foo]
+  (let [start (System/nanoTime)]
+    (dotimes [_ iters] (foo))
+    (- (System/nanoTime) start)))
