@@ -8,7 +8,7 @@
    [com.oracle.graal.hotspot.hsail HSAILHotSpotBackend]
    [com.amd.okra OkraContext OkraKernel])
   (:require
-   [no [disassemble :as d]]
+;;   [no [disassemble :as d]]
    [clumatra [util]]))
 
 ;; bottom-up approach to enabling GPU to be used to map a function across a seqence
@@ -20,7 +20,7 @@
 ;; can we use the same OkraKernel concurrently on multiple GPU cores ? - investigate
 ;;------------------------------------------------------------------------------
 
-(defn okra-kernel-compile [kernel ^Method method num-inputs num-outputs]
+(defn okra-kernel-compile-orig [kernel ^Method method num-inputs num-outputs]
   (let [verbose (if (System/getProperty "clumatra.verbose") true false)
         okra-context (doto (OkraContext.) (.setVerbose (true? verbose)))]
     (with-open [a (OptionValue/override (GraalOptions/InlineEverything) true)
@@ -29,7 +29,7 @@
                 ;; d (OptionValue/override (GraalOptions/RemoveNeverExecutedCode) true)
                 ]
       (if verbose (println "OKRA:" (if (OkraContext/isSimulator) "SIMULATED" "NATIVE")))
-      (if verbose (println (d/disassemble kernel)))
+      ;;(if verbose (println (d/disassemble kernel)))
       (let [^HSAILHotSpotBackend backend (.getBackend (HotSpotGraalRuntime/runtime) HSAIL)
             code-string (.getCodeString
                          (.compileKernel
@@ -44,5 +44,7 @@
             (.dispatchWithArgs (object-array (cons kernel args))))
           ;;(.dispose okra-context)
           (last args))))))
+
+(def okra-kernel-compile (memoize okra-kernel-compile-orig))
 
 ;;------------------------------------------------------------------------------
