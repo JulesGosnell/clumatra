@@ -11,4 +11,5 @@ hg clone http://hg.openjdk.java.net/graal/graal && \
 cd graal && \
 ./mx.sh --vmbuild product --vm server build && \
 ./mx.sh --vm server unittest -XX:+TraceGPUInteraction -XX:+GPUOffload -G:Log=CodeGen hsail.test.IntAddTest && \
+cd .. && \
 mv graal/jdk1.8.0-internal/product jdk1.8.0-graal
