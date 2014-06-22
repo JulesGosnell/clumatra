@@ -256,28 +256,28 @@
 ;; TODO: get this all working in repl and time gvmap, gvmap2 and
 ;; gvmap3 with different sizes of vector...
 
-(println "TESTING gvmapN")
+;; (println "TESTING gvmapN")
 
-(def data
-  (mapv
-   (fn [i] (vec (range i)))
-   [
-    ;;0 
-    ;;1 31
-    ;;;32
-    33 (+ 32 31)
-    1024
-    1025 (+ 1025 31)
-;;    (* 32 32 32) (+ (* 32 32 32) 31)
-;;    (* 32 32 32 32) (+ (* 32 32 32 32) 31)
-    ]))
+;; (def data
+;;   (mapv
+;;    (fn [i] (vec (range i)))
+;;    [
+;;     ;;0 
+;;     ;;1 31
+;;     ;;;32
+;;     33 (+ 32 31)
+;;     1024
+;;     1025 (+ 1025 31)
+;; ;;    (* 32 32 32) (+ (* 32 32 32) 31)
+;; ;;    (* 32 32 32 32) (+ (* 32 32 32 32) 31)
+;;     ]))
 
-(doseq [datum data]
-  (println "mapv  :" (count datum) "items -" (nanos 100 #(mapv  identity datum)) "ns")
-  (println "gvmap :" (count datum) "items -" (nanos 100 #(gvmap  identity datum)) "ns")
-;  (println "gvmap2:" (count datum) "items -" (nanos 100 #(gvmap2 identity datum)) "ns")
-  (println "gvmap3:" (count datum) "items -" (nanos 100 #(gvmap3 identity datum)) "ns")
-  )
+;; (doseq [datum data]
+;;   (println "mapv  :" (count datum) "items -" (nanos 100 #(mapv  identity datum)) "ns")
+;;   (println "gvmap :" (count datum) "items -" (nanos 100 #(gvmap  identity datum)) "ns")
+;; ;  (println "gvmap2:" (count datum) "items -" (nanos 100 #(gvmap2 identity datum)) "ns")
+;;   (println "gvmap3:" (count datum) "items -" (nanos 100 #(gvmap3 identity datum)) "ns")
+;;   )
 
 ;; TODO: select one gvmap and migrate to vector.clj ?
 ;;------------------------------------------------------------------------------
