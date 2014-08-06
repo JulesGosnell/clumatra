@@ -63,6 +63,11 @@
     </developer>
   </developers>
 
+  <properties>
+    <clojure.version>1.6.0</clojure.version>
+    <okra.version>1.9</okra.version>
+  </properties>
+
   <profiles>
     <profile>
       <id>no-acceleration</id>
@@ -75,9 +80,6 @@
       <properties>
 	<clojure.vmargs>-Xms1g -Xmx1536m -server</clojure.vmargs>
 	<clojure.excluded.namespaces>clumatra.okra</clojure.excluded.namespaces>
-	<okra.groupId>org.clojure</okra.groupId>
-	<okra.artifactId>clojure</okra.artifactId>
-	<okra.version>1.6.0</okra.version>
       </properties>
     </profile>
     <profile>
@@ -89,12 +91,16 @@
 	</property>
       </activation>
       <properties>
-	<clojure.vmargs>-Xms1g -Xmx8g -server -XX:-UseHSAILDeoptimization -XX:-UseHSAILSafepoints -G:+DumpOnError -G:Log=CodeGen -XX:+GPUOffload -XX:+TraceGPUInteraction</clojure.vmargs>
+	<clojure.vmargs>-Xms1g -Xmx8g -server -XX:-UseHSAILDeoptimization -XX:-UseHSAILSafepoints -G:+DumpOnError -G:Log=CodeGen -XX:+GPUOffload -XX:+TraceGPUInteraction -XX:-UseGraalClassLoader</clojure.vmargs>
 	<clojure.excluded.namespaces>NONE</clojure.excluded.namespaces>
-	<okra.groupId>com.amd</okra.groupId>
-	<okra.artifactId>okra-with-sim</okra.artifactId>
-	<okra.version>1.9</okra.version>
       </properties>
+      <dependencies>
+        <dependency>
+	  <groupId>com.amd</groupId>
+	  <artifactId>okra-with-sim</artifactId>
+	  <version>${okra.version}</version>
+	</dependency>
+      </dependencies>
     </profile>
     <profile>
       <id>hardware-acceleration</id>
@@ -105,12 +111,16 @@
 	</property>
       </activation>
       <properties>
-	<clojure.vmargs>-Xms1g -Xmx8g -server -XX:-UseHSAILDeoptimization -XX:-UseHSAILSafepoints -G:+DumpOnError -G:Log=CodeGen -XX:+GPUOffload -XX:+TraceGPUInteraction</clojure.vmargs>
+	<clojure.vmargs>-Xms1g -Xmx8g -server -XX:-UseHSAILDeoptimization -XX:-UseHSAILSafepoints -G:+DumpOnError -G:Log=CodeGen -XX:+GPUOffload -XX:+TraceGPUInteraction -XX:-UseGraalClassLoader</clojure.vmargs>
 	<clojure.excluded.namespaces>NONE</clojure.excluded.namespaces>
-	<okra.groupId>com.amd</okra.groupId>
-	<okra.artifactId>okra</okra.artifactId>
-	<okra.version>1.9</okra.version>
       </properties>
+      <dependencies>
+        <dependency>
+	  <groupId>com.amd</groupId>
+	  <artifactId>okra</artifactId>
+	  <version>${okra.version}</version>
+	</dependency>
+      </dependencies>
     </profile>
   </profiles>
   
@@ -123,17 +133,12 @@
     <dependency>
       <groupId>org.clojure</groupId>
       <artifactId>clojure</artifactId>
-      <version>1.6.0</version>
+      <version>${clojure.version}</version>
     </dependency>
     <dependency>
       <groupId>org.clojure</groupId>
       <artifactId>core.rrb-vector</artifactId>
       <version>0.0.11</version>
-    </dependency>
-    <dependency>
-      <groupId>${okra.groupId}</groupId>
-      <artifactId>${okra.artifactId}</artifactId>
-      <version>${okra.version}</version>
     </dependency>
   </dependencies>
 
