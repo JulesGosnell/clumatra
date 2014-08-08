@@ -51,6 +51,9 @@
     (fetch-method RT "var"                       [String String Object])
     (fetch-method RT "var"                       [String String])
     (fetch-method RT "print"                     [Object Writer])
+    
+    ;; suffers an exception
+    (fetch-method RT "iter"                      [Object])
 
     ;; these seem to crash simulated build
     (fetch-method RT "arrayToList"   [(type->array-type Object)])
