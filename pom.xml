@@ -64,8 +64,8 @@
   </developers>
 
   <properties>
-    <clojure.version>1.7.0-alpha1</clojure.version>
-    <okra.version>1.9</okra.version>
+    <clojure.version>1.7.0-alpha2</clojure.version>
+    <okra.version>1.10</okra.version>
   </properties>
 
   <profiles>
