@@ -91,7 +91,7 @@
 	</property>
       </activation>
       <properties>
-	<clojure.vmargs>-Xms1g -Xmx8g -server -XX:-UseHSAILDeoptimization -XX:-UseHSAILSafepoints -G:+DumpOnError -G:Log=CodeGen -XX:+GPUOffload -XX:+TraceGPUInteraction -XX:-UseGraalClassLoader</clojure.vmargs>
+	<clojure.vmargs>-Xms1g -Xmx8g -server -XX:-UseHSAILDeoptimization -XX:-UseHSAILSafepoints -G:Log=CodeGen -XX:+GPUOffload -XX:+TraceGPUInteraction -XX:-UseGraalClassLoader</clojure.vmargs>
 	<clojure.excluded.namespaces>NONE</clojure.excluded.namespaces>
       </properties>
       <dependencies>
@@ -111,7 +111,7 @@
 	</property>
       </activation>
       <properties>
-	<clojure.vmargs>-Xms1g -Xmx8g -server -XX:-UseHSAILDeoptimization -XX:-UseHSAILSafepoints -G:+DumpOnError -G:Log=CodeGen -XX:+GPUOffload -XX:+TraceGPUInteraction -XX:-UseGraalClassLoader</clojure.vmargs>
+	<clojure.vmargs>-Xms1g -Xmx8g -server -XX:-UseHSAILDeoptimization -XX:-UseHSAILSafepoints -G:Log=CodeGen -XX:+GPUOffload -XX:+TraceGPUInteraction -XX:-UseGraalClassLoader</clojure.vmargs>
 	<clojure.excluded.namespaces>NONE</clojure.excluded.namespaces>
       </properties>
       <dependencies>
