@@ -8,7 +8,7 @@
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   
   :dependencies [
-                 [org.clojure/clojure "1.7.0-alpha1"]
+                 [org.clojure/clojure "1.7.0-alpha2"]
                  [org.clojure/core.rrb-vector "0.0.11"]
                  [com.amd/okra "1.9"]
                  ]
@@ -21,9 +21,16 @@
                 *assert* false
                 *unchecked-math* true}
   
-  :jvm-opts ["-Xms1g" "-Xmx8g" "-server"
+  :jvm-opts [
+             "-server"
+             "-Xms1g"
+             "-Xmx8g"
              ;;"-Dclumatra.verbose=true"
-             "-Djava.library.path=/home/jules/workspace/clumatra/lib"
-             "-XX:-UseHSAILDeoptimization" "-XX:-UseHSAILSafepoints" "-G:Log=CodeGen" "-XX:+GPUOffload" "-XX:+TraceGPUInteraction"
+             "-G:Log=CodeGen"
+             "-XX:-UseHSAILDeoptimization"
+             "-XX:-UseHSAILSafepoints"
+             "-XX:+GPUOffload"
+             "-XX:+TraceGPUInteraction"
+             "-XX:-UseGraalClassLoader"
              ]
   )
