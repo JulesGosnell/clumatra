@@ -25,6 +25,12 @@
 
     ;; regression - only here temporarily
     (fetch-method Numbers "divide" [Long/TYPE Long/TYPE])
+
+    ;; crashed h/w build
+    (fetch-method Numbers "testBit" [Long/TYPE Long/TYPE])
+    (fetch-method Numbers "testBit" [Object Long/TYPE])
+    (fetch-method Numbers "testBit" [Long/TYPE Object])
+    (fetch-method Numbers "testBit" [Object Object])
     })
 
 (def input-fns
