@@ -28,7 +28,6 @@ then
     mkdir lib
     cd lib
     wget -nv https://raw.githubusercontent.com/HSAFoundation/Okra-Interface-to-HSA-Device/master/okra/dist/bin/libokra_x86_64.so
-    wget -nv https://raw.githubusercontent.com/HSAFoundation/HSA-Runtime-AMD/master/lib/x86_64/libhsa-runtime64.so.1
     wget -nv https://raw.githubusercontent.com/HSAFoundation/HSA-Drivers-Linux-AMD/master/kfd-0.8/libhsakmt/lnx64a/libhsakmt.so.1
     cd ..
 fi
