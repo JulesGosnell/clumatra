@@ -34,6 +34,6 @@ fi
 
 export CLUMATRA_HOME=`pwd`
 export PATH=$CLUMATRA_HOME/lib:$PATH
-export LD_LIBRARY_PATH=$CLUMATRA_HOME/lib
+export LD_LIBRARY_PATH=$CLUMATRA_HOME/lib:/opt/hsa/lib/
 
 exec mvn -t conf/toolchains.xml -P hardware-acceleration clean compile clojure:$testgoal $flags
