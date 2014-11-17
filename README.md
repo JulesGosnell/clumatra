@@ -2,6 +2,8 @@
 
 Experiments with Clojure / Sumatra / Graal and, ultimately, Clojure compiled onto GPGPU...
 
+N.B. This README is a little out of date - I will fix it up as soon as Fedora 21 (meant to support HSA) is released in early December.
+
 For Fedora 20 / x86_64 - see https://wiki.openjdk.java.net/display/Sumatra/Sumatra+JDK+build+instructions for more detail / alternative architectures
 
 You'll need to ensure that a few packages are installed - do the following as root:
