@@ -35,5 +35,6 @@ fi
 export CLUMATRA_HOME=`pwd`
 export PATH=$CLUMATRA_HOME/lib:$PATH
 export LD_LIBRARY_PATH=$CLUMATRA_HOME/lib:/opt/hsa/lib/
+##export OKRA_DISABLE_FIX_HSAIL=1
 
-exec mvn -t conf/toolchains.xml -P hardware-acceleration clean compile clojure:$testgoal $flags
+exec mvn -U -t conf/toolchains.xml -P hardware-acceleration clean compile clojure:$testgoal $flags
