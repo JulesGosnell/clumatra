@@ -5,7 +5,7 @@
 export LANG=C && \
 export PATH=/usr/lib/jvm/java-openjdk/bin:$PATH &&\
 export JAVA_HOME=`pwd`/sumatra && \
-export EXTRA_JAVA_HOMES=/etc/alternatives/java_sdk_1.8.0 && \
+export EXTRA_JAVA_HOMES=/usr/local/java/jdk1.7.0_75 && \
 rm -rf graal jdk1.8.0-graal && \
 hg clone http://hg.openjdk.java.net/graal/graal && \
 cd graal && \
