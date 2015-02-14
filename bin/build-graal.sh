@@ -20,6 +20,6 @@ hg clone http://hg.openjdk.java.net/graal/graal && \
 export JAVA_HOME=`pwd`/sumatra && \
 export EXTRA_JAVA_HOMES=/usr/local/java/jdk1.7.0_75 && \
 cd graal && \
-./mx.sh --vmbuild product --vm graal build && \
+./mx.sh --vmbuild product --vm server build && \
 cd .. && \
 mv graal/jdk1.8.0-internal/product jdk1.8.0-graal
