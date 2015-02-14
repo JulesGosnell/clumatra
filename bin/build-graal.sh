@@ -15,8 +15,6 @@ do
     esac
 done
 
-# ./mx.sh --vm graal unittest -XX:+TraceGPUInteraction -XX:+GPUOffload -G:Log=CodeGen hsail.test.IntAddTest && \
-
 rm -rf graal jdk1.8.0-graal && \
 hg clone http://hg.openjdk.java.net/graal/graal && \
 export JAVA_HOME=`pwd`/sumatra && \
