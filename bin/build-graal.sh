@@ -2,9 +2,6 @@
 
 ## distilled from https://wiki.openjdk.java.net/display/Graal/Instructions
 
-mkdir -p target
-cd target
-
 for arg in "$@"
 do
     case "$arg" in
